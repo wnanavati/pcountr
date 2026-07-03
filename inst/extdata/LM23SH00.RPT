@@ -1,0 +1,113 @@
+File created 13 May 2024  11:33                                       
+ECG.DIC, 1, 2, 9666, 0, 2;                                            
+POLLEN SUM = ABF                                                      
+Little Mosquito Lake            LM23sh#001                     13MAY24
+{LM23sh#001}/42N/....B1.B1B1I1B1B1B1I80PT1B1.A1A1B1UP1UP8G6A1.B1..B1A1
+B1B1Y8..SF1I1B6B1B1.SF8B6B1.I1G6..A1I1B1.I8PT6B1B1.A1J8A1..B1#B1A1S1S6
+.B1B1B1B1.A1Y1A1Y1SF1B1.A1A1B1B1A1/40S/B1Y8A1.B1TY1B1B1B1B1..G1S1SF1Y1
+I80A1B1G1ER1B1.B1S1J8I1B1.S1B1S1B1B1A1.I1I1Y6I1.A1I80.B1Y1I8B1G1A1B1B1
+S1A1A1B1.SF1A1.A1.B1B1I8Y1.I1I8B1B1.B1B6B6A1PT6B1/38N/A1G1B1A1B1B1B1I8
+0S1I1S1A1B1A1A1A1I1.#P1.B1B1B1B1A1A1A1I1B1B1.B1Y1B1.A1B1B1A1.A1B1A1B1I
+8.SF8A1Y1G1.B1S1..I8S8A1.A1B1B1Y6.A1/36S/A1.A1.A1A1A1B1I1UP1A1ER6.I8.B
+1B1A1.A1A1A1I8A1.B1B1G1B1.B1B1J8B6B1..S1G1A1B1.A1B1B1B1B1I1A1B1B1B1Y1A
+1B1SF1B1Y1A1Y6B1/34N/A1..B6A1I8I8.UP1A8G1A1Y8A1B1B1B6B1A1ER1.B1A1I8I6B
+1B1TY6B1A1I80A1A1B1S1.I8Y1G6B6A1B1I1G1B1/32S/A1.B1B1I8.A1I1A1G8I1.B1B1
+B1I8S6I1B1G1B1B1A1I8I8...I1PT8.A1I1S1A1B1A1B1B1A1B1A1S1B1B1B1A1B1PT6A1
+.I1B1B1A1B1B1R1A1.B6I8B1.TY8B1B1A1B1.S1B1B1B1B1Y1B1B1I1A1A1
+
+Little Mosquito Lake            LM23sh#001                     13MAY24
+File created 13 May 2024  11:33                                       
+
+TABLE OF COUNTS AND PERCENTAGES
+------------------------------------------------------------------------------
+
+Sum A
+-----
+Alnus rugosa                                                 A    83.0   25.04
+Betula                                                       B   139.0   41.93
+Cupressaceae                                                 J     3.0    0.90
+Ericaceae                                                   ER     3.0    0.90
+Picea                                                        I    42.5   12.82
+Populus tremuloides-type                                    PT     5.0    1.51
+Salix                                                        S    17.0    5.13
+** SUM A                                                         292.5   88.24
+
+Sum B
+-----
+Artemisia                                                    R     1.0    0.30
+Cyperaceae                                                   Y    17.0    5.13
+Poaceae                                                      G    14.0    4.22
+** SUM B                                                          32.0    9.65
+
+Sum F
+-----
+Sphagnum                                                    SF     7.0    2.11
+** SUM F                                                           7.0    2.11
+
+BASIC POLLEN SUM                                                 331.5
+
+Sum Q
+-----
+Potamogeton subgen. Eupotamogeton                           UP     4.0    1.18
+Typha latifolia                                             TY     3.0    0.89
+** SUM Q                                                           7.0    2.07
+
+TOTAL POLLEN SUM                                                 338.5
+------------------------------------------------------------------------------
+
+NON-POLLEN (PERCENTS BASED ON TOTAL POLLEN SUM
+----------------------------------------------
+Botryococcus                                                #B     1.0    0.30
+Pediastrum                                                  #P     1.0    0.30
+
+
+Quantity of sample = 1.0  ml
+Quantity of spike = 2.0 tablet(s)
+Density of Spike = 9666/tablet(s)
+Number of spike counted = 72
+Ratio of total pollen sum/spike = 4.7014
+Pollen concentration = 90887 grains/
+Number of traverses = 6
+Mean number of grains/traverse = 56.42
+
+
+Little Mosquito Lake            LM23sh#001                     13MAY24
+File created 13 May 2024  11:33                                       
+TABULATION BY PRESERVATION CODE
+
+CODE     1     6     8    80
+
+ A    82.0   0.0   1.0   0.0
+ B   130.0   9.0   0.0   0.0
+ G    10.0   3.0   1.0   0.0
+ I    22.0   1.0  17.0   2.5
+ J     0.0   0.0   3.0   0.0
+ R     1.0   0.0   0.0   0.0
+ S    14.0   2.0   1.0   0.0
+ Y    11.0   3.0   3.0   0.0
+#B     1.0   0.0   0.0   0.0
+#P     1.0   0.0   0.0   0.0
+ER     2.0   1.0   0.0   0.0
+PT     1.0   3.0   1.0   0.0
+SF     5.0   0.0   2.0   0.0
+TY     1.0   1.0   1.0   0.0
+UP     3.0   0.0   1.0   0.0
+
+
+CODE   TOTAL   PERCENT
+
+   1   284.0     83.41
+   6    23.0      6.75
+   8    31.0      9.10
+  80     2.5      0.73
+
+   0     2.5      0.73
+   1   284.0     83.41
+   2     0.0      0.00
+   3     0.0      0.00
+   4     0.0      0.00
+   5     0.0      0.00
+   6    23.0      6.75
+   7     0.0      0.00
+   8    33.5      9.84
+   9     0.0      0.00

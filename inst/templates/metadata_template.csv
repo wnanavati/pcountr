@@ -1,0 +1,53 @@
+# pcountr metadata template — read_site() / set_metadata()
+#
+# HOW TO USE
+# ----------
+# Option A — bulk depth/age via read_site():
+#   site <- read_site("path/to/counts/",
+#                     metadata = "metadata_template.csv")
+#   Only the file, depth_top, depth_bottom, age_top, and age_bottom columns
+#   are read by read_site(). All other columns are ignored by that function.
+#
+# Option B — per-sample metadata via set_metadata():
+#   Read this CSV yourself and call set_metadata() for each row:
+#     df <- read.csv("metadata_template.csv", comment.char = "#")
+#     for (i in seq_len(nrow(df))) {
+#       site <- set_metadata(site, df$file[i],
+#                            depth_top       = df$depth_top[i],
+#                            depth_bottom    = df$depth_bottom[i],
+#                            age_top         = df$age_top[i],
+#                            age_bottom      = df$age_bottom[i],
+#                            sample_name     = df$sample_name[i],
+#                            sample_quantity = df$sample_quantity[i],
+#                            sample_units    = df$sample_units[i],
+#                            spike_tablets   = df$spike_tablets[i],
+#                            spike_density   = df$spike_density[i],
+#                            spike_units     = df$spike_units[i])
+#     }
+#
+# COLUMNS
+# -------
+# file            YAML filename stem (e.g. KF24sh001 for KF24sh001.yaml)
+# sample_name     Analyst-assigned label, e.g. "KF24sh#001" — free text
+# depth_top       Top of sample interval, cm — must be < depth_bottom
+# depth_bottom    Bottom of sample interval, cm
+# age_top         Age at top of interval, cal yr BP (present = 1950 CE)
+# age_bottom      Age at bottom of interval, cal yr BP
+# sample_quantity Amount of sediment processed (numeric)
+# sample_units    Units for sample_quantity: ml  or  g
+# spike_tablets   Quantity of spike added: number of tablets, ml, or g
+#                   (interpretation depends on spike_units)
+# spike_density   Microspheres per tablet, per ml, or per g
+# spike_units     Units of spike: tablets  |  ml  |  g
+#
+# NOTES
+# -----
+# * Leave any cell blank if the value is unknown or not applicable.
+# * depth_top >= depth_bottom rows are flagged as likely transcription swaps.
+# * Lines starting with # are ignored by read.csv() when comment.char = "#".
+# * ages and depths can be left blank if not yet available.
+#
+file,sample_name,depth_top,depth_bottom,age_top,age_bottom,sample_quantity,sample_units,spike_tablets,spike_density,spike_units
+KF24sh001,KF24sh#001,0,1,-74,-70,1,ml,2,9666,tablets
+KF24sh002,KF24sh#002,1,2,-70,-66,1,ml,2,9666,tablets
+KF24sh003,KF24sh#003,2,3,-66,-62,1,ml,2,9666,tablets

@@ -1,0 +1,233 @@
+pcount dictionary
+       #B            Botryococcus
+       #C            Ceratophyllum spine
+        .            Microspheres
+       #P            Pediastrum
+       AB Abi      A Abies
+       AN          A Acer negundo
+       AR          A Acer rubrum
+       AI          A Acer saccharinum-type
+       AS          A Acer saccharum
+       AC          A Alnus crispa-type
+        A          A Alnus rugosa
+       AU          A Alnus undiff.
+       As          A Asimina
+        B          A Betula
+       CA          A Carya
+       CS          A Castanea
+       CE          A Ceanothus
+       CT          A Celastrus scandens
+       CL          A Celtis
+       CF          A Cephalanthus
+       Cc Cc       A Cornus canadensis
+       Cf Crn.f    A Cornus florida
+       CN          A Cornus stolonifera-type
+        C          A Corylus
+        J          A Cupressaceae
+       EL          A Elaeagnus
+       ET          A Ephedra trifurca-type
+       EV          A Ephedra viridis-type
+       ER          A Ericaceae
+       FG          A Fagus grandifolia
+        F          A Fraxinus nigra-type
+        N          A Fraxinus pennsylvanica-type
+       FU          A Fraxinus undiff.
+       JC          A Juglans cinerea
+       JN          A Juglans nigra
+        L          A Larix/Pseudotsuga
+       LQ          A Liquidambar styraciflua
+       MC          A Maclura pomifera-type
+       MO          A Morus
+       MR          A Myrica
+       NS          A Nyssa
+        O          A Ostrya-type
+       PC          A Parthenocissus
+        I          A Picea
+       PW          A Pinaceae undiff.
+       $P          A Pinus
+       EE          A Pinus edulis-type
+        E          A Pinus subgen. Diploxylon
+        H          A Pinus subgen. Haploxylon
+        P          A Pinus undiff.
+       PL          A Platanus
+       $O          A Populus
+       PB          A Populus balsamifera-type
+       PT          A Populus tremuloides-type
+       PX          A Populus undiff.
+       PR          A Prunus-type
+        Q          A Quercus
+       RH          A Rhus
+       RI          A Ribes
+        S          A Salix
+       SM          A Sambucus
+       SR          A Sarcobatus vermiculatus
+       Ss          A Sassafras
+       SH          A Shepherdia argentia
+       SC          A Shepherdia canadensis
+       SS          A Symphoricarpos-type
+       TX          A Taxodium
+        T          A Tilia
+       TS          A Tsuga
+       TM          A Tsuga mertensiana
+        U          A Ulmus
+       VL          A Viburnum lentago
+       VR          A Viburnum rafinesquianum-type
+       VM          A Viburnum trilobum-type
+       VT          A Vitis
+       QX          A Zanthoxylum americanum
+       AO          B Allium
+       KA          B Amaranthus retroflexus-type
+        M          B Ambrosia-type
+       AM          A Acer macrophyllum
+       AA          B Anemone canadensis-type
+       AE          B Anemone quinquefolia-type
+       UM          B Apiaceae
+        R          B Artemisia
+       LG          B Asteraceae subfam. Liguliflorae
+        V          B Asteraceae subfam. Tubuliflorae undiff.
+       GV          B Avena-type
+       OW          B Avena/Triticum
+       VB          B Bidens-type
+       BS          B Brassica
+       CR          B Brassicaceae undiff.
+       CI          B Campanula aparinoides-type
+       CP          B Campanula rotundifolia-type
+       CU          B Campanula uliginosa-type
+       HC          B Cannabinaceae
+       CB          B Cannabis sativa-type
+       CY          B Caryophyllaceae
+       GC          B Cerealea undiff.
+        K          B Chenopodiaceae/Amaranthaceae undiff.
+       $K          B Chenopodiaceae/Amaranthaceae undiff.
+       CM          B Comandra
+        Y          B Cyperaceae
+       FF          B Cystopteris bulbifera
+       DR          B Dryas-type
+       EP          B Epilobium
+       EG          B Eriogonum
+       EU          B Euphorbia
+       LU          B Fabaceae undiff.
+       FA          B Fagopyrum
+       GA          B Galium
+       GR          B Gaura
+       GD          B Gentiana andrewsii-type
+       HD          B Hedysarum
+       HE          B Heliotropium
+       HO          B Houstonia
+       HU          B Humulus lupulus
+       HY          B Hydrophyllum
+       HX          B Hypoxis hirsuta
+       IM          B Impatiens
+       IA          B Iva annua-type
+       IX          B Iva xanthifolia-type
+       KO          B Kochia-type
+       LA          B Laportea-type
+       LI          B Liliaceae undiff.
+       LE          B Lilium philadelphicum-type
+       LY          B Lycopus-type
+       LF          B Lysimachia quadriflora-type
+       LS          B Lysimachia thyrsiflora
+       LT          B Lythrum
+       LD          B Medicago sativa
+       LL          B Melilotus-type
+       OE          B Oenothera
+       ON          B Onosmodium
+       OA          B Opuntia
+       PE          B Parietaria
+       Ps          B Parnassia-type
+       PD          B Pedicularis
+       PS          B Petalostemum candidum-type
+       PP          B Petalostemum purpureum
+       PU          B Petalostemum-type
+       PH          B Phlox
+       PI          B Pilea-type
+       PN          B Plantago
+        G          B Poaceae
+       PM          B Polygonum amphibium
+       PO          B Polygonum lapathifolium-type
+       PA          B Polygonum ramosissimum-type
+       PY          B Polygonum tenue-type
+       TP          B Potentilla palustris-type
+       PZ          B Primula-type
+       RL          B Ranunculus longirostris-type
+       RN          B Ranunculus pensylvanicus-type
+       RA          B Ranunculus undiff.
+       RZ          B Rhamnaceae
+       AH          B Rosaceae cf. Amelanchier
+       RO          B Rosaceae undiff.
+       RU          B Rumex
+       KS          B Salsola
+       SN          B Sanguisorba
+       SX          B Saxifraga-type
+       GS          B Secale-type
+       SY          B Sisyrinchium
+       SO          B Solanum rostratum
+       SA          B Sphaeralcea
+       RS          B Spiraea
+       ST          B Stachys-type
+       KU          B Suaeda-type
+       TH          B Thalictrum
+       TA          B Tidestromia lanuginosa-type
+       LP          B Trifolium pratense
+       LR          B Trifolium repens-type
+       GT          B Triticum-type
+       VC          B Tubuliflorae c.f. Cirsium
+       WX          B Unknown (cf. Polygonum sect. Persicaria)
+       UR          B Urtica-type
+       VE          B Verbena
+       QN          B Xanthium
+       GZ          B Zea mays
+       ZG          B Zygadenus
+       DO          B cf. Dodecatheon
+       AD          F Adiantum pedatum
+       AT          F Athyrium filix-femina
+       BO          F Botrychium
+       CH          F Cheilanthes
+       DS          F Dryopteris spinulosa-type
+        D          F Dryopteris-type undiff.
+       EQ          F Equisetum
+       LN          F Lycopodium annotinum
+       LV          F Lycopodium clavatum
+       LC          F Lycopodium complanatum-type
+       LZ          F Lycopodium inundatum
+       LO          F Lycopodium lucidulum
+       LB          F Lycopodium obscurum
+       MA          F Matteuccia struthiopteris
+       MW          F Monolete spore undiff.
+       $D          F Monolete spore undiff.
+       OC          F Onoclea sensibilis
+       OP          F Ophioglossum
+       OS          F Osmunda
+       TR          F Pteridium aquilinum
+       SU          F Selaginella densa-type
+       SF          F Sphagnum
+       DT          F Thelypteris palustris-type
+       TW          F Trilete spore undiff.
+       GY          F c.f. Gymnocarpium
+       AL          Q Alisma
+       BR          Q Brasenia schreberi
+       CC          Q Callitriche
+       HI          Q Hippuris
+       IS          Q Isoetes
+       LM          Q Lemna
+       MN          Q Menyanthes trifoliata
+       MY          Q Myriophyllum
+       NU          Q Nuphar
+       NY          Q Nymphaea
+       CO          Q Potamogeton subgen. Coleogeton
+       UP          Q Potamogeton subgen. Eupotamogeton
+       RP          Q Ruppia
+       SG          Q Sagittaria
+       SZ          Q Scheuchzeria
+       SP          Q Sparganium-type
+       TY          Q Typha latifolia
+       UT          Q Utricularia
+        X          X Indeterminable
+       $Q          X Pre-Quaternary
+       AQ          X Pre-Quaternary (Aquilapollenites)
+       QC          X Pre-Quaternary (Cingutriletes)
+       PJ          X Pre-Quaternary (Cupressaceae-type)
+       QS          X Pre-Quaternary (Striatriletes)
+       PQ          X Pre-Quaternary undiff.
+        W          X Unknown
+       HP          F cf. Hypericum

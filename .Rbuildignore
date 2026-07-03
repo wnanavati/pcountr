@@ -1,0 +1,7 @@
+^DESIGN\.md$
+^ROADMAP\.md$
+^COWORK\.md$
+^.*\.tar\.gz$
+^\.git$
+^pcountr\.Rproj$
+^\.RDataTmp$

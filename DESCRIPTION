@@ -1,0 +1,37 @@
+Package: pcountr
+Title: Read, Convert, and Analyse Pollen Counts from PCount and Modern Formats
+Version: 0.5.1
+Authors@R:
+    person("William", "Nanavati",
+           email   = "william.nanavati@umontana.edu",
+           role    = c("aut", "cre"),
+           comment = c(ORCID = ""))
+Description: Reads legacy MS-DOS 'PCount' pollen-count files (.CNT) and their
+    dictionaries (.DIC), converting them into a tidy, self-contained native
+    format (YAML) that additionally carries sample depth and (optional) age.
+    Reproduces PCount's report calculations (pollen sums, tracer-spike ratios,
+    grain concentrations, traverse statistics and preservation tabulations) and
+    provides export helpers for downstream stratigraphic plotting (e.g. 'rioja')
+    and statistical analysis. Chronology construction itself is delegated to
+    dedicated tools (e.g. 'rbacon', 'clam', 'neotoma2'); pcountr only performs
+    accumulation-rate arithmetic from analyst-supplied ages.
+    Dedicated to the memory of Dr. Eric C. Grimm (1951--2020), who developed
+    PCount at the Illinois State Museum and trained generations of palynologists
+    in its use.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1.0)
+Imports:
+    yaml
+Suggests:
+    testthat (>= 3.0.0),
+    rioja,
+    shiny,
+    DT,
+    shinyFiles,
+    xml2,
+Config/testthat/edition: 3
+LazyData: true
+Config/roxygen2/version: 8.0.0

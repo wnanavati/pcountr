@@ -1,0 +1,25 @@
+# R session artifacts
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# Package build artifacts
+*.tar.gz
+*.zip
+*.Rcheck/
+/doc/
+/Meta/
+/man/figures/
+inst/doc/
+src/*.o
+src/*.so
+src/*.dll
+
+# Test snapshot artifacts
+/tests/testthat/_snaps/
+
+# OS
+.DS_Store
+Thumbs.db
