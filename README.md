@@ -83,10 +83,7 @@ Little Mosquito Lake site. 432 test assertions pass. See `tests/testthat/`.
 `pcountr` is dedicated to the memory of **Dr. Eric C. Grimm (1951–2020)**,
 who developed PCount at the Illinois State Museum and distributed it freely to
 the palynological community. This package exists because of his generosity as a
-teacher and his commitment to open science.
-
-*[Add your personal note about Eric here — how you knew him, what he taught you,
-why his work mattered to you.]*
+mentor and his commitment to open science.
 
 The Little Mosquito Lake example data (`inst/extdata/`) were collected as part
 of ongoing palynological research at the University of Montana.
