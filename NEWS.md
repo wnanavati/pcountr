@@ -12,9 +12,8 @@ assertions pass.
   behaviour; only the name has changed to reflect that the output matrix is
   not rioja-specific — it is used for plotting, export, and any downstream
   analysis.
-- **`as_rioja()` is retained as a deprecated wrapper** that calls
-  `site_matrix()` with a one-time warning. Existing scripts will continue to
-  work; update calls at your convenience.
+- **`as_rioja()` was retained as a deprecated wrapper** in this release and
+  removed in v0.5.1. Use `site_matrix()` directly.
 
 ### `write_tlx()` — Tilia XML export
 
@@ -39,6 +38,38 @@ suitable for Neotoma upload:
 ---
 
 ## pcountr 0.5.1
+
+### Documentation refocus
+
+- **DESCRIPTION** retitled and rewritten to lead with `count_app()` as the
+  primary interface. Broader proxy support (diatoms, charcoal morphotypes,
+  phytoliths) noted explicitly.
+- **README** restructured: `count_app()` is now the first function listed and
+  the quick-start example leads with a counting session. A "Not just pollen"
+  section added.
+- **New vignette: `counting.Rmd`** — *Counting at the Microscope* — the primary
+  workflow vignette. Covers the setup screen, input token syntax, live metrics,
+  autosave/resume, and the full post-counting pipeline (load → plot → TLX).
+  Includes a "Non-pollen applications" section.
+- **`workflow.Rmd` renamed to `legacy.Rmd`** — retitled *Legacy Workflow: CNT
+  Files to Tilia XML*. A callout at the top directs new users to `counting.Rmd`.
+- Author ORCID (0000-0003-4853-5429) added to `DESCRIPTION` and `README`.
+
+### Deprecated wrappers removed
+
+- **`as_rioja()`** removed. Use `site_matrix()` directly.
+- **`set_depth_age()`** and **`set_depth()`** removed. Use `set_metadata()` directly.
+
+### `inst/extdata/fake_lake/ECG.csv` — modernized dictionary
+
+A CSV-format version of the ECG dictionary with updated taxonomy is now bundled
+with the Fake Lake example data. Key updates relative to the original `ECG.DIC`:
+Lycopodium split (*Spinulum*, *Diphasiastrum*, *Lycopodiella*, *Huperzia*,
+*Dendrolycopodium*); Petalostemum → *Dalea*; Dodecatheon → *Primula*;
+Kochia → *Bassia*; Cornus stolonifera → *C. sericea*; Potamogeton subgen.
+Coleogeton → *Stuckenia*; Chenopodiaceae → Amaranthaceae; Asteraceae subfamily
+names updated to current usage. Both vignettes now pass this CSV as the
+dictionary rather than auto-detecting `ECG.DIC`.
 
 ### `write_tlx()` — revised and expanded Tilia XML export
 
@@ -88,7 +119,7 @@ all per-sample metadata fields:
   `"g"`).
 - **NULL-default semantics**: only arguments that are explicitly supplied
   overwrite the existing value — omitted fields are left unchanged.
-- `set_depth_age()` and `set_depth()` remain as deprecated wrappers.
+- `set_depth_age()` and `set_depth()` have been removed; use `set_metadata()` directly.
 - `spike_units` added to the `pollen_count` data model and YAML format
   (backward-compatible: existing files without the field load as `NA`).
 - `inst/templates/metadata_template.csv` updated with all new columns and a
@@ -312,44 +343,4 @@ modern CSV dictionary format on top of the verified v0.1.0 spine.
 ### Parser fixes
 
 - Traverse labels now accept any free text between slashes (`/label/`), not
-  just numeric + N/S. The corresponding test was renamed accordingly.
-
-### Testing
-
-- 279 test assertions passing (was 87 at v0.1.0).
-- New test files: `test-dictionary-csv.R`, `test-site-loader.R`,
-  `test-rioja.R`, `test-accum-rate.R`.
-- YAML round-trip golden test verifies concentration reproduces to the digit
-  through write → read.
-
----
-
-## pcountr 0.1.0 (the verified spine)
-
-First working version. Reads legacy PCount files, reproduces PCount report
-calculations to the digit, and writes a modern native format.
-
-### Features
-
-- `read_dic()`: parse PCount `.DIC` dictionaries (fixed-column format).
-- `read_cnt()`: parse legacy `.CNT` count files into per-grain `pollen_count`
-  objects, preserving counting order, traverse labels, tracer-spike marks, and
-  inline remarks. Anomalies (e.g. data-entry typos, unresolved codes) are
-  imported permissively and reported via the `anomalies` attribute and a warning.
-- `pollen_site()` / `pollen_count()`: the two core S3 objects, with configurable
-  preservation scheme and multi-state precedence, and sample-level depth/age slots.
-- `count_metrics()`: per-group pollen sums, basic/total sums, spike count,
-  sum/spike ratio, grain concentration (per-sample ml→grains/cm³ or g→grains/g),
-  traverse statistics.
-- `preservation_table()`: taxon × preservation-class tabulation, with optional
-  multi-state collapsing by precedence.
-- `write_pollen_count()` / `read_pollen_count()`: native YAML format (with a
-  built-in emitter fallback when the `yaml` package is absent).
-
-### Verified
-
-- Reproduces `LM23SH00.RPT` exactly (all sums, spike, ratio, concentration,
-  traverse stats).
-- Parses all 20 Little Mosquito Lake samples; surfaces exactly 7 known
-  data-entry anomalies.
-- 87 test assertions passing.
+  just numeric + N/S. The corresponding test was renamed accord

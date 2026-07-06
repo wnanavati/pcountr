@@ -1,0 +1,276 @@
+---
+title: "Counting at the Microscope: The count_app() Workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Counting at the Microscope: The count_app() Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse  = TRUE,
+  comment   = "#>",
+  warning   = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+`count_app()` is the primary interface in pcountr. It launches a keystroke-driven
+Shiny application designed for use at the microscope: type an ID, a preservation code, press
+Enter, and the count is recorded. Live running totals, continuous autosave, and
+a resume-from-YAML path make it a practical replacement for the PCount DOS
+counting loop.
+
+pcountr is not limited to pollen. The dictionary format, input tokens, and YAML
+output are proxy-agnostic — diatom, charcoal morphotype, phytolith, or any other
+assemblage counted by traversing a slide follows the same workflow unchanged.
+
+---
+
+## What you need before you start
+
+Three things:
+
+1. **A dictionary** — either a PCount `.DIC` file or a CSV in the pcountr
+   template format. The dictionary maps taxon codes to names and sum groups.
+   See `inst/extdata/dictionary_template.csv` for the column layout.
+
+2. **Spike parameters** — the number of spike tablets (or volume/mass) added
+   per sample, and the concentration of your spike standard.
+
+3. **A save folder** — a directory where YAML count files will be written. One
+   file is created per sample.
+
+If you are transitioning from PCount, your existing `.DIC` file works directly —
+load it with `read_dic()` or point the app setup screen at it.
+
+---
+
+## Launching the app
+
+```{r launch, eval = FALSE}
+library(pcountr)
+count_app()
+```
+
+The app opens in your default browser. It requires the `shiny`, `DT`, and
+`shinyFiles` packages; install them if prompted.
+
+---
+
+## Setup screen
+
+The first screen collects instrument and sample metadata before counting begins.
+
+| Field | Notes |
+|---|---|
+| **Dictionary** | Browse to a `.DIC` or `.csv` dictionary file |
+| **Sample name** | Free text, e.g. `KF24sh#001`; accepts any string |
+| **Depth top / bottom** | Interval in cm; leave blank if unknown |
+| **Age top / bottom** | Calibrated years BP; leave blank if unknown |
+| **Spike tablets** | Number of tablets (or ml / g) added to this sample |
+| **Spike density** | Microspheres per unit of spike |
+| **Spike units** | `tablets`, `ml`, or `g` |
+| **Sample quantity** | Volume or mass of sediment processed |
+| **Sample units** | `ml` or `g` |
+| **Save path** | Full path for this sample's YAML file |
+
+Click **Start Counting** when the fields are complete. The save path is locked
+once counting begins; all other metadata fields remain editable on the
+*Sample Info* tab during the count.
+
+---
+
+## Input syntax
+
+Type any of the following in the input field and press Enter:
+
+| Token | Meaning |
+|---|---|
+| `B1`, `I80`, `A1` | A grain: taxon code + base preservation digit + optional modifiers |
+| `B10` | Half-grain modifier: code `B`, preservation `1`, modifier `0` (weight 0.5) |
+| `B19` | Hidden grain: code `B`, preservation `1`, modifier `9` |
+| `.` | One tracer microsphere (spike) |
+| `/label/` | Traverse marker — stored verbatim in the grain sequence |
+| `[text]` | Inline remark — stored verbatim |
+
+Preservation digits: `1` = perfect, `2` = corroded, `6` = crumpled, `8` = broken.
+
+Unknown or malformed tokens trigger a prominent red alert and an audio beep.
+The grain is **not recorded** — correct and re-enter.
+
+Use the **New Slide** button when moving to a new slide; you will be prompted
+for a slide ID, which is stored as a traverse marker.
+
+---
+
+## Live metrics
+
+The header panel updates after every entry:
+
+- **Σ** — total grains counted (all groups)
+- **ΣP** — group-filtered sum (e.g., terrestrial pollen types only)
+- **Traverses** — running traverse count
+- **Spike** — total spike grains recorded
+- **Concentration** — grains/g or grains/cm³ via the Stockmarr equation; shows
+  `NA` until spike, quantity, and spike density are all non-zero
+- **PAR** — pollen accumulation rate; shows `NA` until depth and age intervals
+  are both present
+
+---
+
+## Autosave and resume
+
+The YAML file is written after **every single entry** — not just at the end.
+Closing the browser or losing power does not lose data. The *Done / Save* button
+is a confirmation step only.
+
+To resume a previous count, click **Open Existing Count** on the setup screen
+and navigate to the YAML file. Grain order, traverses, remarks, spike total, and
+all metadata are restored exactly as they were.
+
+After finishing a sample, **New Sample** carries over instrument metadata
+(dictionary, spike parameters, sample units) and suggests an incremented save
+path, ready for the next slide.
+
+---
+
+## After counting: loading YAML files
+
+Once your count session is complete, load the saved YAML files with `read_site()`.
+Depths, ages, and spike parameters embedded during counting are read automatically
+— no separate metadata sheet is needed.
+
+```{r load-yaml, eval = FALSE}
+site <- read_site("path/to/your/yaml/folder")
+print(site)
+```
+
+If you have a mix of new YAML counts and legacy `.CNT` files in the same folder,
+`read_site()` loads both transparently.
+
+The examples below use the **Fake Lake** dataset bundled with pcountr — 20
+simulated samples loaded from `.CNT` files — to demonstrate the post-counting
+workflow with runnable code. The output is identical to what you would get from
+a folder of YAML files produced by `count_app()`.
+
+```{r fake-lake}
+library(pcountr)
+
+cnt_dir   <- system.file("extdata", "fake_lake", package = "pcountr")
+meta_path <- system.file("extdata", "fake_lake", "metadata_FL.csv",
+                         package = "pcountr")
+dic_path  <- system.file("extdata", "fake_lake", "ECG.csv",
+                         package = "pcountr")
+
+site <- read_site(cnt_dir, metadata = meta_path, dic = dic_path)
+print(site)
+```
+
+---
+
+## Stratigraphic diagram
+
+`site_matrix()` converts the loaded site into parallel matrices and vectors
+ready for `rioja::strat.plot()`. Set `min_present` to hide taxa that appear in
+very few samples.
+
+```{r site-matrix}
+mat <- site_matrix(site, min_present = 2)
+
+cat("Samples:", nrow(mat$TaxaPerc), "\n")
+cat("Taxa:   ", ncol(mat$TaxaPerc), "\n")
+```
+
+```{r strat-plot, fig.width = 10, fig.height = 7}
+if (requireNamespace("rioja", quietly = TRUE)) {
+  keep <- colSums(mat$TaxaPerc > 0) >= 3
+
+  rioja::strat.plot(
+    mat$TaxaPerc[, keep],
+    yvar          = mat$DepTop,
+    y2var         = mat$AgeTop,
+    y.rev         = TRUE,
+    scale.percent = TRUE,
+    cex.xlabel = 0.8, 
+    srt.xlabel = 45,
+    ylabel        = "Depth (cm)",
+    y2label       = "Age (cal yr BP)",
+    title         = "Fake Lake — pollen percentages"
+  )
+} else {
+  message("Install the rioja package to produce the stratigraphic diagram.")
+}
+```
+
+---
+
+## Concentrations and accumulation rates
+
+`site_matrix()` also returns per-taxon concentrations (`TaxaConc`) and
+accumulation rates (`TaxaAccRate`) when spike, sample quantity, and age
+interval data are present in the count files.
+
+```{r concentration}
+total_conc <- rowSums(mat$TaxaConc, na.rm = TRUE)
+data.frame(
+  Sample   = rownames(mat$TaxaPerc),
+  Depth_cm = mat$DepTop,
+  Age_BP   = mat$AgeTop,
+  Conc     = round(total_conc)
+)
+```
+
+Use `accum_rate()` for a dedicated summary that validates all required inputs
+up front:
+
+```{r accum-rate}
+ar <- accum_rate(site)
+print(ar$data)
+```
+
+---
+
+## Export to Tilia XML
+
+`write_tlx()` exports the entire site to a `.tlx` file readable by Tilia and
+suitable for Neotoma upload. Four spreadsheet pages (Data, Percents,
+Concentrations, Accumulation) are written with nine shared metadata header rows
+per sample matching Tilia's own output format.
+
+```{r write-tlx}
+tlx_path <- tempfile(fileext = ".tlx")
+write_tlx(site, file = tlx_path)
+
+cat("File size:", file.size(tlx_path), "bytes\n")
+
+if (requireNamespace("xml2", quietly = TRUE)) {
+  doc   <- xml2::read_xml(tlx_path)
+  pages <- xml2::xml_find_all(doc, "//SpreadSheet")
+  cat("Pages:", paste(xml2::xml_attr(pages, "name"), collapse = ", "), "\n")
+}
+```
+
+After opening the TLX in Tilia, fill in the *Site* and *Collection Unit* tabs,
+add radiocarbon dates on the *Chronology* tab, and run CONISS from the *Analysis*
+menu before submitting to Neotoma.
+
+---
+
+## Non-pollen applications
+
+The workflow above applies without modification to other stratigraphic proxies.
+Replace the pollen dictionary with one whose codes and groups match your proxy:
+
+- **Diatoms** — code each taxon; use groups to define the sum base (e.g. total
+  valves counted).
+- **Charcoal morphotypes** — code morphotype categories; accumulation rates
+  are computed identically once depths and ages are supplied.
+- **Phytoliths, NPPs, dinoflagellates** — any assemblage that is counted by
+  traversing a prepared slide fits the model.
+
+The only pollen-specific assumption in the package is the preservation-code
+vocabulary (perfect/corroded/crumpled/broken). All other calculations — sums,
+concentrations, PAR, matrix output, TLX export — are proxy-agnostic.

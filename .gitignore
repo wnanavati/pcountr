@@ -17,9 +17,7 @@ src/*.o
 src/*.so
 src/*.dll
 
-# Test snapshot artifacts
-/tests/testthat/_snaps/
+# knitr build artifacts
+/vignettes/workflow_files/
 
-# OS
-.DS_Store
-Thumbs.db
+# Unpublished site data 

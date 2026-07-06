@@ -1,0 +1,232 @@
+"code","alias","group","name","is_special"
+"#B","","","Botryococcus",TRUE
+"#C","","","Microcharcoal",TRUE
+".","","","Microspheres",TRUE
+"#P","","","Pediastrum",TRUE
+"AB","Abi","A","Abies",FALSE
+"AN","","A","Acer negundo",FALSE
+"AR","","A","Acer rubrum",FALSE
+"AI","","A","Acer saccharinum-type",FALSE
+"AS","","A","Acer saccharum",FALSE
+"AC","","A","Alnus crispa-type",FALSE
+"A","","A","Alnus rugosa",FALSE
+"AU","","A","Alnus undiff.",FALSE
+"As","","A","Asimina",FALSE
+"B","","A","Betula",FALSE
+"CA","","A","Carya",FALSE
+"CS","","A","Castanea",FALSE
+"CE","","A","Ceanothus",FALSE
+"CT","","A","Celastrus scandens",FALSE
+"CL","","A","Celtis",FALSE
+"CF","","A","Cephalanthus",FALSE
+"Cc","Cc","A","Cornus canadensis",FALSE
+"Cf","Crn.f","A","Cornus florida",FALSE
+"CN","","A","Cornus sericea-type",FALSE
+"C","","A","Corylus",FALSE
+"J","","A","Cupressaceae",FALSE
+"EL","","A","Elaeagnus",FALSE
+"ET","","A","Ephedra trifurca-type",FALSE
+"EV","","A","Ephedra viridis-type",FALSE
+"ER","","A","Ericaceae",FALSE
+"FG","","A","Fagus grandifolia",FALSE
+"F","","A","Fraxinus nigra-type",FALSE
+"N","","A","Fraxinus pennsylvanica-type",FALSE
+"FU","","A","Fraxinus undiff.",FALSE
+"JC","","A","Juglans cinerea",FALSE
+"JN","","A","Juglans nigra",FALSE
+"L","","A","Larix/Pseudotsuga",FALSE
+"LQ","","A","Liquidambar styraciflua",FALSE
+"MC","","A","Maclura pomifera-type",FALSE
+"MO","","A","Morus",FALSE
+"MR","","A","Myrica",FALSE
+"NS","","A","Nyssa",FALSE
+"O","","A","Ostrya-type",FALSE
+"PC","","A","Parthenocissus",FALSE
+"I","","A","Picea",FALSE
+"PW","","A","Pinaceae undiff.",FALSE
+"$P","","A","Pinus",FALSE
+"EE","","A","Pinus edulis-type",FALSE
+"E","","A","Pinus subgen. Diploxylon",FALSE
+"H","","A","Pinus subgen. Haploxylon",FALSE
+"P","","A","Pinus undiff.",FALSE
+"PL","","A","Platanus",FALSE
+"$O","","A","Populus",FALSE
+"PB","","A","Populus balsamifera-type",FALSE
+"PT","","A","Populus tremuloides-type",FALSE
+"PX","","A","Populus undiff.",FALSE
+"PR","","A","Prunus-type",FALSE
+"Q","","A","Quercus",FALSE
+"RH","","A","Rhus",FALSE
+"RI","","A","Ribes",FALSE
+"S","","A","Salix",FALSE
+"SM","","A","Sambucus",FALSE
+"SR","","A","Sarcobatus vermiculatus",FALSE
+"Ss","","A","Sassafras",FALSE
+"SH","","A","Shepherdia argentea",FALSE
+"SC","","A","Shepherdia canadensis",FALSE
+"SS","","A","Symphoricarpos-type",FALSE
+"TX","","A","Taxodium",FALSE
+"T","","A","Tilia",FALSE
+"TS","","A","Tsuga",FALSE
+"TM","","A","Tsuga mertensiana",FALSE
+"U","","A","Ulmus",FALSE
+"VL","","A","Viburnum lentago",FALSE
+"VR","","A","Viburnum rafinesquianum-type",FALSE
+"VM","","A","Viburnum trilobum-type",FALSE
+"VT","","A","Vitis",FALSE
+"QX","","A","Zanthoxylum americanum",FALSE
+"AO","","B","Allium",FALSE
+"KA","","B","Amaranthus retroflexus-type",FALSE
+"M","","B","Ambrosia-type",FALSE
+"AM","","A","Acer macrophyllum",FALSE
+"AA","","B","Anemone canadensis-type",FALSE
+"AE","","B","Anemone quinquefolia-type",FALSE
+"UM","","B","Apiaceae",FALSE
+"R","","B","Artemisia",FALSE
+"LG","","B","Asteraceae subfam. Cichorioideae",FALSE
+"V","","B","Asteraceae subfam. Asteroideae undiff.",FALSE
+"GV","","B","Avena-type",FALSE
+"OW","","B","Avena/Triticum",FALSE
+"VB","","B","Bidens-type",FALSE
+"BS","","B","Brassica",FALSE
+"CR","","B","Brassicaceae undiff.",FALSE
+"CI","","B","Campanula aparinoides-type",FALSE
+"CP","","B","Campanula rotundifolia-type",FALSE
+"CU","","B","Campanula uliginosa-type",FALSE
+"HC","","B","Cannabaceae",FALSE
+"CB","","B","Cannabis sativa-type",FALSE
+"CY","","B","Caryophyllaceae",FALSE
+"GC","","B","Cerealia undiff.",FALSE
+"K","","B","Amaranthaceae undiff.",FALSE
+"$K","","B","Amaranthaceae undiff.",FALSE
+"CM","","B","Comandra",FALSE
+"Y","","B","Cyperaceae",FALSE
+"FF","","B","Cystopteris bulbifera",FALSE
+"DR","","B","Dryas-type",FALSE
+"EP","","B","Epilobium",FALSE
+"EG","","B","Eriogonum",FALSE
+"EU","","B","Euphorbia",FALSE
+"LU","","B","Fabaceae undiff.",FALSE
+"FA","","B","Fagopyrum",FALSE
+"GA","","B","Galium",FALSE
+"GD","","B","Gentiana andrewsii-type",FALSE
+"HD","","B","Hedysarum",FALSE
+"HE","","B","Heliotropium",FALSE
+"HO","","B","Houstonia",FALSE
+"HU","","B","Humulus lupulus",FALSE
+"HY","","B","Hydrophyllum",FALSE
+"HX","","B","Hypoxis hirsuta",FALSE
+"IM","","B","Impatiens",FALSE
+"IA","","B","Iva annua-type",FALSE
+"IX","","B","Iva xanthifolia-type",FALSE
+"KO","","B","Bassia-type",FALSE
+"LA","","B","Laportea-type",FALSE
+"LI","","B","Liliaceae undiff.",FALSE
+"LE","","B","Lilium philadelphicum-type",FALSE
+"LY","","B","Lycopus-type",FALSE
+"LF","","B","Primula quadriflora-type",FALSE
+"LS","","B","Primula thyrsiflora",FALSE
+"LT","","B","Lythrum",FALSE
+"LD","","B","Medicago sativa",FALSE
+"LL","","B","Melilotus-type",FALSE
+"OE","","B","Oenothera",FALSE
+"ON","","B","Onagraceae",FALSE
+"OA","","B","Opuntia",FALSE
+"PE","","B","Parietaria",FALSE
+"Ps","","B","Parnassia-type",FALSE
+"PD","","B","Pedicularis",FALSE
+"PS","","B","Dalea candida-type",FALSE
+"PP","","B","Dalea purpurea",FALSE
+"PU","","B","Dalea-type",FALSE
+"PH","","B","Phlox",FALSE
+"PI","","B","Pilea-type",FALSE
+"PN","","B","Plantago",FALSE
+"G","","B","Poaceae",FALSE
+"PM","","B","Polygonum amphibium",FALSE
+"PO","","B","Polygonum lapathifolium-type",FALSE
+"PA","","B","Polygonum ramosissimum-type",FALSE
+"PY","","B","Polygonum tenue-type",FALSE
+"TP","","B","Potentilla palustris-type",FALSE
+"PZ","","B","Primula-type",FALSE
+"RL","","B","Ranunculus longirostris-type",FALSE
+"RN","","B","Ranunculus pensylvanicus-type",FALSE
+"RA","","B","Ranunculus undiff.",FALSE
+"RZ","","B","Rhamnaceae",FALSE
+"AH","","B","Rosaceae cf. Amelanchier",FALSE
+"RO","","B","Rosaceae undiff.",FALSE
+"RU","","B","Rumex",FALSE
+"KS","","B","Salsola",FALSE
+"SN","","B","Sanguisorba",FALSE
+"SX","","B","Saxifraga-type",FALSE
+"GS","","B","Secale-type",FALSE
+"SY","","B","Sisyrinchium",FALSE
+"SO","","B","Solanum rostratum",FALSE
+"SA","","B","Sphaeralcea",FALSE
+"RS","","B","Spiraea",FALSE
+"ST","","B","Stachys-type",FALSE
+"KU","","B","Suaeda-type",FALSE
+"TH","","B","Thalictrum",FALSE
+"TA","","B","Tidestromia lanuginosa-type",FALSE
+"LP","","B","Trifolium pratense",FALSE
+"LR","","B","Trifolium repens-type",FALSE
+"GT","","B","Triticum-type",FALSE
+"VC","","B","Asteroideae cf. Cirsium",FALSE
+"WX","","B","Unknown (cf. Polygonum sect. Persicaria)",FALSE
+"UR","","B","Urtica-type",FALSE
+"VE","","B","Verbena",FALSE
+"QN","","B","Xanthium",FALSE
+"GZ","","B","Zea mays",FALSE
+"ZG","","B","Zygadenus",FALSE
+"DO","","B","cf. Primula",FALSE
+"AD","","F","Adiantum pedatum",FALSE
+"AT","","F","Athyrium filix-femina",FALSE
+"BO","","F","Botrychium",FALSE
+"CH","","F","Cheilanthes",FALSE
+"DS","","F","Dryopteris carthusiana-type",FALSE
+"D","","F","Dryopteris-type undiff.",FALSE
+"EQ","","F","Equisetum",FALSE
+"LN","","F","Spinulum annotinum",FALSE
+"LV","","F","Lycopodium clavatum",FALSE
+"LC","","F","Diphasiastrum complanatum-type",FALSE
+"LZ","","F","Lycopodiella inundatum",FALSE
+"LO","","F","Huperzia lucidula",FALSE
+"LB","","F","Dendrolycopodium obscurum",FALSE
+"MA","","F","Matteuccia struthiopteris",FALSE
+"MW","","F","Monolete spore undiff.",FALSE
+"$D","","F","Monolete spore undiff.",FALSE
+"OC","","F","Onoclea sensibilis",FALSE
+"OP","","F","Ophioglossum",FALSE
+"OS","","F","Osmunda",FALSE
+"TR","","F","Pteridium aquilinum",FALSE
+"SU","","F","Selaginella densa-type",FALSE
+"SF","","F","Sphagnum",FALSE
+"DT","","F","Thelypteris palustris-type",FALSE
+"TW","","F","Trilete spore undiff.",FALSE
+"GY","","F","c.f. Gymnocarpium",FALSE
+"AL","","Q","Alisma",FALSE
+"BR","","Q","Brasenia schreberi",FALSE
+"CC","","Q","Callitriche",FALSE
+"HI","","Q","Hippuris",FALSE
+"IS","","Q","Isoetes",FALSE
+"LM","","Q","Lemna",FALSE
+"MN","","Q","Menyanthes trifoliata",FALSE
+"MY","","Q","Myriophyllum",FALSE
+"NU","","Q","Nuphar",FALSE
+"NY","","Q","Nymphaea",FALSE
+"CO","","Q","Stuckenia",FALSE
+"UP","","Q","Potamogeton subgen. Eupotamogeton",FALSE
+"RP","","Q","Ruppia",FALSE
+"SG","","Q","Sagittaria",FALSE
+"SZ","","Q","Scheuchzeria",FALSE
+"SP","","Q","Sparganium-type",FALSE
+"TY","","Q","Typha latifolia",FALSE
+"UT","","Q","Utricularia",FALSE
+"X","","X","Indeterminable",FALSE
+"$Q","","X","Pre-Quaternary",FALSE
+"AQ","","X","Pre-Quaternary (Aquilapollenites)",FALSE
+"QC","","X","Pre-Quaternary (Cingutriletes)",FALSE
+"PJ","","X","Pre-Quaternary (Cupressaceae-type)",FALSE
+"QS","","X","Pre-Quaternary (Striatriletes)",FALSE
+"PQ","","X","Pre-Quaternary undiff.",FALSE
+"W","","X","Unknown",FALSE
+"HP","","F","cf. Hypericum",FALSE

@@ -5,30 +5,36 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.4.0.** The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 287 test
+Status as of this writing: **v0.5.1.** The verified spine (v0.1.0) is complete
+and all planned analytical layers have been built on top of it. 429 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
-field.
+field. Two vignettes ship with the package: *Counting at the Microscope*
+(`counting.Rmd`, primary) and *Legacy Workflow: CNT Files to Tilia XML*
+(`legacy.Rmd`). Deprecated wrappers `as_rioja()`, `set_depth_age()`, and
+`set_depth()` have been removed.
 
 ---
 
 ## 1. What this package is
 
-`pcountr` modernises the workflow of the MS-DOS program **PCount**, which
-palynologists use to tally pollen grains under a microscope. The package:
+`pcountr` is a keystroke-driven counting application and analysis toolkit for
+stratigraphic microscopy. Although built around the MS-DOS program **PCount**
+and its pollen-counting workflow, the package is proxy-agnostic: diatoms,
+charcoal morphotypes, phytoliths, or any assemblage counted by traversing a
+slide follow the same workflow unchanged. The package:
 
-1. **reads** legacy PCount files (`.DIC` dictionaries, `.CNT` counts, `.RPT`
-   reports);
-2. **converts** them into a modern, self-contained native format (YAML), adding
-   sample depth and optional age;
-3. **reproduces** PCount's report calculations (pollen sums, tracer-spike ratio,
-   grain concentration, traverse statistics, preservation tabulations);
-4. **exports** to downstream tools (`rioja` stratigraphic plots, tidy data
-   frames / community matrices for statistics);
-5. provides a **Shiny counting app** (`count_app()`) to replace the DOS
+1. provides a **Shiny counting app** (`count_app()`) to replace the DOS
    counting loop — keystroke-driven grain entry, live running totals,
-   concentration and PAR, YAML autosave.
+   concentration and PAR, YAML autosave, resume from any saved count;
+2. **reads** legacy PCount files (`.DIC` dictionaries, `.CNT` counts, `.RPT`
+   reports);
+3. **converts** them into a modern, self-contained native format (YAML), adding
+   sample depth and optional age;
+4. **reproduces** PCount's report calculations (assemblage sums, tracer-spike
+   ratio, grain concentration, traverse statistics, preservation tabulations);
+5. **exports** to downstream tools (`rioja` stratigraphic plots, tidy community
+   matrices for statistics, Tilia XML `.tlx` for Neotoma upload).
 
 ### Origins and acknowledgements
 
@@ -38,9 +44,6 @@ in Springfield, Illinois, and distributed it freely to the palynological communi
 beginning in 1994. The `.CNT` grammar documented in §3, the concentration equation
 in §10, and the preservation scheme in §6 are all derived directly from PCount 2.0.
 All credit for the original design belongs to Grimm.
-
-*[Add your personal note about Eric here — how you knew him, what he meant to
-your work, why you undertook this project.]*
 
 ### Scope boundary — chronology is delegated
 
@@ -185,9 +188,9 @@ consistent; `read_cnt(site=)` warns if a code doesn't resolve.
 - `remarks` — list of `{text, position, traverse}`, verbatim, in sequence
 - `events` — the full ordered event list (grains, spikes, traverses, remarks)
   interleaved by position — this is what preserves exact counting order
-- `meta` — `sample_quantity, units, spike_tablets, spike_density,
+- `meta` — `sample_quantity, units, spike_tablets, spike_density, spike_units,
   pollen_sum_groups, depth_top, depth_bottom, age_top, age_bottom,
-  sample_number, dic_path, slide, title, source_file`
+  sample_name, dic_path, slide, title, source_file`
 - `site` — optional attached `pollen_site`
 - `attr(x, "anomalies")` — data frame of `position, text, reason`
 
@@ -218,8 +221,10 @@ it will be available via CRAN in Cowork — install it).
 
 ## 9. Verification status
 
-Reproduced **to the digit** against `inst/extdata/LM23SH00.RPT` (the report for
-`LMSH001.CNT`):
+Reproduced **to the digit** against `LM23SH00.RPT` (the PCount report for
+`LMSH001.CNT` from the Little Mosquito Lake site). These files are local only
+and gitignored (unpublished data); they remain in the analyst's working
+directory for local test runs.
 
 | Quantity | Value |
 |----------|-------|
@@ -282,15 +287,4 @@ This gives the analyst real-time feedback on whether their metadata is complete
 and lets them watch concentration stabilise as the count grows.
 
 ### Metadata mutability
-All sample metadata (depth, age, title, spike parameters, ΣP groups) are
-editable mid-count via the Sample Info tab. Changes take effect immediately and
-autosave. The save path is intentionally not editable once counting starts —
-changing it mid-count would split a single count across two files.
-
-### Dictionary tab
-The loaded dictionary is always inspectable and editable during counting. The
-Save Dictionary button writes back to the CSV file. If the source was a `.DIC`
-file (fixed-column, read-only format), clicking Save prompts for a CSV path
-and converts, after which the session continues with the CSV as the live
-dictionary. This means a `.DIC` user is gently migrated to CSV the first time
-they edit a taxon mid-count.
+All sample metadata (depth, age, title, spike parameters, ΣP

@@ -13,7 +13,7 @@
 #' \enumerate{
 #'   \item Embedded in native `.yaml` files -- the primary route going forward.
 #'   \item An optional CSV metadata sheet (`metadata` + `col_map`).
-#'   \item Direct assignment with [set_depth()].
+#'   \item Direct assignment with [set_metadata()].
 #' }
 #' When a `.yaml` file already carries a depth value *and* the sheet also
 #' provides one for the same sample, the two values must agree. A discrepancy
@@ -202,26 +202,6 @@ set_metadata <- function(site, sample,
   invisible(site)
 }
 
-#' @rdname set_metadata
-#' @export
-set_depth_age <- function(site, sample, depth_top, depth_bottom,
-                          age_top = NA_real_, age_bottom = NA_real_) {
-  .Deprecated("set_metadata")
-  set_metadata(site, sample,
-               depth_top = depth_top, depth_bottom = depth_bottom,
-               age_top   = age_top,   age_bottom   = age_bottom)
-}
-
-#' @rdname set_metadata
-#' @export
-set_depth <- function(site, sample, depth_top, depth_bottom,
-                      age_top = NA_real_, age_bottom = NA_real_) {
-  .Deprecated("set_metadata")
-  set_metadata(site, sample,
-               depth_top = depth_top, depth_bottom = depth_bottom,
-               age_top   = age_top,   age_bottom   = age_bottom)
-}
-
 
 # --- internal helpers -------------------------------------------------------
 
@@ -248,7 +228,12 @@ set_depth <- function(site, sample, depth_top, depth_bottom,
 .read_metadata_sheet <- function(path, col_map) {
   df <- tryCatch(
     if (tolower(tools::file_ext(path)) == "csv") {
-      read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
+      {
+        lines <- readLines(path, warn = FALSE)
+        lines <- lines[!grepl("^[[:space:]]*#", lines)]
+        read.csv(text = paste(lines, collapse = "\n"),
+                 stringsAsFactors = FALSE, check.names = FALSE)
+      }
     } else {
       read.table(path, header = TRUE, sep = "\t",
                  stringsAsFactors = FALSE, check.names = FALSE,
@@ -332,59 +317,4 @@ set_depth <- function(site, sample, depth_top, depth_bottom,
   sheet[hit[1L], , drop = FALSE]
 }
 
-# Attach depth/age from a sheet row to a CNT-derived pollen_count.
-.attach_sheet_depth <- function(cnt, key, sheet) {
-  row <- .sheet_row(key, sheet)
-  if (is.null(row)) return(cnt)
-  if ("depth_top"    %in% names(row)) cnt$meta$depth_top    <- .as_num(row$depth_top)
-  if ("depth_bottom" %in% names(row)) cnt$meta$depth_bottom <- .as_num(row$depth_bottom)
-  if ("age_top"      %in% names(row)) cnt$meta$age_top      <- .as_num(row$age_top)
-  if ("age_bottom"   %in% names(row)) cnt$meta$age_bottom   <- .as_num(row$age_bottom)
-  cnt
-}
-
-# For YAML files: check sheet values against embedded values; apply sheet
-# values only when the YAML slot is NA.
-.reconcile_yaml_sheet_depth <- function(cnt, key, sheet, ignore_conflicts) {
-  row <- .sheet_row(key, sheet)
-  if (is.null(row)) return(cnt)
-
-  fields <- c("depth_top", "depth_bottom", "age_top", "age_bottom")
-  for (fld in fields) {
-    yaml_val  <- cnt$meta[[fld]]
-    sheet_val <- if (fld %in% names(row)) .as_num(row[[fld]]) else NA_real_
-    if (is.null(yaml_val)) yaml_val <- NA_real_
-
-    if (!is.na(yaml_val) && !is.na(sheet_val)) {
-      if (!isTRUE(all.equal(as.numeric(yaml_val), as.numeric(sheet_val),
-                            tolerance = 1e-9))) {
-        msg <- sprintf(
-          "%s: %s conflict -- YAML has %g, sheet has %g.",
-          key, fld, as.numeric(yaml_val), as.numeric(sheet_val)
-        )
-        if (ignore_conflicts) warning(msg, call. = FALSE) else stop(msg)
-      }
-    } else if (is.na(yaml_val) && !is.na(sheet_val)) {
-      cnt$meta[[fld]] <- sheet_val
-    }
-  }
-  cnt
-}
-
-# Order a named list of pollen_counts by depth_top ascending; NA at end.
-.order_samples <- function(samples) {
-  tops <- vapply(samples, function(s) {
-    v <- s$meta$depth_top
-    if (is.null(v) || length(v) == 0L || (length(v) == 1L && is.na(v)))
-      NA_real_ else as.numeric(v)
-  }, NA_real_)
-
-  has_depth <- !is.na(tops)
-  depth_order <- order(tops[has_depth])
-  depth_names <- names(samples)[has_depth][depth_order]
-  nodep_names <- names(samples)[!has_depth]
-
-  samples[c(depth_names, nodep_names)]
-}
-
-.as_num <- function(x) suppressWarnings(as.numeric(x))
+# Attach depth/age from a sheet row to a CNT-

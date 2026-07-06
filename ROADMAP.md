@@ -99,9 +99,9 @@
 6. **`write_tlx()` validation** — round-trip test against a known-good TLX file once a
    complete site with ages is available; harden unit handling for g-unit sites.
 
-## Validation debts to clear when data allows
+## Optional future features
 
-- A `.CNT`/`.RPT` pair with **combination preservation codes** (e.g. `680`) to verify
-  multi-state attribution against the original PCount output.
-- Documentation for preservation codes **3, 4, 5, 7**.
-- More sites (different dictionaries, ml vs g units) to harden assumptions.
+- **Volumetric concentration method** — an alternative to the tracer-spike
+  equation for analysts who do not add an exotic spike. Concentration would be
+  computed from a known aliquot volume drawn from a known total suspension
+  volume: `concentration = (grains_counted / aliquot_volume) × to

@@ -1,0 +1,250 @@
+---
+title: "Legacy Workflow: CNT Files to Tilia XML"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Legacy Workflow: CNT Files to Tilia XML}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse  = TRUE,
+  comment   = "#>",
+  warning   = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+> **Starting a new project?** See the *Counting at the Microscope* vignette
+> (`vignette("counting", package = "pcountr")`) for the primary `count_app()`
+> workflow. This vignette covers the legacy path: reading existing MS-DOS PCount
+> `.CNT` files and converting them through to Tilia XML export.
+
+This vignette walks through the full pcountr workflow from reading legacy PCount `.CNT` files through stratigraphic visualisation and Tilia XML export. Each section corresponds to a stage a palynologist would encounter in practice.
+
+## The Fake Lake dataset
+
+The examples below use **Fake Lake**, a simulated site bundled with pcountr. The pollen assemblages are derived from real counts; depths, ages, and spike information is fictional. The site consists of 20 samples spanning 0–95 cm (roughly 2,000 cal yr BP) with a standard Lycopodium spike (2 tablets, 9,666 spores per tablet, 1 cc sediment per sample).
+
+Fake Lake ships with two things: a folder of `.CNT` files and a pre-filled metadata CSV.
+
+```{r paths}
+library(pcountr)
+
+cnt_dir   <- system.file("extdata", "fake_lake", package = "pcountr")
+meta_path <- system.file("extdata", "fake_lake", "metadata_FL.csv",
+                         package = "pcountr")
+dic_path  <- system.file("extdata", "fake_lake", "ECG.csv",
+                         package = "pcountr")
+```
+
+---
+
+## Part 1: Reading CNT files
+
+### Loading the site
+
+`read_site()` discovers every `.CNT` (and `.yaml`) file in a folder, parses them in parallel, and returns a `pollen_site` object with all samples ordered by depth. Pass the metadata CSV to attach depths, ages, and spike parameters in one step.
+
+```{r read-site}
+site <- read_site(cnt_dir, metadata = meta_path, dic = dic_path)
+print(site)
+```
+
+`read_site()` warns if any file in the folder has no matching row in the metadata sheet, or if depths are inconsistent. Here everything should be clean.
+
+### Inspecting a single sample
+
+Each sample is a `pollen_count` object stored in `site$samples`. The `$meta` list holds all per-sample metadata; `$grains` is a data frame of individual grain records in counting order.
+
+```{r inspect-sample}
+# First sample
+s1 <- site$samples[["FL001"]]
+
+# Metadata
+cat("Sample:", s1$meta$sample_name, "\n")
+cat("Depth: ", s1$meta$depth_top, "–", s1$meta$depth_bottom, "cm\n")
+cat("Age:   ", s1$meta$age_top,   "–", s1$meta$age_bottom,   "cal yr BP\n")
+cat("Spike: ", s1$meta$spike_tablets, "tablets ×",
+               s1$meta$spike_density, "spores/tablet\n")
+
+# Quick count summary
+m <- count_metrics(s1)
+cat("\nBasic pollen sum:  ", m$basic_sum, "\n")
+cat("Spike counted:     ", m$spike, "\n")
+cat("Sum/spike ratio:   ", round(m$ratio, 4), "\n")
+cat("Concentration:     ", round(m$concentration), "grains/g\n")
+```
+
+### Checking for anomalies
+
+`read_cnt()` (called internally by `read_site()`) imports every grain permissively and logs any token that doesn't resolve against the dictionary. Access the anomaly table via the `anomalies` attribute.
+
+```{r anomalies}
+anom <- attr(s1, "anomalies")
+if (nrow(anom) == 0) {
+  cat("No anomalies in FL001.\n")
+} else {
+  print(anom)
+}
+```
+
+---
+
+## Part 2: The counting app
+
+`count_app()` launches an interactive Shiny application that replaces the DOS PCount counting loop. It is designed for use at the microscope.
+
+```{r count-app, eval = FALSE}
+# Not run in vignette — requires an interactive session and Shiny
+count_app()
+```
+
+**Workflow inside the app:**
+
+1. **Setup screen** — Select a dictionary (`.DIC` or `.csv`), enter spike parameters and sample quantity, set the sample name, title, depth and age, choose a YAML save path, and click *Start Counting*.
+
+2. **Counting** — Type grain tokens (`B1`, `I80`, `A1`) followed by Enter. The app parses each token against the loaded dictionary. Type `.` for a spike grain, `/label/` to mark a traverse, and `[text]` for an inline remark. Unknown or malformed tokens trigger a prominent alert with an audio beep.
+
+3. **Live metrics** — The running ΣP sum, spike count, concentration (grains/g or grains/cm³), and PAR update after every entry. `NA` appears until all required inputs are present.
+
+4. **Mid-count editing** — All metadata fields are editable on the *Sample Info* tab while counting. The save path is locked once counting starts.
+
+5. **Autosave** — The YAML is written after every single entry. *Done / Save* is a confirmation step, not the save trigger. Resume a past count with *Open Existing Count* on the setup screen — grain order, traverses, remarks, and spike total are restored exactly.
+
+6. **New sample** — After finishing a count, *New Sample* carries over instrument metadata and suggests an incremented save path.
+
+Once YAML files have been created by the app, load them with `read_site()` exactly as you would load `.CNT` files. Depths and spike parameters saved during counting are embedded in the YAML, so no separate metadata sheet is needed.
+
+---
+
+## Part 3: Visualisation
+
+### Building the site matrix
+
+`site_matrix()` converts the loaded site into a list of parallel matrices and vectors suitable for `rioja::strat.plot()`. Taxon names from the dictionary are used as column labels by default.
+
+```{r site-matrix}
+mat <- site_matrix(site, min_present = 2)
+
+# Dimensions
+cat("Samples:", nrow(mat$TaxaPerc), "\n")
+cat("Taxa:   ", ncol(mat$TaxaPerc), "\n")
+
+# Depth and age ranges
+cat("Depth range:", range(mat$DepTop), "cm\n")
+cat("Age range:  ", range(mat$AgeTop, na.rm = TRUE), "cal yr BP\n")
+
+# Top 5 taxa by mean percentage
+top5 <- sort(colMeans(mat$TaxaPerc, na.rm = TRUE), decreasing = TRUE)[1:5]
+round(top5, 1)
+```
+
+### Stratigraphic diagram
+
+Pass `TaxaPerc` and `DepTop` to `rioja::strat.plot()`. The `y.rev = TRUE` argument places the surface at the top (shallower = younger = higher on the plot), which is standard for stratigraphic diagrams.
+
+```{r strat-plot, fig.width = 10, fig.height = 7}
+if (requireNamespace("rioja", quietly = TRUE)) {
+  keep <- colSums(mat$TaxaPerc > 0) >= 3
+
+  rioja::strat.plot(
+    mat$TaxaPerc[, keep],
+    yvar          = mat$DepTop,
+    y.rev         = TRUE,
+    scale.percent = TRUE,
+    cex.xlabel    = 0.8,
+    srt.xlabel    = 45,
+    ylabel        = "Depth (cm)",
+    title         = "Fake Lake — pollen percentages"
+  )
+} else {
+  message("Install the rioja package to produce the stratigraphic diagram.")
+}
+```
+
+### Concentration and accumulation rates
+
+`site_matrix()` also returns per-taxon concentrations (`TaxaConc`) and accumulation rates (`TaxaAccRate`) when all required inputs are present.
+
+```{r concentration}
+# Total pollen concentration per sample (sum across all taxa)
+total_conc <- rowSums(mat$TaxaConc, na.rm = TRUE)
+data.frame(
+  Sample   = rownames(mat$TaxaPerc),
+  Depth_cm = mat$DepTop,
+  Age_BP   = mat$AgeTop,
+  Conc_grains_per_g = round(total_conc)
+)
+```
+
+Use `accum_rate()` for a dedicated summary that also validates all required inputs up front and reports every deficiency in a single error message.
+
+```{r accum-rate}
+ar <- accum_rate(site)
+print(ar$data)
+```
+
+---
+
+## Part 4: Export to Tilia XML
+
+`write_tlx()` exports the entire site to a `.tlx` file readable by Tilia and suitable for upload to the Neotoma Paleoecology Database. The output contains four spreadsheet pages (Data, Percents, Concentrations, Accumulation) with nine shared metadata header rows per sample, matching Tilia's own output format.
+
+```{r write-tlx}
+tlx_path <- tempfile(fileext = ".tlx")
+write_tlx(site, file = tlx_path)
+
+cat("TLX written to:", tlx_path, "\n")
+cat("File size:", file.size(tlx_path), "bytes\n")
+
+# Peek at the root element to confirm well-formed XML
+if (requireNamespace("xml2", quietly = TRUE)) {
+  doc  <- xml2::read_xml(tlx_path)
+  root <- xml2::xml_name(xml2::xml_root(doc))
+  pages <- xml2::xml_find_all(doc, "//SpreadSheet")
+  cat("Root element:", root, "\n")
+  cat("Pages:", length(pages), "\n")
+  cat("Page names:", paste(
+    xml2::xml_attr(pages, "name"), collapse = ", "), "\n")
+}
+```
+
+**After opening the TLX in Tilia:**
+
+- Fill in the *Site* and *Collection Unit* tabs with location, physiography, and coring details.
+- Add radiocarbon dates on the *Chronology* tab and run Bchron or Bacon within Tilia to build the age model.
+- CONISS is not computed by pcountr — run it from the *Analysis* menu in Tilia or via `rioja::chclust()` before upload.
+
+---
+
+## Summary of the workflow
+
+```{r workflow-summary, eval = FALSE}
+library(pcountr)
+
+# 1. Load CNT files and attach metadata
+site <- read_site("path/to/cnt/folder",
+                  metadata = "metadata.csv")
+
+# 2. Count new samples interactively (saves YAML automatically)
+count_app()
+
+# 3. Reload site once new YAMLs are saved (read_site picks up both CNT and YAML)
+site <- read_site("path/to/counts")
+
+# 4. Build the site matrix
+mat <- site_matrix(site, min_present = 2)
+
+# 5. Stratigraphic diagram
+rioja::strat.plot(mat$TaxaPerc, yvar = mat$DepTop, y.rev = TRUE,
+                  scale.percent = TRUE)
+
+# 6. Accumulation rates
+ar <- accum_rate(site)
+
+# 7. Export to Tilia
+write_tlx(site, file = "my_site.tlx")
+```

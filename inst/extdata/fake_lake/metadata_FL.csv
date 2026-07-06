@@ -1,0 +1,67 @@
+# pcountr metadata — Fake Lake (simulated dataset)
+#
+# Fake Lake is a simulated site used in pcountr vignettes and examples.
+# Pollen assemblages are derived from real counts but depths and ages are
+# fictional. Do not cite or interpret these data as real stratigraphy.
+#
+# HOW TO USE
+# ----------
+# Option A — bulk depth/age via read_site():
+#   site <- read_site(system.file("extdata", "fake_lake", package = "pcountr"),
+#                     metadata = system.file("extdata", "fake_lake",
+#                                            "metadata_FL.csv",
+#                                            package = "pcountr"))
+#
+# Option B — per-sample metadata via set_metadata():
+#   df <- read.csv(system.file("extdata", "fake_lake", "metadata_FL.csv",
+#                              package = "pcountr"),
+#                  comment.char = "#")
+#   for (i in seq_len(nrow(df))) {
+#     site <- set_metadata(site, df$file[i],
+#                          depth_top       = df$depth_top[i],
+#                          depth_bottom    = df$depth_bottom[i],
+#                          age_top         = df$age_top[i],
+#                          age_bottom      = df$age_bottom[i],
+#                          sample_name     = df$sample_name[i],
+#                          sample_quantity = df$sample_quantity[i],
+#                          sample_units    = df$sample_units[i],
+#                          spike_tablets   = df$spike_tablets[i],
+#                          spike_density   = df$spike_density[i],
+#                          spike_units     = df$spike_units[i])
+#   }
+#
+# COLUMNS
+# -------
+# file            YAML filename stem (e.g. FL001 for FL001.yaml)
+# sample_name     Analyst label (e.g. FL#001)
+# depth_top       Top of sample interval, cm
+# depth_bottom    Bottom of sample interval, cm
+# age_top         Age at top of interval, cal yr BP (present = 1950 CE)
+# age_bottom      Age at bottom of interval, cal yr BP
+# sample_quantity Amount of sediment processed (numeric)
+# sample_units    Units for sample_quantity: g
+# spike_tablets   Number of Lycopodium tablets added
+# spike_density   Spores per tablet
+# spike_units     Units of spike: tablets
+#
+file,sample_name,depth_top,depth_bottom,age_top,age_bottom,sample_quantity,sample_units,spike_tablets,spike_density,spike_units
+FL001,FL#001,0.00,0.25,-50,-45,1,g,2,9666,tablets
+FL002,FL#002,5.00,5.25,52,58,1,g,2,9666,tablets
+FL003,FL#003,10.00,10.25,155,160,1,g,2,9666,tablets
+FL004,FL#004,15.00,15.25,258,263,1,g,2,9666,tablets
+FL005,FL#005,20.00,20.25,360,365,1,g,2,9666,tablets
+FL006,FL#006,25.00,25.25,462,468,1,g,2,9666,tablets
+FL007,FL#007,30.00,30.25,565,570,1,g,2,9666,tablets
+FL008,FL#008,35.00,35.25,668,673,1,g,2,9666,tablets
+FL009,FL#009,40.00,40.25,770,775,1,g,2,9666,tablets
+FL010,FL#010,45.00,45.25,872,878,1,g,2,9666,tablets
+FL011,FL#011,50.00,50.25,975,980,1,g,2,9666,tablets
+FL012,FL#012,55.00,55.25,1078,1083,1,g,2,9666,tablets
+FL013,FL#013,60.00,60.25,1180,1185,1,g,2,9666,tablets
+FL014,FL#014,65.00,65.25,1282,1288,1,g,2,9666,tablets
+FL015,FL#015,70.00,70.25,1385,1390,1,g,2,9666,tablets
+FL016,FL#016,75.00,75.25,1488,1493,1,g,2,9666,tablets
+FL017,FL#017,80.00,80.25,1590,1595,1,g,2,9666,tablets
+FL018,FL#018,85.00,85.25,1692,1698,1,g,2,9666,tablets
+FL019,FL#019,90.00,90.25,1795,1800,1,g,2,9666,tablets
+FL020,FL#020,95.00,95.25,1898,1903,1,g,2,9666,tablets
