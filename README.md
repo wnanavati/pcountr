@@ -47,6 +47,9 @@ workflow while saving to a modern, self-contained format.
 ## Quick start — count, plot, export
 
 ```r
+# install.packages("remotes")  # if you don't have it
+remotes::install_github("wnanavati/pcountr")
+
 library(pcountr)
 
 # 1. Count at the microscope (saves YAML automatically)
