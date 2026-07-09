@@ -25,7 +25,7 @@ wrap_tokens <- function(tokens, width = 68) {
 
 render_stream <- function(events, dic_name, sample_qty, spike_qty,
                           spike_density, sample_units, pollen_sum,
-                          title, created) {
+                          title, created, use_pres = TRUE) {
   units_code <- switch(sample_units, ml = "1", g = "2", "2")
   header <- c(
     paste("File created", format(created, "%d %b %Y  %H:%M")),
@@ -41,10 +41,14 @@ render_stream <- function(events, dic_name, sample_qty, spike_qty,
       remark     = sprintf("[%s]", e$text),
       spike      = ".",
       grain      = {
-        mods <- ""
-        if (isTRUE(e$hidden))          mods <- paste0(mods, "9")
-        if (isTRUE(e$weight == 0.5))   mods <- paste0(mods, "0")
-        paste0(e$code, e$base, mods)
+        if (isTRUE(use_pres)) {
+          mods <- ""
+          if (isTRUE(e$hidden))        mods <- paste0(mods, "9")
+          if (isTRUE(e$weight == 0.5)) mods <- paste0(mods, "0")
+          paste0(e$code, e$base %||% "", mods)
+        } else {
+          paste0(e$code, "_")
+        }
       }, "")
   }, "")
   paste(c(header, wrap_tokens(tokens, 68)), collapse = "\n")
@@ -420,12 +424,14 @@ setup_panel <- function(is_resume = FALSE, meta = NULL) {
   title_text <- if (is_resume) "Resume Count" else "New Count"
   btn_text   <- if (is_resume) "▶  Resume Count" else "▶  Start Counting"
 
-  def_qty    <- m$sample_qty    %||% 1
-  def_units  <- m$sample_units  %||% "ml"
-  def_spike  <- m$spike_qty     %||% 2
-  def_sdens  <- m$spike_density %||% 9666
-  def_sunits <- m$spike_units   %||% "tablets"
-  def_sname  <- m$sample_name %||% ""
+  def_qty        <- m$sample_qty    %||% 1
+  def_units      <- m$sample_units  %||% "ml"
+  def_spike      <- m$spike_qty     %||% 2
+  def_sdens      <- m$spike_density %||% 9666
+  def_sunits     <- m$spike_units   %||% "tablets"
+  def_sname      <- m$sample_name   %||% ""
+  def_conc_meth  <- m$conc_method   %||% "spike"
+  def_use_pres   <- if (isFALSE(m$use_pres)) "no" else "yes"
   def_dtop   <- m$depth_top     # may be NA
   def_dbot   <- m$depth_bottom
   def_atop   <- m$age_top
@@ -453,7 +459,13 @@ setup_panel <- function(is_resume = FALSE, meta = NULL) {
     uiOutput("group_ui"),
     hr(),
 
-    # ── Sample quantity / spike ──
+    # ── Concentration method ──
+    radioButtons("conc_method", "Calculate concentration?",
+                 choices  = c("Yes, using spikes."    = "spike",
+                              "Yes, volumetrically."  = "volumetric",
+                              "No."                   = "none"),
+                 selected = def_conc_meth),
+    # ── Sample quantity ──
     fluidRow(
       column(6, numericInput("sample_qty", "Sample quantity",
                              value = def_qty, min = 0.001, step = 0.1)),
@@ -461,15 +473,23 @@ setup_panel <- function(is_resume = FALSE, meta = NULL) {
                              choices  = c("ml", "g"),
                              selected = def_units, inline = TRUE))
     ),
-    fluidRow(
-      column(6, numericInput("spike_qty", "Spike quantity",
-                             value = def_spike, min = 1, step = 1)),
-      column(6, numericInput("spike_density", "Spike density",
-                             value = def_sdens, min = 1))
+    # ── Spike fields — visible only when spike method is selected ──
+    conditionalPanel(
+      condition = "input.conc_method == 'spike'",
+      fluidRow(
+        column(6, numericInput("spike_qty", "Spike quantity",
+                               value = def_spike, min = 1, step = 1)),
+        column(6, numericInput("spike_density", "Spike density",
+                               value = def_sdens, min = 1))
+      ),
+      radioButtons("spike_units", "Spike units",
+                   choices  = c("ml", "g", "tablets"),
+                   selected = def_sunits, inline = TRUE)
     ),
-    radioButtons("spike_units", "Spike units",
-                 choices  = c("ml", "g", "tablets"),
-                 selected = def_sunits, inline = TRUE),
+    # ── Preservation codes ──
+    radioButtons("use_pres", "Use preservation codes?",
+                 choices  = c("Yes" = "yes", "No" = "no"),
+                 selected = def_use_pres, inline = TRUE),
     hr(),
 
     # ── Sample location & age ──
@@ -595,15 +615,29 @@ counting_panel <- function() {
                                         choices  = c("ml","g"),
                                         selected = "ml", inline = TRUE))
               ),
-              fluidRow(
-                column(6, numericInput("meta_spike_qty", "Spike quantity",
-                                       value = 2, min = 1, step = 1)),
-                column(6, numericInput("meta_spike_density", "Spike density",
-                                       value = 9666, min = 1))
-              ),
-              radioButtons("meta_spike_units", "Spike units",
-                           choices  = c("ml","g","tablets"),
-                           selected = "tablets", inline = TRUE)
+              conditionalPanel(
+                condition = "input.meta_conc_method == 'spike'",
+                fluidRow(
+                  column(6, numericInput("meta_spike_qty", "Spike quantity",
+                                         value = 2, min = 1, step = 1)),
+                  column(6, numericInput("meta_spike_density", "Spike density",
+                                         value = 9666, min = 1))
+                ),
+                radioButtons("meta_spike_units", "Spike units",
+                             choices  = c("ml","g","tablets"),
+                             selected = "tablets", inline = TRUE)
+              )
+            ),
+            div(class = "meta-section",
+              div(class = "meta-section-title", "Counting Options"),
+              radioButtons("meta_conc_method", "Calculate concentration?",
+                           choices  = c("Yes, using spikes."   = "spike",
+                                        "Yes, volumetrically." = "volumetric",
+                                        "No."                  = "none"),
+                           selected = "spike"),
+              radioButtons("meta_use_pres", "Preservation codes?",
+                           choices  = c("Yes" = "yes", "No" = "no"),
+                           selected = "yes", inline = TRUE)
             ),
             div(class = "meta-section",
               div(class = "meta-section-title", "ΣP — Analyst defined pollen sum"),
@@ -725,8 +759,10 @@ server <- function(input, output, session) {
     spike_qty     = 2,
     spike_density = 9666,
     spike_units   = "tablets",
+    conc_method   = "spike",
+    use_pres      = TRUE,
     title         = "",
-    sample_name = "",
+    sample_name   = "",
     depth_top     = NA_real_,
     depth_bottom  = NA_real_,
     age_top       = NA_real_,
@@ -841,8 +877,10 @@ server <- function(input, output, session) {
       spike_qty     = as.numeric(m$spike_tablets   %||% 2),
       spike_density = as.numeric(m$spike_density   %||% 9666),
       spike_units   = "tablets",
+      conc_method   = m$conc_method    %||% "spike",
+      use_pres      = if (isFALSE(m$use_pres)) FALSE else TRUE,
       title         = m$title          %||% "",
-      sample_name = m$sample_name  %||% "",
+      sample_name   = m$sample_name    %||% "",
       depth_top     = suppressWarnings(as.numeric(m$depth_top    %||% NA)),
       depth_bottom  = suppressWarnings(as.numeric(m$depth_bottom %||% NA)),
       age_top       = suppressWarnings(as.numeric(m$age_top      %||% NA)),
@@ -949,6 +987,9 @@ server <- function(input, output, session) {
     updateNumericInput(session,  "spike_qty",     value    = ps$spike_qty)
     updateNumericInput(session,  "spike_density", value    = ps$spike_density)
     updateRadioButtons(session,  "spike_units",   selected = ps$spike_units)
+    updateRadioButtons(session,  "conc_method",   selected = ps$conc_method %||% "spike")
+    updateRadioButtons(session,  "use_pres",
+                       selected = if (isFALSE(ps$use_pres)) "no" else "yes")
     updateTextInput(session,     "save_path",     value    = ps$next_path)
     rv$prefill <- FALSE
   })
@@ -970,6 +1011,8 @@ server <- function(input, output, session) {
     rv$spike_qty     <- as.numeric(input$spike_qty)
     rv$spike_density <- as.numeric(input$spike_density)
     rv$spike_units   <- input$spike_units
+    rv$conc_method   <- input$conc_method   %||% "spike"
+    rv$use_pres      <- !identical(input$use_pres, "no")
     rv$title         <- trimws(input$title_line  %||% "")
     rv$sample_name <- trimws(input$sample_name %||% "")
     rv$depth_top     <- suppressWarnings(as.numeric(input$depth_top))
@@ -1065,6 +1108,14 @@ server <- function(input, output, session) {
     rv$pollen_sum <- input$meta_pollen_sum %||% character(0); do_autosave()
   }, ignoreInit = TRUE, ignoreNULL = FALSE)
 
+  observeEvent(input$meta_conc_method, {
+    rv$conc_method <- input$meta_conc_method %||% "spike"; do_autosave()
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
+
+  observeEvent(input$meta_use_pres, {
+    rv$use_pres <- !identical(input$meta_use_pres, "no"); do_autosave()
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
+
   # Sync meta fields when counting_panel first renders (setup → counting)
   observe({
     req(rv$setup_done)
@@ -1079,6 +1130,9 @@ server <- function(input, output, session) {
     updateNumericInput(session, "meta_spike_qty",     value    = isolate(rv$spike_qty))
     updateNumericInput(session, "meta_spike_density", value    = isolate(rv$spike_density))
     updateRadioButtons(session, "meta_spike_units",   selected = isolate(rv$spike_units))
+    updateRadioButtons(session, "meta_conc_method",   selected = isolate(rv$conc_method))
+    updateRadioButtons(session, "meta_use_pres",
+                       selected = if (isolate(rv$use_pres)) "yes" else "no")
   })
 
   # ── Entry logic -----------------------------------------------------------
@@ -1109,31 +1163,58 @@ server <- function(input, output, session) {
                                           traverse=rv$cur_traverse)))
       return(TRUE)
     }
-    m <- regmatches(s, regexec("^([#$]?[A-Za-z]{1,2})([1-8])([09]*)$", s))[[1]]
-    if (length(m) == 4L) {
-      code   <- m[2]; base <- m[3]
-      mods   <- strsplit(m[4], "")[[1]]
-      half   <- "0" %in% mods; hidden <- "9" %in% mods
-      pres   <- paste(unique(c(base, mods[mods != "0"])), collapse = ";")
-      wt     <- if (half) 0.5 else 1.0
-      idx    <- match(code, rv$dic$code)
-      if (is.na(idx)) idx <- match(toupper(code), toupper(rv$dic$code))
-      if (is.na(idx)) {
-        session$sendCustomMessage("beep", list())
-        showModal(code_alert_modal(code,
-          "This code is not in the dictionary. Re-enter a known code, or open the Dictionary tab to add it."))
-        return(FALSE)
+    if (rv$use_pres) {
+      # Standard mode: code + preservation digit (e.g. I8, B1, A80)
+      m <- regmatches(s, regexec("^([#$]?[A-Za-z]{1,2})([1-8])([09]*)$", s))[[1]]
+      if (length(m) == 4L) {
+        code   <- m[2]; base <- m[3]
+        mods   <- strsplit(m[4], "")[[1]]
+        half   <- "0" %in% mods; hidden <- "9" %in% mods
+        pres   <- paste(unique(c(base, mods[mods != "0"])), collapse = ";")
+        wt     <- if (half) 0.5 else 1.0
+        idx    <- match(code, rv$dic$code)
+        if (is.na(idx)) idx <- match(toupper(code), toupper(rv$dic$code))
+        if (is.na(idx)) {
+          session$sendCustomMessage("beep", list())
+          showModal(code_alert_modal(code,
+            "This code is not in the dictionary. Re-enter a known code, or open the Dictionary tab to add it."))
+          return(FALSE)
+        }
+        rv$events <- c(rv$events, list(list(type="grain", code=rv$dic$code[idx],
+                                            base=base, pres=pres, weight=wt,
+                                            hidden=hidden, traverse=rv$cur_traverse,
+                                            position=pos, anomaly=FALSE)))
+        return(TRUE)
       }
-      rv$events <- c(rv$events, list(list(type="grain", code=rv$dic$code[idx],
-                                          base=base, pres=pres, weight=wt,
-                                          hidden=hidden, traverse=rv$cur_traverse,
-                                          position=pos, anomaly=FALSE)))
-      return(TRUE)
+      session$sendCustomMessage("beep", list())
+      showModal(code_alert_modal(s,
+        "This does not match any recognised token. Valid entries: code+digit (e.g. I8), /traverse/, [remark], or . (spike)."))
+      return(FALSE)
+    } else {
+      # No-preservation mode: code only (e.g. I, B, A)
+      m <- regmatches(s, regexec("^([#$]?[A-Za-z]{1,2})$", s))[[1]]
+      if (length(m) == 2L) {
+        code <- m[2]
+        idx  <- match(code, rv$dic$code)
+        if (is.na(idx)) idx <- match(toupper(code), toupper(rv$dic$code))
+        if (is.na(idx)) {
+          session$sendCustomMessage("beep", list())
+          showModal(code_alert_modal(code,
+            "This code is not in the dictionary. Re-enter a known code, or open the Dictionary tab to add it."))
+          return(FALSE)
+        }
+        rv$events <- c(rv$events, list(list(type="grain", code=rv$dic$code[idx],
+                                            base=NA_character_, pres=NA_character_,
+                                            weight=1.0, hidden=FALSE,
+                                            traverse=rv$cur_traverse,
+                                            position=pos, anomaly=FALSE)))
+        return(TRUE)
+      }
+      session$sendCustomMessage("beep", list())
+      showModal(code_alert_modal(s,
+        "This does not match any recognised token. Valid entries: taxon code only (e.g. I), /traverse/, [remark], or . (spike)."))
+      return(FALSE)
     }
-    session$sendCustomMessage("beep", list())
-    showModal(code_alert_modal(s,
-      "This does not match any recognised token. Valid entries: code+digit (e.g. I8), /traverse/, [remark], or . (spike)."))
-    return(FALSE)
   }
 
   observeEvent(input$entry_submit, {
@@ -1231,6 +1312,8 @@ server <- function(input, output, session) {
       spike_qty     = rv$spike_qty,
       spike_density = rv$spike_density,
       spike_units   = rv$spike_units,
+      conc_method   = rv$conc_method,
+      use_pres      = rv$use_pres,
       pollen_sum    = rv$pollen_sum,
       next_path     = next_save_path(rv$save_path)
     )
@@ -1295,14 +1378,21 @@ server <- function(input, output, session) {
     spike_n <- rv$base_spike_n +
                sum(vapply(rv$events, function(e) e$type == "spike", FALSE))
 
-    # Concentration: (ΣP / spike) × (tablets × density) / sample_qty
+    # Concentration: method-dependent
     conc <- NA_real_
-    if (basic > 0 && spike_n > 0 &&
-        !is.na(rv$spike_qty)     && rv$spike_qty     > 0 &&
-        !is.na(rv$spike_density) && rv$spike_density > 0 &&
-        !is.na(rv$sample_qty)    && rv$sample_qty    > 0) {
-      conc <- (basic / spike_n) * (rv$spike_qty * rv$spike_density) / rv$sample_qty
+    if (rv$conc_method == "spike") {
+      if (basic > 0 && spike_n > 0 &&
+          !is.na(rv$spike_qty)     && rv$spike_qty     > 0 &&
+          !is.na(rv$spike_density) && rv$spike_density > 0 &&
+          !is.na(rv$sample_qty)    && rv$sample_qty    > 0) {
+        conc <- (basic / spike_n) * (rv$spike_qty * rv$spike_density) / rv$sample_qty
+      }
+    } else if (rv$conc_method == "volumetric") {
+      if (basic > 0 && !is.na(rv$sample_qty) && rv$sample_qty > 0) {
+        conc <- basic / rv$sample_qty
+      }
     }
+    # "none": conc stays NA
 
     # PAR: concentration / deposition_time  [grains/cm²/yr]
     # deposition_time = (age_bottom - age_top) / (depth_bottom - depth_top)  [yr/cm]
@@ -1355,7 +1445,9 @@ server <- function(input, output, session) {
         dic_path=rv$dic_path,
         depth_top=rv$depth_top,   depth_bottom=rv$depth_bottom,
         age_top=rv$age_top,       age_bottom=rv$age_bottom,
-        source_file=basename(rv$save_path))
+        source_file=basename(rv$save_path),
+        conc_method=rv$conc_method,
+        use_pres=rv$use_pres)
       write_pollen_count(cnt, rv$save_path)
     }, error=function(e) invisible(NULL))
   }
@@ -1388,6 +1480,11 @@ server <- function(input, output, session) {
       find_and_update(function(i) rv$events[[i]]$code <- canon)
 
     } else if (col == 1L) {
+      if (!rv$use_pres) {
+        showNotification("Preservation codes are disabled for this count.",
+                         type = "warning")
+        return()
+      }
       m <- regmatches(val, regexec("^([1-8])([09]*)$", val))[[1]]
       if (length(m) < 3) {
         showNotification(
@@ -1566,7 +1663,7 @@ server <- function(input, output, session) {
     req(rv$setup_done)
     render_stream(rv$events, rv$dic_name, rv$sample_qty, rv$spike_qty,
                   rv$spike_density, rv$sample_units, rv$pollen_sum,
-                  rv$title, rv$created)
+                  rv$title, rv$created, rv$use_pres)
   })
   output$stat_total    <- renderText(sprintf("%.1f", tallies_rv()$total))
   output$stat_basic    <- renderText(sprintf("%.1f", tallies_rv()$basic))
@@ -1612,6 +1709,8 @@ server <- function(input, output, session) {
     if (!nrow(g)) return(empty)
 
     notation <- vapply(seq_len(nrow(g)), function(i) {
+      b <- g$base[i]
+      if (is.na(b) || !nzchar(b)) return("—")  # em-dash for no-pres mode
       parts  <- strsplit(g$pres[i], ";")[[1]]
       base   <- parts[1]
       extras <- parts[-1]

@@ -26,6 +26,11 @@
 #' @param dic_path Full path to the dictionary file used for this count
 #'   (stored so the counting app can auto-reload it on resume).
 #' @param slide,title,source_file Provenance metadata.
+#' @param conc_method Concentration calculation method: `"spike"` (tracer
+#'   equation, default), `"volumetric"` (counts divided by sample quantity),
+#'   or `"none"` (no concentration computed).
+#' @param use_pres Logical; `TRUE` (default) means grains carry preservation
+#'   codes. `FALSE` means no preservation digit was recorded.
 #' @param site Optional [pollen_site()].
 #' @export
 pollen_count <- function(grains,
@@ -48,6 +53,8 @@ pollen_count <- function(grains,
                          slide = NA_character_,
                          title = NA_character_,
                          source_file = NA_character_,
+                         conc_method = "spike",
+                         use_pres = TRUE,
                          site = NULL) {
   structure(
     list(
@@ -71,7 +78,9 @@ pollen_count <- function(grains,
         dic_path = dic_path,
         slide = slide,
         title = title,
-        source_file = source_file
+        source_file = source_file,
+        conc_method = conc_method,
+        use_pres = use_pres
       ),
       site = site
     ),

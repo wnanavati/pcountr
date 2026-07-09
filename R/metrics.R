@@ -45,7 +45,16 @@ count_metrics <- function(x, dictionary = NULL) {
   qty <- x$meta$sample_quantity
   spike_added <- tablets * density
   ratio <- if (spike > 0) total_sum / spike else NA_real_
-  concentration <- if (spike > 0) ratio * spike_added / qty else NA_real_
+
+  conc_method <- x$meta$conc_method %||% "spike"
+  concentration <- switch(conc_method,
+    spike      = if (spike > 0 && !is.na(qty) && qty > 0 &&
+                     !is.na(spike_added) && is.finite(spike_added) && spike_added > 0)
+                   ratio * spike_added / qty else NA_real_,
+    volumetric = if (!is.na(qty) && qty > 0) total_sum / qty else NA_real_,
+    none       = NA_real_,
+    NA_real_
+  )
   conc_unit <- switch(x$meta$units %||% "",
                       "ml" = "grains/cm3",
                       "g"  = "grains/g",

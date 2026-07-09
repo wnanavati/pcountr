@@ -70,9 +70,11 @@ The first screen collects instrument and sample metadata before counting begins.
 | **Sample name** | Free text, e.g. `KF24sh#001`; accepts any string |
 | **Depth top / bottom** | Interval in cm; leave blank if unknown |
 | **Age top / bottom** | Calibrated years BP; leave blank if unknown |
-| **Spike tablets** | Number of tablets (or ml / g) added to this sample |
-| **Spike density** | Microspheres per unit of spike |
-| **Spike units** | `tablets`, `ml`, or `g` |
+| **Calculate concentration?** | `Yes, using spikes` (Stockmarr equation), `Yes, volumetrically` (ΣP / sample quantity), or `No` |
+| **Spike tablets** | Number of tablets added — shown only when method is `spike` |
+| **Spike density** | Microspheres per unit of spike — shown only when method is `spike` |
+| **Spike units** | `tablets`, `ml`, or `g` — shown only when method is `spike` |
+| **Use preservation codes?** | `Yes` (grain tokens require a preservation digit, e.g. `B1`) or `No` (code only, e.g. `B`) |
 | **Sample quantity** | Volume or mass of sediment processed |
 | **Sample units** | `ml` or `g` |
 | **Save path** | Full path for this sample's YAML file |
@@ -89,10 +91,11 @@ Type any of the following in the input field and press Enter:
 
 | Token | Meaning |
 |---|---|
-| `B1`, `I80`, `A1` | A grain: taxon code + base preservation digit + optional modifiers |
+| `B1`, `I80`, `A1` | **With preservation codes (default):** taxon code + base preservation digit + optional modifiers |
 | `B10` | Half-grain modifier: code `B`, preservation `1`, modifier `0` (weight 0.5) |
 | `B19` | Hidden grain: code `B`, preservation `1`, modifier `9` |
-| `.` | One tracer microsphere (spike) |
+| `B`, `I`, `A` | **Without preservation codes:** code only, when "Use preservation codes?" is set to No |
+| `.` | One tracer microsphere (spike) — only when concentration method is `spike` |
 | `/label/` | Traverse marker — stored verbatim in the grain sequence |
 | `[text]` | Inline remark — stored verbatim |
 
@@ -114,8 +117,9 @@ The header panel updates after every entry:
 - **ΣP** — group-filtered sum (e.g., terrestrial pollen types only)
 - **Traverses** — running traverse count
 - **Spike** — total spike grains recorded
-- **Concentration** — grains/g or grains/cm³ via the Stockmarr equation; shows
-  `NA` until spike, quantity, and spike density are all non-zero
+- **Concentration** — grains/g or grains/cm³; method depends on the setup choice
+  (spike: Stockmarr equation; volumetric: ΣP / sample quantity; none: always `NA`).
+  Shows `NA` until all required inputs are present
 - **PAR** — pollen accumulation rate; shows `NA` until depth and age intervals
   are both present
 

@@ -1,39 +1,61 @@
 # pcountr NEWS / changelog
 
-## pcountr 0.5.0
+## pcountr 0.5.2
 
-Naming and export release. `as_rioja()` renamed to `site_matrix()`; new
-`write_tlx()` exports a site to Tilia XML for Neotoma upload. 313 test
-assertions pass.
+### Counting app — concentration method selector
 
-### `as_rioja()` → `site_matrix()`
+The setup screen now asks **"Calculate concentration?"** with three choices,
+stored in the new `conc_method` field on `pollen_count` and YAML:
 
-- **`site_matrix()`** replaces `as_rioja()`. The function is identical in
-  behaviour; only the name has changed to reflect that the output matrix is
-  not rioja-specific — it is used for plotting, export, and any downstream
-  analysis.
-- **`as_rioja()` was retained as a deprecated wrapper** in this release and
-  removed in v0.5.1. Use `site_matrix()` directly.
+- **Yes, using spikes.** (default) — tracer-spike (Stockmarr) equation,
+  unchanged from previous versions. Spike fields appear on setup and Sample
+  Info tab.
+- **Yes, volumetrically.** — concentration = ΣP / sample quantity. No spike
+  required. Spike fields are hidden. Units follow the existing ml/g selector
+  (grains/cm³ or grains/g).
+- **No.** — no concentration computed; Conc and PAR display `NA`.
 
-### `write_tlx()` — Tilia XML export
+`count_metrics()` branches on `conc_method` per sample. `site_matrix()` computes
+a per-sample concentration factor that respects each sample's method, so mixed
+sites (some spike, some volumetric) produce correct results.
 
-Exports a loaded `pollen_site` to a `.tlx` file readable by Tilia and
-suitable for Neotoma upload:
+### Counting app — preservation codes optional
 
-- **Four spreadsheet pages**: Data (weighted counts), Percents (analyst's
-  configured ΣP groups), Concentrations (Stockmarr equation), and Influx
-  (accumulation rates). CONISS is omitted — compute it in Tilia or `rioja`.
-- **CONC metadata rows** per sample: age (`#Chron1`), depth (`#depth`),
-  spike counted, sample quantity (unit-aware: `volume:ml` or `weight:g`),
-  tablets added, tablet concentration, deposition time (yr/cm).
-- **Stratigraphic ordering** uses the first available of `depth_top`,
-  `sample_number` (supports negative values for field-extracted samples),
-  then `age_top`. Errors if none is present.
-- **Only observed taxa** (weighted count ≥ 1 in at least one sample) are
-  written. All taxa including `#`-prefixed non-pollen palynomorphs appear in
-  the regular taxon section.
-- **Site and CollectionUnit stubs** are left empty for completion in Tilia.
-- Output filename is user-specified.
+The setup screen now asks **"Use preservation codes?"** (Yes / No), stored in
+the new `use_pres` field on `pollen_count` and YAML:
+
+- **Yes** (default) — existing behaviour: each grain token requires a base
+  preservation digit (e.g. `B1`, `I80`).
+- **No** — grains are entered as code only (e.g. `B`, `I`). No digit expected
+  or accepted. In the count stream display, grains are separated by `_`
+  (e.g. `Betula_Picea_Alnus_`) rather than concatenated with preservation
+  digits. The Grain History table shows `—` in the Preservation column.
+
+Both settings are carried forward automatically when **New Sample** is used,
+and are fully restored on **Resume Count** from a saved YAML.
+
+### `extract_metadata()` — reverse of `set_metadata()`
+
+New function that creates a metadata data frame from a loaded site, suitable
+for editing and re-passing to `read_site(metadata = ...)`:
+
+```r
+site <- read_site("path/to/yamls")
+df   <- extract_metadata(site)           # returns data frame
+extract_metadata(site, file = "meta.csv")  # also writes CSV
+```
+
+Accepts either a `pollen_site` object or a folder path (calls `read_site()`
+internally). Fields absent from a sample are `NA`. Columns: `sample_name`,
+`depth_top`, `depth_bottom`, `age_top`, `age_bottom`, `sample_quantity`,
+`units`, `spike_tablets`, `spike_density`, `spike_units`, `conc_method`,
+`title`, `source_file`.
+
+### Fake Lake example data — units corrected
+
+`inst/extdata/fake_lake/metadata_FL.csv` now records `sample_units = ml`
+(was `g`). Sediment processed by volume is more realistic for palynological
+subsamples; concentration now reports as grains/cm³.
 
 ---
 
@@ -152,6 +174,43 @@ sample, per-sample across a loaded site:
 - **Filters**: optional `depth_range` and `age_range` arguments restrict
   analysis to a stratigraphic window; defaults to the full record.
 - **Groups**: uses the same analyst-defined ΣP denominator as `site_matrix()`.
+
+---
+
+## pcountr 0.5.0
+
+Naming and export release. `as_rioja()` renamed to `site_matrix()`; new
+`write_tlx()` exports a site to Tilia XML for Neotoma upload. 313 test
+assertions pass.
+
+### `as_rioja()` → `site_matrix()`
+
+- **`site_matrix()`** replaces `as_rioja()`. The function is identical in
+  behaviour; only the name has changed to reflect that the output matrix is
+  not rioja-specific — it is used for plotting, export, and any downstream
+  analysis.
+- **`as_rioja()` was retained as a deprecated wrapper** in this release and
+  removed in v0.5.1. Use `site_matrix()` directly.
+
+### `write_tlx()` — Tilia XML export
+
+Exports a loaded `pollen_site` to a `.tlx` file readable by Tilia and
+suitable for Neotoma upload:
+
+- **Four spreadsheet pages**: Data (weighted counts), Percents (analyst's
+  configured ΣP groups), Concentrations (Stockmarr equation), and Influx
+  (accumulation rates). CONISS is omitted — compute it in Tilia or `rioja`.
+- **CONC metadata rows** per sample: age (`#Chron1`), depth (`#depth`),
+  spike counted, sample quantity (unit-aware: `volume:ml` or `weight:g`),
+  tablets added, tablet concentration, deposition time (yr/cm).
+- **Stratigraphic ordering** uses the first available of `depth_top`,
+  `sample_number` (supports negative values for field-extracted samples),
+  then `age_top`. Errors if none is present.
+- **Only observed taxa** (weighted count ≥ 1 in at least one sample) are
+  written. All taxa including `#`-prefixed non-pollen palynomorphs appear in
+  the regular taxon section.
+- **Site and CollectionUnit stubs** are left empty for completion in Tilia.
+- Output filename is user-specified.
 
 ---
 
@@ -343,4 +402,44 @@ modern CSV dictionary format on top of the verified v0.1.0 spine.
 ### Parser fixes
 
 - Traverse labels now accept any free text between slashes (`/label/`), not
-  just numeric + N/S. The corresponding test was renamed accord
+  just numeric + N/S. The corresponding test was renamed accordingly.
+
+### Testing
+
+- 279 test assertions passing (was 87 at v0.1.0).
+- New test files: `test-dictionary-csv.R`, `test-site-loader.R`,
+  `test-rioja.R`, `test-accum-rate.R`.
+- YAML round-trip golden test verifies concentration reproduces to the digit
+  through write → read.
+
+---
+
+## pcountr 0.1.0 (the verified spine)
+
+First working version. Reads legacy PCount files, reproduces PCount report
+calculations to the digit, and writes a modern native format.
+
+### Features
+
+- `read_dic()`: parse PCount `.DIC` dictionaries (fixed-column format).
+- `read_cnt()`: parse legacy `.CNT` count files into per-grain `pollen_count`
+  objects, preserving counting order, traverse labels, tracer-spike marks, and
+  inline remarks. Anomalies (e.g. data-entry typos, unresolved codes) are
+  imported permissively and reported via the `anomalies` attribute and a warning.
+- `pollen_site()` / `pollen_count()`: the two core S3 objects, with configurable
+  preservation scheme and multi-state precedence, and sample-level depth/age slots.
+- `count_metrics()`: per-group pollen sums, basic/total sums, spike count,
+  sum/spike ratio, grain concentration (per-sample ml→grains/cm³ or g→grains/g),
+  traverse statistics.
+- `preservation_table()`: taxon × preservation-class tabulation, with optional
+  multi-state collapsing by precedence.
+- `write_pollen_count()` / `read_pollen_count()`: native YAML format (with a
+  built-in emitter fallback when the `yaml` package is absent).
+
+### Verified
+
+- Reproduces `LM23SH00.RPT` exactly (all sums, spike, ratio, concentration,
+  traverse stats).
+- Parses all 20 Little Mosquito Lake samples; surfaces exactly 7 known
+  data-entry anomalies.
+- 87 test assertions passing.

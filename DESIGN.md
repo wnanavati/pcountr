@@ -5,14 +5,16 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.5.1.** The verified spine (v0.1.0) is complete
+Status as of this writing: **v0.5.2.** The verified spine (v0.1.0) is complete
 and all planned analytical layers have been built on top of it. 429 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*
 (`counting.Rmd`, primary) and *Legacy Workflow: CNT Files to Tilia XML*
 (`legacy.Rmd`). Deprecated wrappers `as_rioja()`, `set_depth_age()`, and
-`set_depth()` have been removed.
+`set_depth()` have been removed. New in v0.5.2: concentration method selector
+(spike / volumetric / none), optional preservation codes, and
+`extract_metadata()`.
 
 ---
 
@@ -287,4 +289,44 @@ This gives the analyst real-time feedback on whether their metadata is complete
 and lets them watch concentration stabilise as the count grows.
 
 ### Metadata mutability
-All sample metadata (depth, age, title, spike parameters, ΣP
+All sample metadata (depth, age, title, spike parameters, ΣP groups) are
+editable mid-count via the Sample Info tab. Changes take effect immediately and
+autosave. The save path is intentionally not editable once counting starts —
+changing it mid-count would split a single count across two files.
+
+### Dictionary tab
+The loaded dictionary is always inspectable and editable during counting. The
+Save Dictionary button writes back to the CSV file. If the source was a `.DIC`
+file (fixed-column, read-only format), clicking Save prompts for a CSV path
+and converts, after which the session continues with the CSV as the live
+dictionary. This means a `.DIC` user is gently migrated to CSV the first time
+they edit a taxon mid-count.
+
+### Concentration method
+The setup screen asks "Calculate concentration?" with three options, stored as
+`conc_method` in `pollen_count$meta` and the YAML:
+
+- **spike** (default) — Stockmarr tracer equation. Spike fields shown.
+- **volumetric** — ΣP / sample quantity. Spike fields hidden. Suitable for
+  analysts who do not add an exotic spike and instead process a known volume
+  of suspension.
+- **none** — no concentration computed; Conc and PAR show `NA`.
+
+The method is carried forward on New Sample and restored on Resume. All three
+analytical functions that compute concentration (`count_metrics()`,
+`site_matrix()`, and the live app display) branch on this field per sample, so
+a site can contain samples with different methods and each is handled correctly.
+
+### Preservation codes optional
+The setup screen asks "Use preservation codes?" (Yes / No), stored as
+`use_pres` in `pollen_count$meta` and the YAML.
+
+When **No**: grain tokens are entered as code only (e.g. `B`, `I`) without a
+trailing digit. The count stream displays grains separated by `_` rather than
+concatenating code + digit, keeping the stream readable during counting. The
+Grain History table shows `—` in the Preservation column and blocks editing of
+that column. This mode is designed for proxies (e.g. diatoms, charcoal) where
+preservation state is either not recorded or not meaningful.
+
+Default is `TRUE` to preserve backward compatibility with existing YAMLs and
+CNT-derived counts.

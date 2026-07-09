@@ -4,20 +4,23 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.5.1)
+## What it does (v0.5.2)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain
-  tokens (`B1`, `I80`, `A1`) and press Enter. Live running totals (Σ, ΣP,
-  traverses, spike), running concentration and accumulation rates, YAML autosave after every
-  entry, mid-count metadata and dictionary editing, and resume from any saved
-  count.
+  tokens (`B1`, `I80`, `A1`) and press Enter. Choose concentration method (spike /
+  volumetric / none) and whether to record preservation codes — the app adapts
+  accordingly. Live running totals (Σ, ΣP, traverses, spike), running concentration
+  and accumulation rates, YAML autosave after every entry, mid-count metadata and
+  dictionary editing, and resume from any saved count.
 
 ### Site-level analysis
 - **`read_site()`** — load a folder of `.yaml` and/or legacy `.CNT` files as a
   `pollen_site`, with optional depth/age metadata sheet (CSV/TSV).
 - **`set_metadata()`** — update depth, age, sample identity, quantity, and spike
   fields on a sample; re-sorts the site.
+- **`extract_metadata()`** — extract a metadata data frame from a `pollen_site` or
+  folder path; the reverse of `set_metadata()`. Optional `file =` writes CSV.
 - **`site_matrix()`** — wide samples × taxa matrix (percentages, concentrations,
   accumulation rates) for plotting and export.
 - **`write_tlx()`** — export a `pollen_site` to Tilia XML format (`.tlx`) for
@@ -47,7 +50,7 @@ workflow while saving to a modern, self-contained format.
 ## Quick start — count, plot, export
 
 ```r
-# install.packages("remotes")  # if you don't have it
+# Install from GitHub
 remotes::install_github("wnanavati/pcountr")
 
 library(pcountr)
@@ -101,4 +104,5 @@ mentor and his commitment to open science.
 
 This package was developed with the assistance of **Claude AI** (claude-sonnet-4-6,
 Anthropic, 2025–2026). All analytical logic, test assertions, and scientific
-decisions were authored a
+decisions were authored and verified by W. Nanavati
+([ORCID 0000-0003-4853-5429](https://orcid.org/0000-0003-4853-5429)).

@@ -26,7 +26,7 @@ This vignette walks through the full pcountr workflow from reading legacy PCount
 
 ## The Fake Lake dataset
 
-The examples below use **Fake Lake**, a simulated site bundled with pcountr. The pollen assemblages are derived from real counts; depths, ages, and spike information is fictional. The site consists of 20 samples spanning 0–95 cm (roughly 2,000 cal yr BP) with a standard Lycopodium spike (2 tablets, 9,666 spores per tablet, 1 cc sediment per sample).
+The examples below use **Fake Lake**, a simulated site bundled with pcountr. The pollen assemblages are derived from real counts; depths, ages, and spike information is fictional. The site consists of 20 samples spanning 0–95 cm (roughly 2,000 cal yr BP) with a standard Lycopodium spike (2 tablets, 9,666 spores per tablet, 1 ml sediment per sample).
 
 Fake Lake ships with two things: a folder of `.CNT` files and a pre-filled metadata CSV.
 
@@ -75,7 +75,7 @@ m <- count_metrics(s1)
 cat("\nBasic pollen sum:  ", m$basic_sum, "\n")
 cat("Spike counted:     ", m$spike, "\n")
 cat("Sum/spike ratio:   ", round(m$ratio, 4), "\n")
-cat("Concentration:     ", round(m$concentration), "grains/g\n")
+cat("Concentration:     ", round(m$concentration), m$concentration_unit, "\n")
 ```
 
 ### Checking for anomalies
@@ -176,7 +176,7 @@ data.frame(
   Sample   = rownames(mat$TaxaPerc),
   Depth_cm = mat$DepTop,
   Age_BP   = mat$AgeTop,
-  Conc_grains_per_g = round(total_conc)
+  Conc_grains_per_cm3 = round(total_conc)
 )
 ```
 

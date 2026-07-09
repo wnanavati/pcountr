@@ -22,9 +22,14 @@ workflow while saving to the native YAML format.
 
 Type any of the following in the input field and press Enter:
 \describe{
-\item{\code{B1}, \code{I80}, \code{A1}}{A grain: taxon code + base preservation digit +
-optional modifiers (\code{0} = half-grain, \code{9} = hidden).}
-\item{\code{.}}{One tracer microsphere (spike).}
+\item{\code{B1}, \code{I80}, \code{A1}}{\strong{With preservation codes (default):} taxon code +
+base preservation digit (1--8) + optional modifiers (\code{0} = half-grain,
+\code{9} = hidden).}
+\item{\code{B}, \code{I}, \code{A}}{\strong{Without preservation codes:} taxon code only (when
+"Use preservation codes?" is set to No on setup). The stream displays grains
+separated by \code{_}. Preservation columns are suppressed.}
+\item{\code{.}}{One tracer microsphere (spike). Only relevant when concentration
+method is "spike".}
 \item{\verb{/label/}}{A traverse marker — stored verbatim.}
 \item{\verb{[text]}}{An inline remark — stored verbatim.}
 }

@@ -77,6 +77,24 @@
   Site/CollectionUnit stubs left empty for completion in Tilia.
 - 313 test assertions passing.
 
+## Done — v0.5.2
+
+- **Concentration method selector** — `count_app()` setup screen asks "Calculate
+  concentration?" with three choices: spike (Stockmarr equation, default),
+  volumetric (ΣP / sample_quantity), or none. Spike fields hidden when not needed.
+  `conc_method` field added to `pollen_count()`, YAML format, `count_metrics()`,
+  and `site_matrix()` (per-sample concentration factor). Carried forward on New
+  Sample; restored on Resume.
+- **Preservation codes optional** — setup screen asks "Use preservation codes?"
+  (Yes/No). When No, grains are entered as code only; stream display uses `_`
+  separator. `use_pres` field added to `pollen_count()` and YAML.
+- **`extract_metadata()`** — new function that creates a metadata data frame from
+  a `pollen_site` or folder path, suitable for editing and passing back to
+  `read_site(metadata = ...)`. The reverse of `set_metadata()`. Optional
+  `file =` argument writes CSV.
+- **Fake Lake units corrected** — `metadata_FL.csv` changed from `g` to `ml`;
+  concentration now reports as grains/cm³.
+
 ## Planned (in priority order)
 
 1. **More site validation data** — load the remaining LM `.CNT` files (LMSH159–LMSH302)
@@ -101,7 +119,16 @@
 
 ## Optional future features
 
-- **Volumetric concentration method** — an alternative to the tracer-spike
-  equation for analysts who do not add an exotic spike. Concentration would be
-  computed from a known aliquot volume drawn from a known total suspension
-  volume: `concentration = (grains_counted / aliquot_volume) × to
+- **Volumetric concentration — extended form** — the current volumetric mode
+  divides ΣP by sample quantity directly. A more precise version would use an
+  aliquot volume drawn from a known total suspension volume:
+  `concentration = (grains_counted / aliquot_volume) × total_volume / sample_quantity`.
+  Would require new metadata fields (`aliquot_volume`, `total_volume`) for
+  analysts who use this approach.
+
+## Validation debts to clear when data allows
+
+- A `.CNT`/`.RPT` pair with **combination preservation codes** (e.g. `680`) to verify
+  multi-state attribution against the original PCount output.
+- Documentation for preservation codes **3, 4, 5, 7**.
+- More sites (different dictionaries, ml vs g units) to harden assumptions.

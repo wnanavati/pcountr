@@ -7,9 +7,14 @@
 #' @section Input syntax:
 #' Type any of the following in the input field and press Enter:
 #' \describe{
-#'   \item{`B1`, `I80`, `A1`}{A grain: taxon code + base preservation digit +
-#'     optional modifiers (`0` = half-grain, `9` = hidden).}
-#'   \item{`.`}{One tracer microsphere (spike).}
+#'   \item{`B1`, `I80`, `A1`}{**With preservation codes (default):** taxon code +
+#'     base preservation digit (1–8) + optional modifiers (`0` = half-grain,
+#'     `9` = hidden).}
+#'   \item{`B`, `I`, `A`}{**Without preservation codes:** taxon code only (when
+#'     "Use preservation codes?" is set to No on setup). The stream displays grains
+#'     separated by `_`. Preservation columns are suppressed.}
+#'   \item{`.`}{One tracer microsphere (spike). Only relevant when concentration
+#'     method is "spike".}
 #'   \item{`/label/`}{A traverse marker — stored verbatim.}
 #'   \item{`[text]`}{An inline remark — stored verbatim.}
 #' }

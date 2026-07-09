@@ -71,6 +71,8 @@ write_pollen_count <- function(x, path) {
     spike_density     = .na_null(x$meta$spike_density),
     spike_units       = .na_null(x$meta$spike_units),
     spike_counted     = x$spike_n,
+    conc_method       = .na_null(x$meta$conc_method),
+    use_pres          = if (isFALSE(x$meta$use_pres)) FALSE else NULL,
     pollen_sum_groups = x$meta$pollen_sum_groups,
     traverses         = x$traverses,
     grains            = grain_list,
@@ -224,6 +226,8 @@ read_pollen_count <- function(path, site = NULL) {
     slide             = doc$slide             %||% NA_character_,
     title             = doc$title             %||% NA_character_,
     source_file       = doc$source_file       %||% basename(path),
+    conc_method       = doc$conc_method       %||% "spike",
+    use_pres          = if (isFALSE(doc$use_pres)) FALSE else TRUE,
     site              = site
   )
 }

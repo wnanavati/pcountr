@@ -25,6 +25,8 @@ pollen_count(
   slide = NA_character_,
   title = NA_character_,
   source_file = NA_character_,
+  conc_method = "spike",
+  use_pres = TRUE,
   site = NULL
 )
 }
@@ -61,6 +63,13 @@ present = 1950 CE).}
 (stored so the counting app can auto-reload it on resume).}
 
 \item{slide, title, source_file}{Provenance metadata.}
+
+\item{conc_method}{Concentration calculation method: \code{"spike"} (tracer
+equation, default), \code{"volumetric"} (counts divided by sample quantity),
+or \code{"none"} (no concentration computed).}
+
+\item{use_pres}{Logical; \code{TRUE} (default) means grains carry preservation
+codes. \code{FALSE} means no preservation digit was recorded.}
 
 \item{site}{Optional \code{\link[=pollen_site]{pollen_site()}}.}
 }

@@ -105,9 +105,17 @@ site_matrix <- function(site,
   }
 
   # Concentration matrix ---------------------------------------------------
-  # TaxaConc[i,j] = TaxaCount[i,j] * (SpikeAdded[i] * SpikeConc[i])
-  #                                 / (SpikeCount[i] * SampleSize[i])
-  cf <- (SpikeAdded * SpikeConc) / (SpikeCount * SampleSize)
+  # Per-sample concentration factor respects conc_method stored in each sample.
+  #   spike:      cf = (SpikeAdded * SpikeConc) / (SpikeCount * SampleSize)
+  #   volumetric: cf = 1 / SampleSize
+  #   none:       cf = NA
+  conc_method_vec <- vapply(depth_samples,
+                            function(s) s$meta$conc_method %||% "spike", "")
+  cf_spike <- (SpikeAdded * SpikeConc) / (SpikeCount * SampleSize)
+  cf_vol   <- 1 / SampleSize
+  cf <- ifelse(conc_method_vec == "volumetric", cf_vol,
+        ifelse(conc_method_vec == "none",        NA_real_,
+               cf_spike))
   cf[!is.finite(cf) | cf <= 0] <- NA_real_
   conc_mat <- sweep(count_mat, 1, cf, "*")
 
