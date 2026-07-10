@@ -20,4 +20,15 @@ src/*.dll
 # knitr build artifacts
 /vignettes/workflow_files/
 
-# Unpublished site data 
+# Unpublished site data (kept local, not for public repo)
+/inst/extdata/LMSH*.CNT
+/inst/extdata/LM_depths.txt
+/inst/extdata/LM23SH00.RPT
+/inst/extdata/ECG.DIC
+
+# Test snapshot artifacts
+/tests/testthat/_snaps/
+
+# OS
+.DS_Store
+Thumbs.db
