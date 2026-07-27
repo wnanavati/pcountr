@@ -5,8 +5,8 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.5.2.** The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 429 test
+Status as of this writing: **v0.5.3.** The verified spine (v0.1.0) is complete
+and all planned analytical layers have been built on top of it. 446 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*
@@ -14,7 +14,8 @@ field. Two vignettes ship with the package: *Counting at the Microscope*
 (`legacy.Rmd`). Deprecated wrappers `as_rioja()`, `set_depth_age()`, and
 `set_depth()` have been removed. New in v0.5.2: concentration method selector
 (spike / volumetric / none), optional preservation codes, and
-`extract_metadata()`.
+`extract_metadata()`. New in v0.5.3: counting app performance and input
+reliability fixes (see NEWS.md).
 
 ---
 
@@ -263,7 +264,9 @@ Grains are entered as a single text token (`I8`, `B1`, `A80`) and submitted
 with Enter. The app parses the token synchronously in JavaScript at keypress
 time, bypassing Shiny's 250 ms textInput debounce, so rapid entries are never
 dropped. Traverses (`/label/`), remarks (`[text]`), and spike (`.`) are entered
-in the same field.
+in the same field. The spike token (`.`) has a single-key shortcut: pressing `.`
+on an empty input field submits it immediately without Enter, since `.` is never
+a valid prefix for any other token.
 
 ### Unknown-code and malformed-input handling
 Any entry that fails to parse (not in dictionary, or not a valid token at all,
@@ -274,13 +277,19 @@ the taxon). No silent acceptance, no quiet corner notification — the analyst
 is often looking through the microscope and must notice the alert.
 
 ### Autosave strategy
-The YAML is written after every single entry (grain, spike, traverse, remark).
-"Done / Save" is a manual confirmation button, not the save trigger. Resuming
-from the autosaved YAML restores grains, traverses, remarks, and spike total
-exactly. Individual spike positions within the stream are not stored in the
-YAML (only the total); on resume the stream display reconstructs grain and
-traverse order but spike marks are not interleaved at their original positions.
-All totals and calculated metrics are exact.
+Grain entries are debounced: the YAML is written within 300 ms of the last
+grain keystroke rather than after every individual grain. All other actions —
+spike, traverse, remark, undo, new slide, Done / Save, New Sample, and any
+Sample Info tab change — trigger an immediate write. In practice this means
+the file is always current within a fraction of a second; at most ~300 ms of
+rapid grain entries could be lost in a power failure.
+
+"Done / Save" is a manual confirmation button, not the primary save trigger.
+Resuming from the autosaved YAML restores grains, traverses, remarks, and
+spike total exactly. Individual spike positions within the stream are not
+stored in the YAML (only the total); on resume the stream display reconstructs
+grain and traverse order but spike marks are not interleaved at their original
+positions. All totals and calculated metrics are exact.
 
 ### Live metrics
 Concentration and PAR are recalculated and displayed after every entry. They

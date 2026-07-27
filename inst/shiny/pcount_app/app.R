@@ -337,14 +337,15 @@ function scrollStream() {
 function focusGrainInput() {
   setTimeout(function() {
     var el = document.getElementById('grain_input');
-    if (el) { el.focus(); el.select(); }
+    if (el) el.focus();
   }, 60);
 }
 // Capture DOM value synchronously at Enter time — bypasses Shiny's 250ms
 // textInput debounce so rapid repeated entries are never dropped.
-function submitEntry() {
+// Optional `forced` value skips DOM read (used for single-key spike shortcut).
+function submitEntry(forced) {
   var el  = document.getElementById('grain_input');
-  var val = el ? el.value : '';
+  var val = (forced !== undefined) ? forced : (el ? el.value : '');
   Shiny.setInputValue('entry_submit',
                       { value: val, t: Date.now() },
                       { priority: 'event' });
@@ -544,6 +545,8 @@ counting_panel <- function() {
       Shiny.addCustomMessageHandler('beep',        function(m){ playBeep(); });
       $(document).on('keydown', '#grain_input', function(e) {
         if (e.key === 'Enter') { e.preventDefault(); submitEntry(); }
+        // Single-key spike shortcut: '.' on an empty field submits immediately.
+        if (e.key === '.' && this.value === '') { e.preventDefault(); submitEntry('.'); }
       });
     ")),
     fluidRow(
@@ -780,6 +783,15 @@ server <- function(input, output, session) {
     # Spikes loaded from a past YAML (individual positions are not stored)
     base_spike_n  = 0L
   )
+
+  # ── Debounced grain autosave (300 ms idle after last grain entry) ----------
+  grain_save_pending   <- reactiveVal(0L)
+  grain_save_debounced <- debounce(grain_save_pending, 300)
+  observe({
+    val <- grain_save_debounced()
+    req(val > 0L)
+    isolate(do_autosave())
+  })
 
   # ── shinyFiles (static roots computed once) --------------------------------
   file_roots <- local({
@@ -1220,9 +1232,8 @@ server <- function(input, output, session) {
   observeEvent(input$entry_submit, {
     val      <- input$entry_submit$value %||% ""
     consumed <- do_entry(val)
-    updateTextInput(session, "grain_input", value = "")
     session$sendCustomMessage("scroll", list())
-    if (consumed) { session$sendCustomMessage("focus_input", list()); do_autosave() }
+    if (consumed) { session$sendCustomMessage("focus_input", list()); grain_save_pending(grain_save_pending() + 1L) }
   }, ignoreInit = TRUE)
 
   # ── Entry alert modal (unknown code / malformed input) -------------------
@@ -1272,6 +1283,7 @@ server <- function(input, output, session) {
     rv$cur_traverse <- if (length(travs)) travs[[length(travs)]]$label else NA_character_
     rv$slide_n <- max(1L, sum(vapply(rv$events, function(e) e$type=="slide_desc", FALSE)))
     do_autosave()
+    session$sendCustomMessage("focus_input", list())
   })
 
   # ── New Slide modal -------------------------------------------------------
@@ -1701,6 +1713,7 @@ server <- function(input, output, session) {
   observeEvent(input$toggle_btn, { rv$show_pct <- !rv$show_pct })
 
   output$grain_tbl <- DT::renderDT({
+    req(input$input_tabs == "Grain History")
     g <- grains_rv()
     empty <- DT::datatable(
       data.frame(Code=character(0), Preservation=character(0),

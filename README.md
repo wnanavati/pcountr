@@ -4,14 +4,14 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.5.2)
+## What it does (v0.5.3)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain
   tokens (`B1`, `I80`, `A1`) and press Enter. Choose concentration method (spike /
   volumetric / none) and whether to record preservation codes — the app adapts
   accordingly. Live running totals (Σ, ΣP, traverses, spike), running concentration
-  and accumulation rates, YAML autosave after every entry, mid-count metadata and
+  and accumulation rates, continuous YAML autosave, mid-count metadata and
   dictionary editing, and resume from any saved count.
 
 ### Site-level analysis

@@ -95,17 +95,33 @@
 - **Fake Lake units corrected** — `metadata_FL.csv` changed from `g` to `ml`;
   concentration now reports as grains/cm³.
 
+## Done — v0.5.3
+
+- **Counting app input reliability fix** — removed R-side `updateTextInput`
+  that was racing against the analyst's next keystrokes during autosave lag,
+  causing rapid entries to be silently discarded.
+- **Undo refocuses grain input** — pressing Undo no longer leaves focus on the
+  button; the grain input box reactivates automatically, consistent with all
+  other counting actions.
+- **Grain autosave debounced** — grain entries write to disk within 300 ms of
+  the last keystroke rather than after every individual grain. All other actions
+  (traverses, remarks, undo, metadata changes, Done / Save) still save
+  immediately.
+- **Grain History table renders on demand** — table is built only when the
+  Grain History tab is open, eliminating redundant rebuilds during counting.
+
 ## Planned (in priority order)
 
 1. **More site validation data** — load the remaining LM `.CNT` files (LMSH159–LMSH302)
    once added to `inst/extdata/`; harden `read_cnt()` against any format variants they
    reveal.
 
-2. **Shiny app — keyboard shortcut for spike** — single-key entry for the tracer spike,
-   the most frequently typed token.
+2. ~~**Shiny app — keyboard shortcut for spike**~~ — **Done (v0.5.3).** Pressing `.` on an
+   empty input field submits a spike immediately without Enter.
 
-3. **`site_matrix()` + `rioja::strat.plot()` integration** — a smoke-test calling
-   `strat.plot()` on the LM data, guarded with `skip_if_not_installed`.
+3. ~~**`site_matrix()` + `rioja::strat.plot()` integration**~~ — **Done (v0.5.3).**
+   `tests/testthat/test-site-matrix-rioja.R` covers the full pipeline using
+   Fake Lake; rioja tests are guarded with `skip_if_not_installed("rioja")`.
 
 4. **Accumulation-rate end-to-end validation** — once a full site with analyst-supplied
    ages is available, run `accum_rate()` and compare with independently computed values.

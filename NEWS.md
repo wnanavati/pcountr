@@ -1,5 +1,50 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.5.3
+
+### Counting app — performance and input reliability
+
+- **Race condition fixed.** Rapidly typing the next grain token during the
+  brief autosave lag could cause the entry to be silently discarded. Root
+  cause: an R-side `updateTextInput` was clearing the grain input box after
+  each entry, arriving back in the browser after the analyst had already
+  started typing. The redundant clear has been removed; the JavaScript-side
+  clear (synchronous, immediate) is sufficient.
+
+- **Undo refocuses the grain input.** After clicking Undo the grain input box
+  is now reactivated automatically, consistent with the behaviour after every
+  other counting action. Previously the Undo button retained focus, so pressing
+  Enter immediately after an undo would trigger another undo.
+
+- **Grain autosave debounced (300 ms).** Grain entries now write to disk within
+  300 ms of the last rapid keystroke rather than after each individual entry.
+  All other actions — traverses, remarks, undo, new slide, Done / Save, New
+  Sample, and all Sample Info tab changes — still save immediately. In practice
+  this reduces file-write frequency during rapid counting without meaningfully
+  affecting crash safety.
+
+- **Grain History table renders on demand.** The grain table is now built only
+  when the Grain History tab is open. Previously it was rebuilt on every grain
+  entry even when invisible, adding unnecessary overhead especially late in
+  large counts.
+
+### Tests — `site_matrix()` + rioja integration smoke test
+
+New test file `tests/testthat/test-site-matrix-rioja.R` exercises the full
+`read_site() → site_matrix() → rioja::strat.plot()` pipeline using the
+bundled Fake Lake data. Tests cover matrix shape, `DepTop` / `AgeTop`
+parallelism, depth ordering, and full `TaxaConc` population (Fake Lake has
+complete spike metadata for every sample). The `strat.plot()` calls are
+guarded with `skip_if_not_installed("rioja")`.
+
+### Counting app — spike single-key shortcut
+
+Pressing `.` on an **empty** input field now submits a spike immediately —
+no Enter required. Pressing `.` mid-token (field not empty) appends the
+character as before. The `.` + Enter path continues to work unchanged.
+
+---
+
 ## pcountr 0.5.2
 
 ### Counting app — concentration method selector

@@ -14,7 +14,8 @@
 #'     "Use preservation codes?" is set to No on setup). The stream displays grains
 #'     separated by `_`. Preservation columns are suppressed.}
 #'   \item{`.`}{One tracer microsphere (spike). Only relevant when concentration
-#'     method is "spike".}
+#'     method is "spike". Pressing `.` on an empty input field submits
+#'     immediately — no Enter required.}
 #'   \item{`/label/`}{A traverse marker — stored verbatim.}
 #'   \item{`[text]`}{An inline remark — stored verbatim.}
 #' }

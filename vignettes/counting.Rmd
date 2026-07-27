@@ -95,7 +95,7 @@ Type any of the following in the input field and press Enter:
 | `B10` | Half-grain modifier: code `B`, preservation `1`, modifier `0` (weight 0.5) |
 | `B19` | Hidden grain: code `B`, preservation `1`, modifier `9` |
 | `B`, `I`, `A` | **Without preservation codes:** code only, when "Use preservation codes?" is set to No |
-| `.` | One tracer microsphere (spike) — only when concentration method is `spike` |
+| `.` | One tracer microsphere (spike) — only when concentration method is `spike`. Pressing `.` on an empty field submits immediately (no Enter needed) |
 | `/label/` | Traverse marker — stored verbatim in the grain sequence |
 | `[text]` | Inline remark — stored verbatim |
 
@@ -127,9 +127,10 @@ The header panel updates after every entry:
 
 ## Autosave and resume
 
-The YAML file is written after **every single entry** — not just at the end.
-Closing the browser or losing power does not lose data. The *Done / Save* button
-is a confirmation step only.
+The YAML file is written continuously — grain entries save within ~300 ms, and
+all other actions (traverses, remarks, undo, metadata changes) save immediately.
+Closing the browser or losing power risks losing at most a handful of the most
+recent rapid keystrokes. The *Done / Save* button is a confirmation step only.
 
 To resume a previous count, click **Open Existing Count** on the setup screen
 and navigate to the YAML file. Grain order, traverses, remarks, spike total, and

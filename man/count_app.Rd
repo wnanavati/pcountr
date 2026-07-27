@@ -29,7 +29,8 @@ base preservation digit (1--8) + optional modifiers (\code{0} = half-grain,
 "Use preservation codes?" is set to No on setup). The stream displays grains
 separated by \code{_}. Preservation columns are suppressed.}
 \item{\code{.}}{One tracer microsphere (spike). Only relevant when concentration
-method is "spike".}
+method is "spike". Pressing \code{.} on an empty input field submits
+immediately — no Enter required.}
 \item{\verb{/label/}}{A traverse marker — stored verbatim.}
 \item{\verb{[text]}}{An inline remark — stored verbatim.}
 }

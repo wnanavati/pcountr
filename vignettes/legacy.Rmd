@@ -112,7 +112,7 @@ count_app()
 
 4. **Mid-count editing** — All metadata fields are editable on the *Sample Info* tab while counting. The save path is locked once counting starts.
 
-5. **Autosave** — The YAML is written after every single entry. *Done / Save* is a confirmation step, not the save trigger. Resume a past count with *Open Existing Count* on the setup screen — grain order, traverses, remarks, and spike total are restored exactly.
+5. **Autosave** — Grain entries save within ~300 ms; traverses, remarks, undo, and metadata changes save immediately. *Done / Save* is a confirmation step, not the save trigger. Resume a past count with *Open Existing Count* on the setup screen — grain order, traverses, remarks, and spike total are restored exactly.
 
 6. **New sample** — After finishing a count, *New Sample* carries over instrument metadata and suggests an incremented save path.
 
