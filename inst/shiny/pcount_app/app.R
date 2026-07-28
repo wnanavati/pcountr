@@ -543,7 +543,7 @@ counting_panel <- function() {
       Shiny.addCustomMessageHandler('scroll',      function(m){ scrollStream(); });
       Shiny.addCustomMessageHandler('focus_input', function(m){ focusGrainInput(); });
       Shiny.addCustomMessageHandler('beep',        function(m){ playBeep(); });
-      $(document).on('keydown', '#grain_input', function(e) {
+      $(document).off('keydown.grain').on('keydown.grain', '#grain_input', function(e) {
         if (e.key === 'Enter') { e.preventDefault(); submitEntry(); }
         // Single-key spike shortcut: '.' on an empty field submits immediately.
         if (e.key === '.' && this.value === '') { e.preventDefault(); submitEntry('.'); }
