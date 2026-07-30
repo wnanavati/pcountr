@@ -1,6 +1,6 @@
 Package: pcountr
 Title: Interactive Stratigraphic Grain Counter with PCount Legacy Support
-Version: 0.5.3
+Version: 0.5.4
 Authors@R:
     person("William", "Nanavati",
            email   = "william.nanavati@umontana.edu",

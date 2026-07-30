@@ -120,6 +120,38 @@ Once YAML files have been created by the app, load them with `read_site()` exact
 
 ---
 
+## Correcting metadata after loading
+
+If you need to update depth, age, titles, or spike parameters after loading a
+site — whether from legacy `.CNT` files or from app-saved YAMLs — you can edit
+all sample metadata fields through a CSV round-trip without touching the raw files by hand.
+
+`extract_metadata()` exports a metadata data frame from the loaded site.
+Correct the CSV in any spreadsheet editor, then call `apply_metadata()`:
+
+```{r metadata-roundtrip, eval = FALSE}
+# Export current metadata
+extract_metadata(site, file = "metadata_check.csv")
+
+# … edit the CSV, correct any errors, save …
+
+# Apply and write back to source files (YAML only; CNT files are read-only)
+site <- apply_metadata(site, "metadata_check.csv")
+```
+
+Rows are matched by `source_file` (preferred) then `sample_name`. Non-NA cells
+are applied; blank cells are left unchanged. For `.CNT`-derived samples that
+lack a writable YAML, edits are applied in memory and a message is emitted.
+Editable fields: `depth_top`, `depth_bottom`, `age_top`, `age_bottom`,
+`sample_name`, `sample_quantity`, `units`, `spike_tablets`, `spike_density`,
+`spike_units`, `conc_method`, `title`.
+
+See the *Counting at the Microscope* vignette (`vignette("counting", package =
+"pcountr")`) for the full workflow, including notes on backfilling `spike_units`
+in YAML files saved before v0.5.4.
+
+---
+
 ## Part 3: Visualisation
 
 ### Building the site matrix
@@ -227,13 +259,19 @@ library(pcountr)
 
 # 1. Load CNT files and attach metadata
 site <- read_site("path/to/cnt/folder",
+                  dic      = "path/to/your/dictionary.csv",
                   metadata = "metadata.csv")
 
 # 2. Count new samples interactively (saves YAML automatically)
 count_app()
 
 # 3. Reload site once new YAMLs are saved (read_site picks up both CNT and YAML)
-site <- read_site("path/to/counts")
+site <- read_site("path/to/counts", dic = "path/to/your/dictionary.csv")
+
+# 3a. (Optional) correct any metadata errors via CSV round-trip
+extract_metadata(site, file = "metadata_check.csv")
+# … edit the CSV …
+site <- apply_metadata(site, "metadata_check.csv")
 
 # 4. Build the site matrix
 mat <- site_matrix(site, min_present = 2)

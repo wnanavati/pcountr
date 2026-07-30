@@ -14,7 +14,9 @@ set_metadata(
   sample_units = NULL,
   spike_tablets = NULL,
   spike_density = NULL,
-  spike_units = NULL
+  spike_units = NULL,
+  conc_method = NULL,
+  title = NULL
 )
 }
 \arguments{
@@ -41,16 +43,21 @@ set_metadata(
 or per g).}
 
 \item{spike_units}{Units of the spike: \code{"tablets"}, \code{"ml"}, or \code{"g"}.}
+
+\item{conc_method}{Concentration method: \code{"spike"}, \code{"volumetric"}, or
+\code{"none"}.}
+
+\item{title}{Free-text sample title shown in the counting app.}
 }
 \value{
 The updated \code{pollen_site} (invisibly).
 }
 \description{
-Updates any combination of depth, age, sample identity, sample quantity, and
-spike fields for a single sample, then re-sorts the site by \code{depth_top}
-ascending (NA-depth samples remain at the end). Only arguments that are
-explicitly supplied overwrite the existing value; omitted arguments leave the
-current value unchanged.
+Updates any combination of depth, age, sample identity, sample quantity,
+spike fields, concentration method, and title for a single sample, then
+re-sorts the site by \code{depth_top} ascending (NA-depth samples remain at
+the end). Only arguments that are explicitly supplied overwrite the existing
+value; omitted arguments leave the current value unchanged.
 }
 \details{
 For sites with many samples, fill in the package metadata template and loop
@@ -60,5 +67,6 @@ over rows (see the template for a ready-to-paste code snippet):
 }\if{html}{\out{</div>}}
 }
 \seealso{
-\code{\link[=read_site]{read_site()}} for bulk depth/age assignment via a metadata sheet.
+\code{\link[=read_site]{read_site()}} for bulk depth/age assignment via a metadata sheet,
+\code{\link[=apply_metadata]{apply_metadata()}} to push a full edited metadata CSV back to a site.
 }

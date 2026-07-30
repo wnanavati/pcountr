@@ -18,9 +18,14 @@ read_site(
 \item{folder}{Path to a folder containing count files (and optionally a
 \code{.DIC} dictionary).}
 
-\item{dic}{Path to a \code{.DIC} file, or a pre-loaded \code{pollen_dictionary}.
-Auto-detected when exactly one \code{.DIC} exists in \code{folder}; an error is
-raised if zero or more than one are found.}
+\item{dic}{Path to a \code{.DIC} or \code{.csv} dictionary file, or a pre-loaded
+\code{pollen_dictionary}. The dictionary is \strong{required} — it defines the sum
+groups (A/B/F/…) used by all analytical functions. Auto-detection: if exactly
+one \code{.DIC} file exists in \code{folder} it is loaded automatically; zero or
+multiple \code{.DIC} files raise an error. CSV dictionaries are never
+auto-detected and must be passed explicitly. Folders of \code{.yaml} files
+produced by \code{count_app()} typically contain no \code{.DIC} — always supply
+\code{dic = "path/to/dictionary.csv"} in that case.}
 
 \item{name}{Site name. Defaults to the folder's basename.}
 

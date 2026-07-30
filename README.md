@@ -4,7 +4,7 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.5.3)
+## What it does (v0.5.4)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain
@@ -21,6 +21,9 @@ workflow while saving to a modern, self-contained format.
   fields on a sample; re-sorts the site.
 - **`extract_metadata()`** — extract a metadata data frame from a `pollen_site` or
   folder path; the reverse of `set_metadata()`. Optional `file =` writes CSV.
+- **`apply_metadata()`** — apply an edited metadata CSV back to a site and write
+  the updates to the source YAML files; completes the `extract_metadata()` →
+  edit → `apply_metadata()` round-trip.
 - **`site_matrix()`** — wide samples × taxa matrix (percentages, concentrations,
   accumulation rates) for plotting and export.
 - **`write_tlx()`** — export a `pollen_site` to Tilia XML format (`.tlx`) for
@@ -58,8 +61,9 @@ library(pcountr)
 # 1. Count at the microscope (saves YAML automatically)
 count_app()
 
-# 2. Load completed counts
-site <- read_site("path/to/your/yaml/folder")
+# 2. Load completed counts (dic = required — defines sum groups for analysis)
+site <- read_site("path/to/your/yaml/folder",
+                  dic = "path/to/your/dictionary.csv")
 
 # 3. Stratigraphic diagram
 library(rioja)

@@ -1452,6 +1452,7 @@ server <- function(input, output, session) {
         traverses=travs, remarks=rems, events=rv$events,
         sample_quantity=rv$sample_qty, units=rv$sample_units,
         spike_tablets=rv$spike_qty, spike_density=rv$spike_density,
+        spike_units=rv$spike_units,
         pollen_sum_groups=rv$pollen_sum, title=rv$title,
         sample_name=rv$sample_name,
         dic_path=rv$dic_path,

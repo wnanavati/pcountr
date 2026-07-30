@@ -110,6 +110,24 @@
 - **Grain History table renders on demand** — table is built only when the
   Grain History tab is open, eliminating redundant rebuilds during counting.
 
+## Done — v0.5.4
+
+- **`apply_metadata()`** — new function completing the round-trip edit workflow:
+  `extract_metadata()` → edit CSV → `apply_metadata()` applies all non-NA
+  columns via `set_metadata()` and writes updated YAMLs back to disk. Rows are
+  matched by `source_file` (preferred) or `sample_name` (fallback). Pass
+  `write = FALSE` to apply edits in memory only.
+- **`set_metadata()` gains `title` and `conc_method`** — both fields were already
+  handled by `extract_metadata()` and the YAML format but were not settable via
+  `set_metadata()`.
+- **`spike_units` fix in counting app autosave** — `do_autosave()` now passes
+  `spike_units` to `pollen_count()`. Previously the field was silently omitted, so
+  all YAMLs saved before this fix have `spike_units: NA`. Use `apply_metadata()`
+  to backfill existing files.
+- **`read_site()` stamps full `source_file` path** — after loading each sample,
+  `read_site()` overwrites `meta$source_file` with the full normalized path,
+  making `apply_metadata()` reliable regardless of what was stored in the YAML.
+
 ## Planned (in priority order)
 
 1. **More site validation data** — load the remaining LM `.CNT` files (LMSH159–LMSH302)

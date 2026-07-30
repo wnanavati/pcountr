@@ -146,10 +146,13 @@ path, ready for the next slide.
 
 Once your count session is complete, load the saved YAML files with `read_site()`.
 Depths, ages, and spike parameters embedded during counting are read automatically
-— no separate metadata sheet is needed.
+— no separate metadata sheet is needed. You do need to supply the dictionary:
+`read_site()` requires it to assign taxa to sum groups (A/B/F/…) for all
+downstream calculations. Pass the same CSV dictionary you used in the app.
 
 ```{r load-yaml, eval = FALSE}
-site <- read_site("path/to/your/yaml/folder")
+site <- read_site("path/to/your/yaml/folder",
+                  dic = "path/to/your/dictionary.csv")
 print(site)
 ```
 
@@ -172,6 +175,61 @@ dic_path  <- system.file("extdata", "fake_lake", "ECG.csv",
 
 site <- read_site(cnt_dir, metadata = meta_path, dic = dic_path)
 print(site)
+```
+
+---
+
+## Correcting metadata after counting
+
+If you discover a depth error, a wrong age, or a sample title that needs
+updating, you can correct it directly in a CSV without reopening the app or
+editing the YAML by hand.
+
+`extract_metadata()` exports all sample metadata to a data frame or CSV file.
+Edit the CSV in any spreadsheet editor — only the cells you change matter — and
+pass it back to `apply_metadata()`:
+
+```{r metadata-roundtrip, eval = FALSE}
+site <- read_site("path/to/your/yaml/folder",
+                  dic = "path/to/your/dictionary.csv")
+
+# Export metadata for review
+extract_metadata(site, file = "metadata_check.csv")
+
+# … open metadata_check.csv, correct any errors, save …
+
+# Apply edits and write updated YAMLs
+site <- apply_metadata(site, "metadata_check.csv")
+```
+
+`apply_metadata()` matches each CSV row to a sample by `source_file` (full path
+stored in the YAML — preferred) or by `sample_name` as a fallback. Every
+non-NA cell is applied; columns you leave blank or NA are not overwritten. Each
+modified sample is written back to its source YAML file. To preview changes in
+memory without writing to disk, pass `write = FALSE`:
+
+```{r metadata-preview, eval = FALSE}
+site_preview <- apply_metadata(site, "metadata_check.csv", write = FALSE)
+```
+
+All fields exported by `extract_metadata()` are editable this way: `depth_top`,
+`depth_bottom`, `age_top`, `age_bottom`, `sample_name`, `sample_quantity`,
+`units`, `spike_tablets`, `spike_density`, `spike_units`, `conc_method`, and
+`title`. The `source_file` column identifies each YAML file and is never
+overwritten.
+
+### Backfilling `spike_units` in files saved before v0.5.4
+
+YAML files created by `count_app()` before v0.5.4 do not contain a `spike_units`
+field due to a bug in the autosave path. To backfill the field across an existing
+folder of files:
+
+```{r backfill-spike-units, eval = FALSE}
+site <- read_site("path/to/yaml/folder",
+                  dic = "path/to/your/dictionary.csv")
+extract_metadata(site, file = "meta_fix.csv")
+# Open meta_fix.csv, fill the spike_units column for each sample, then:
+site <- apply_metadata(site, "meta_fix.csv")
 ```
 
 ---

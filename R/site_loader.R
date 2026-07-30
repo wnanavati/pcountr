@@ -36,9 +36,14 @@
 #'
 #' @param folder Path to a folder containing count files (and optionally a
 #'   `.DIC` dictionary).
-#' @param dic Path to a `.DIC` file, or a pre-loaded `pollen_dictionary`.
-#'   Auto-detected when exactly one `.DIC` exists in `folder`; an error is
-#'   raised if zero or more than one are found.
+#' @param dic Path to a `.DIC` or `.csv` dictionary file, or a pre-loaded
+#'   `pollen_dictionary`. The dictionary is **required** — it defines the sum
+#'   groups (A/B/F/…) used by all analytical functions. Auto-detection: if
+#'   exactly one `.DIC` file exists in `folder` it is loaded automatically; zero
+#'   or multiple `.DIC` files raise an error. CSV dictionaries are never
+#'   auto-detected and must be passed explicitly. Folders of `.yaml` files
+#'   produced by `count_app()` typically contain no `.DIC` — always supply
+#'   `dic = "path/to/dictionary.csv"` in that case.
 #' @param name Site name. Defaults to the folder's basename.
 #' @param metadata Optional path to a CSV metadata sheet.
 #' @param col_map Named character vector mapping standard field names to your
@@ -100,6 +105,8 @@ read_site <- function(folder,
                                          ignore_depth_conflicts)
     }
 
+    # Always stamp the full normalised path so apply_metadata() can write back.
+    cnt$meta$source_file <- normalizePath(f, winslash = "/", mustWork = FALSE)
     samples[[i]] <- cnt
   }
 
@@ -146,8 +153,12 @@ read_site <- function(folder,
 #' @param spike_density Microspheres per unit of spike (per tablet, per ml,
 #'   or per g).
 #' @param spike_units Units of the spike: `"tablets"`, `"ml"`, or `"g"`.
+#' @param conc_method Concentration method: `"spike"`, `"volumetric"`, or
+#'   `"none"`.
+#' @param title Free-text sample title shown in the counting app.
 #' @return The updated `pollen_site` (invisibly).
-#' @seealso [read_site()] for bulk depth/age assignment via a metadata sheet.
+#' @seealso [read_site()] for bulk depth/age assignment via a metadata sheet,
+#'   [apply_metadata()] to push a full edited metadata CSV back to a site.
 #' @export
 set_metadata <- function(site, sample,
                          depth_top       = NULL,
@@ -159,7 +170,9 @@ set_metadata <- function(site, sample,
                          sample_units    = NULL,
                          spike_tablets   = NULL,
                          spike_density   = NULL,
-                         spike_units     = NULL) {
+                         spike_units     = NULL,
+                         conc_method     = NULL,
+                         title           = NULL) {
   stopifnot(inherits(site, "pollen_site"))
   if (is.null(site$samples) || !length(site$samples))
     stop("`site` has no samples loaded. Run read_site() first.")
@@ -196,6 +209,8 @@ set_metadata <- function(site, sample,
   if (!is.null(spike_tablets))   m$spike_tablets    <- spike_tablets
   if (!is.null(spike_density))   m$spike_density    <- spike_density
   if (!is.null(spike_units))     m$spike_units      <- spike_units
+  if (!is.null(conc_method))     m$conc_method      <- conc_method
+  if (!is.null(title))           m$title            <- title
   site$samples[[idx]]$meta <- m
 
   site$samples <- .order_samples(site$samples)

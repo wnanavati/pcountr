@@ -1,5 +1,52 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.5.4
+
+### Metadata round-trip workflow — `apply_metadata()`
+
+New function `apply_metadata()` completes the round-trip edit cycle for all
+sample metadata fields:
+
+```r
+site <- read_site("path/to/yamls")
+extract_metadata(site, file = "metadata.csv")  # export CSV
+# … edit the CSV in any spreadsheet editor …
+site <- apply_metadata(site, "metadata.csv")   # apply edits; writes YAMLs
+```
+
+`apply_metadata()` reads the CSV, matches each row to a sample by `source_file`
+(exact path, preferred) or by `sample_name` (fallback), applies every non-NA
+column via `set_metadata()`, and by default writes each modified sample back to
+its source YAML file. All fields that `set_metadata()` accepts are editable this
+way: `depth_top`, `depth_bottom`, `age_top`, `age_bottom`, `sample_name`,
+`sample_quantity`, `units`, `spike_tablets`, `spike_density`, `spike_units`,
+`conc_method`, and `title`. The `source_file` column is used for matching only
+and is never overwritten. Pass `write = FALSE` to apply edits in memory only.
+
+### `set_metadata()` — new `title` and `conc_method` parameters
+
+Both fields were present in `extract_metadata()` output and the YAML format but
+were not settable via `set_metadata()`. They are now full `NULL`-default
+parameters.
+
+### Bug fix — `spike_units` always NA in exported metadata
+
+The counting app's autosave (`do_autosave()`) called `pollen_count()` with
+`spike_tablets` and `spike_density` but omitted `spike_units`. All YAML files
+saved by `count_app()` before this fix therefore lack the `spike_units` field.
+The omission is now corrected. To backfill existing files, export metadata with
+`extract_metadata()`, fill in the `spike_units` column, and run `apply_metadata()`
+to write the updated YAMLs.
+
+### Bug fix — `apply_metadata()` writes to the correct YAML directory
+
+`read_site()` now stamps the full normalized path to `meta$source_file` for
+every sample after loading, overwriting whatever bare filename may have been
+stored in the YAML by the counting app. This ensures `apply_metadata()` always
+resolves the write target to the correct folder rather than R's working directory.
+
+---
+
 ## pcountr 0.5.3
 
 ### Counting app — performance and input reliability
