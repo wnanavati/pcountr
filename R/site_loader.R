@@ -124,6 +124,71 @@ read_site <- function(folder,
 }
 
 
+#' Write all samples in a site to YAML files
+#'
+#' Converts every sample in a loaded `pollen_site` to a native YAML file in
+#' `folder` using [write_pollen_count()]. This is the primary route for
+#' migrating a folder of legacy `.CNT` files to the modern YAML format, and the
+#' necessary first step before [apply_metadata()] can write metadata back to
+#' disk (`.CNT` files are read-only; `apply_metadata()` only writes to YAML).
+#'
+#' After writing, each sample's `meta$source_file` is updated in the returned
+#' site to the full normalised path of its new YAML, so the result can be
+#' passed directly to [extract_metadata()] or [apply_metadata()] without
+#' reloading from disk.
+#'
+#' @section CNT migration workflow:
+#' ```r
+#' # 1. Load legacy CNT files (attach depths/ages from a sheet if available)
+#' site <- read_site(cnt_dir, dic = "ECG.csv", metadata = "depths.csv")
+#'
+#' # 2. Convert to YAML — source_file is stamped on every sample
+#' site <- write_site(site, "yaml_output/")
+#'
+#' # 3. Export metadata, correct any errors, apply edits back to YAMLs
+#' extract_metadata(site, file = "metadata.csv")
+#' # … edit metadata.csv …
+#' site <- apply_metadata(site, "metadata.csv")
+#'
+#' # 4. Add new counts in the same folder and reload
+#' count_app()
+#' site <- read_site("yaml_output/", dic = "ECG.csv")
+#' ```
+#'
+#' @param site A `pollen_site` with samples loaded.
+#' @param folder Path to the output folder. Created if it does not exist.
+#' @param overwrite If `FALSE` (default), existing `.yaml` files are skipped
+#'   with a message. Set `TRUE` to overwrite.
+#' @return The updated `pollen_site` (invisibly), with `meta$source_file` for
+#'   each written sample pointing to its new YAML path. Samples skipped due to
+#'   `overwrite = FALSE` retain their previous `source_file` value.
+#' @seealso [read_site()], [write_pollen_count()], [extract_metadata()],
+#'   [apply_metadata()]
+#' @export
+write_site <- function(site, folder, overwrite = FALSE) {
+  stopifnot(inherits(site, "pollen_site"))
+  if (!length(site$samples))
+    stop("`site` has no samples. Run read_site() first.")
+
+  dir.create(folder, showWarnings = FALSE, recursive = TRUE)
+  folder <- normalizePath(folder, winslash = "/", mustWork = FALSE)
+
+  for (k in names(site$samples)) {
+    path <- file.path(folder, paste0(k, ".yaml"))
+    if (!overwrite && file.exists(path)) {
+      message("Skipping (exists): ", basename(path),
+              "  — use overwrite = TRUE to replace.")
+      next
+    }
+    write_pollen_count(site$samples[[k]], path)
+    site$samples[[k]]$meta$source_file <- path
+    message("Written: ", path)
+  }
+
+  invisible(site)
+}
+
+
 #' Set or update metadata for a sample in a loaded site
 #'
 #' Updates any combination of depth, age, sample identity, sample quantity, and

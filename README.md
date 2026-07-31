@@ -4,7 +4,7 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.5.4)
+## What it does (v0.5.5)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain
@@ -17,6 +17,9 @@ workflow while saving to a modern, self-contained format.
 ### Site-level analysis
 - **`read_site()`** — load a folder of `.yaml` and/or legacy `.CNT` files as a
   `pollen_site`, with optional depth/age metadata sheet (CSV/TSV).
+- **`write_site()`** — export every sample to a YAML file; the primary route
+  for migrating a legacy `.CNT` folder to the modern YAML format. Returns the
+  updated site with `source_file` stamped, ready for `apply_metadata()`.
 - **`set_metadata()`** — update depth, age, sample identity, quantity, and spike
   fields on a sample; re-sorts the site.
 - **`extract_metadata()`** — extract a metadata data frame from a `pollen_site` or

@@ -110,6 +110,15 @@
 - **Grain History table renders on demand** — table is built only when the
   Grain History tab is open, eliminating redundant rebuilds during counting.
 
+## Done — v0.5.5
+
+- **`write_site()`** — batch YAML export; converts every sample in a loaded
+  `pollen_site` to a YAML file. Primary use: migrating a legacy `.CNT` folder
+  to the modern YAML format so `apply_metadata()` can write metadata back to
+  disk. Returns the updated site with `source_file` stamped to the new YAML
+  paths, enabling immediate `extract_metadata()` / `apply_metadata()` calls
+  without reloading. `overwrite = FALSE` by default.
+
 ## Done — v0.5.4
 
 - **`apply_metadata()`** — new function completing the round-trip edit workflow:

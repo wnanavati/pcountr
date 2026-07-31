@@ -1,5 +1,33 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.5.5
+
+### `write_site()` — batch YAML export and CNT migration
+
+New function `write_site()` converts every sample in a loaded `pollen_site` to
+a native YAML file, completing the CNT → YAML migration path and enabling the
+full round-trip metadata edit workflow for legacy data:
+
+```r
+# Load legacy CNT files (depths/ages from sheet if available)
+site <- read_site(cnt_dir, dic = "ECG.csv", metadata = "depths.csv")
+
+# Convert to YAML
+site <- write_site(site, "yaml_output/")
+
+# Edit metadata and write back
+extract_metadata(site, file = "metadata.csv")
+# … edit …
+site <- apply_metadata(site, "metadata.csv")
+```
+
+After writing, each sample's `meta$source_file` is updated to the new YAML
+path in the returned site, so `extract_metadata()` and `apply_metadata()` work
+immediately without reloading from disk. Existing files are skipped with a
+message by default; pass `overwrite = TRUE` to replace them.
+
+---
+
 ## pcountr 0.5.4
 
 ### Metadata round-trip workflow — `apply_metadata()`

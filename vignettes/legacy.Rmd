@@ -120,6 +120,34 @@ Once YAML files have been created by the app, load them with `read_site()` exact
 
 ---
 
+## Converting CNT files to YAML
+
+`.CNT` files are read-only — `apply_metadata()` cannot write back to them. To
+use the full round-trip metadata edit workflow on legacy data, convert the site
+to YAML first with `write_site()`:
+
+```{r write-site, eval = FALSE}
+# Already loaded above:
+# site <- read_site(cnt_dir, metadata = meta_path, dic = dic_path)
+
+# Convert every sample to YAML in a new folder
+site <- write_site(site, "path/to/yaml_output/")
+```
+
+`write_site()` writes one YAML per sample (named by the sample key, e.g.
+`FL001.yaml`) and updates `meta$source_file` in the returned site to the new
+YAML paths. The returned site can be passed directly to `extract_metadata()` or
+`apply_metadata()` without reloading from disk.
+
+Existing files are skipped with a message by default. Pass `overwrite = TRUE`
+to replace them — useful when re-exporting after correcting a metadata sheet.
+
+Once converted, the YAML folder becomes the live working copy. New counts added
+with `count_app()` go in the same folder; `read_site()` loads both old and new
+samples together.
+
+---
+
 ## Correcting metadata after loading
 
 If you need to update depth, age, titles, or spike parameters after loading a
@@ -257,23 +285,26 @@ if (requireNamespace("xml2", quietly = TRUE)) {
 ```{r workflow-summary, eval = FALSE}
 library(pcountr)
 
-# 1. Load CNT files and attach metadata
+# 1. Load CNT files and attach depths/ages
 site <- read_site("path/to/cnt/folder",
                   dic      = "path/to/your/dictionary.csv",
                   metadata = "metadata.csv")
 
-# 2. Count new samples interactively (saves YAML automatically)
-count_app()
+# 2. Convert to YAML (enables apply_metadata() write-back)
+site <- write_site(site, "path/to/yaml_output/")
 
-# 3. Reload site once new YAMLs are saved (read_site picks up both CNT and YAML)
-site <- read_site("path/to/counts", dic = "path/to/your/dictionary.csv")
-
-# 3a. (Optional) correct any metadata errors via CSV round-trip
+# 3. Export metadata, correct errors, write back to YAMLs
 extract_metadata(site, file = "metadata_check.csv")
 # … edit the CSV …
 site <- apply_metadata(site, "metadata_check.csv")
 
-# 4. Build the site matrix
+# 4. Count new samples interactively (saves YAML to the same folder)
+count_app()
+
+# 5. Reload — read_site() picks up all YAMLs including new counts
+site <- read_site("path/to/yaml_output/", dic = "path/to/your/dictionary.csv")
+
+# 6. Build the site matrix
 mat <- site_matrix(site, min_present = 2)
 
 # 5. Stratigraphic diagram
