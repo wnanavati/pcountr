@@ -1,5 +1,39 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.5.6
+
+### Counting app — spacebar submits grain entries
+
+Pressing **Space** in the grain input field now submits the entry, identical to
+pressing Enter. Space is ignored when the field is empty, and passes through
+normally when typing a remark (`[text]`) or traverse label (`/label/`) so that
+multi-word entries are unaffected.
+
+### Dictionary — optional `value` column for half-grain codes
+
+`pollen_dictionary` now supports an optional `value` column (grain weight;
+default `1`). This is intended for analysts who count **without preservation
+codes** (`use_pres = FALSE`) but still need to record half-grains. Instead of
+the standard `0` preservation modifier, they can define a dedicated code in the
+CSV dictionary — for example `HI` ("half *Picea*") with `value = 0.5`.
+
+Behaviour:
+
+- `.DIC` files: `value` is set to `1` for every row (the fixed-column format
+  has no weight column).
+- CSV files: column is optional and matched case-insensitively. Missing or
+  blank values default to `1`; `NA` values default to `1`.
+- `write_dic_csv()` always writes the `value` column so round-tripped files
+  are self-documenting.
+- `dictionary_template.csv` updated with `value` column (all `1`).
+- **Counting app** (`use_pres = FALSE` path): grain weight is now looked up
+  from `dic$value[idx]` instead of the previous hardcoded `1.0`. Falls back
+  to `1.0` if the column is absent or the value is `NA`/non-finite.
+- **`use_pres = TRUE` path**: `value` is ignored — weight is always determined
+  by the `0` preservation modifier in the grain token, as before.
+
+---
+
 ## pcountr 0.5.5
 
 ### `write_site()` — batch YAML export and CNT migration

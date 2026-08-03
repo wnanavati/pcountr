@@ -11,7 +11,7 @@ read_dic(path)
 }
 \value{
 A data frame of class \code{pollen_dictionary} with columns \code{code},
-\code{alias}, \code{group}, \code{name}, \code{is_special}.
+\code{alias}, \code{group}, \code{name}, \code{is_special}, \code{value}.
 }
 \description{
 Reads a pollen dictionary into a \code{pollen_dictionary} data frame. The format

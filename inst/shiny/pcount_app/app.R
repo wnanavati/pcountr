@@ -545,6 +545,11 @@ counting_panel <- function() {
       Shiny.addCustomMessageHandler('beep',        function(m){ playBeep(); });
       $(document).off('keydown.grain').on('keydown.grain', '#grain_input', function(e) {
         if (e.key === 'Enter') { e.preventDefault(); submitEntry(); }
+        // Spacebar submits grain codes; ignored mid-remark ([...) or mid-traverse (/...).
+        if (e.key === ' ' && this.value !== '' &&
+            this.value[0] !== '[' && this.value[0] !== '/') {
+          e.preventDefault(); submitEntry();
+        }
         // Single-key spike shortcut: '.' on an empty field submits immediately.
         if (e.key === '.' && this.value === '') { e.preventDefault(); submitEntry('.'); }
       });
@@ -1215,9 +1220,11 @@ server <- function(input, output, session) {
             "This code is not in the dictionary. Re-enter a known code, or open the Dictionary tab to add it."))
           return(FALSE)
         }
+        dic_val <- if ("value" %in% names(rv$dic)) rv$dic$value[idx] else NA_real_
+        wt      <- if (is.na(dic_val) || !is.finite(dic_val)) 1.0 else as.numeric(dic_val)
         rv$events <- c(rv$events, list(list(type="grain", code=rv$dic$code[idx],
                                             base=NA_character_, pres=NA_character_,
-                                            weight=1.0, hidden=FALSE,
+                                            weight=wt, hidden=FALSE,
                                             traverse=rv$cur_traverse,
                                             position=pos, anomaly=FALSE)))
         return(TRUE)

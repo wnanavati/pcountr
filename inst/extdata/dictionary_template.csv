@@ -1,23 +1,23 @@
-code,alias,group,name,is_special
-A,,A,Alnus,FALSE
-B,,A,Betula,FALSE
-C,,A,Corylus,FALSE
-I,,A,Picea,FALSE
-P,,A,Pinus,FALSE
-Q,,A,Quercus,FALSE
-S,,A,Abies,FALSE
-U,,A,Ulmus,FALSE
-G,,B,Artemisia,FALSE
-H,,B,Poaceae undiff.,FALSE
-J,,B,Asteraceae undiff.,FALSE
-N,,B,Cyperaceae,FALSE
-R,,B,Ranunculus,FALSE
-F,,F,Sphagnum,FALSE
-SF,,F,Pteridophyte undiff.,FALSE
-PT,,F,Polypodiaceae,FALSE
-UP,,Q,Potamogeton,FALSE
-Y,,Q,Nuphar,FALSE
-.,,.,Microspheres (tracer spike),TRUE
-#FUN,Fun,#,Fungal spore,TRUE
-#ALG,Alg,#,Algae,TRUE
-#NAP,NAP,X,Unidentifiable,FALSE
+code,alias,group,name,is_special,value
+A,,A,Alnus,FALSE,1
+B,,A,Betula,FALSE,1
+C,,A,Corylus,FALSE,1
+I,,A,Picea,FALSE,1
+P,,A,Pinus,FALSE,1
+Q,,A,Quercus,FALSE,1
+S,,A,Abies,FALSE,1
+U,,A,Ulmus,FALSE,1
+G,,B,Artemisia,FALSE,1
+H,,B,Poaceae undiff.,FALSE,1
+J,,B,Asteraceae undiff.,FALSE,1
+N,,B,Cyperaceae,FALSE,1
+R,,B,Ranunculus,FALSE,1
+F,,F,Sphagnum,FALSE,1
+SF,,F,Pteridophyte undiff.,FALSE,1
+PT,,F,Polypodiaceae,FALSE,1
+UP,,Q,Potamogeton,FALSE,1
+Y,,Q,Nuphar,FALSE,1
+.,,.,Microspheres (tracer spike),TRUE,1
+#FUN,Fun,#,Fungal spore,TRUE,1
+#ALG,Alg,#,Algae,TRUE,1
+#NAP,NAP,X,Unidentifiable,FALSE,1

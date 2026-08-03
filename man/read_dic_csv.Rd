@@ -23,6 +23,7 @@ Reads a CSV dictionary with the following columns:
    \code{group} \tab yes \tab Single-letter group code (e.g. \code{A}, \code{B}, \code{F}, \code{Q}); leave blank for special markers \cr
    \code{alias} \tab no \tab Short alternative name or abbreviation \cr
    \code{is_special} \tab no \tab \code{TRUE}/\code{FALSE}; inferred from \code{code} prefix when absent \cr
+   \code{value} \tab no \tab Grain weight (default \code{1}). Set to \code{0.5} for half-grain codes when counting without preservation codes (e.g. a code \code{HI} for "half \emph{Picea}" with \code{value = 0.5}). Ignored when preservation codes are in use. \cr
 }
 
 

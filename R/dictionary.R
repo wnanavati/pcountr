@@ -53,7 +53,7 @@ default_precedence <- c("8", "6", "2", "9", "1")
 #'
 #' @param path Path to a `.DIC` or `.csv` dictionary file.
 #' @return A data frame of class `pollen_dictionary` with columns `code`,
-#'   `alias`, `group`, `name`, `is_special`.
+#'   `alias`, `group`, `name`, `is_special`, `value`.
 #' @references Grimm, E. C. (1994). *PCount* (Version 2.0) \[MS-DOS software\].
 #'   Illinois State Museum, Research and Collections Center, Springfield, IL.
 #' @seealso [read_dic_csv()], [write_dic_csv()]
@@ -87,6 +87,7 @@ read_dic <- function(path) {
     group      = group[keep],
     name       = name[keep],
     is_special = !nzchar(group[keep]) | grepl("^[#.]", code[keep]),
+    value      = 1.0,
     stringsAsFactors = FALSE
   )
   class(df) <- c("pollen_dictionary", "data.frame")
@@ -104,6 +105,7 @@ read_dic <- function(path) {
 #' | `group` | yes | Single-letter group code (e.g. `A`, `B`, `F`, `Q`); leave blank for special markers |
 #' | `alias` | no | Short alternative name or abbreviation |
 #' | `is_special` | no | `TRUE`/`FALSE`; inferred from `code` prefix when absent |
+#' | `value` | no | Grain weight (default `1`). Set to `0.5` for half-grain codes when counting without preservation codes — e.g. a code `HI` for "half *Picea*" with `value = 0.5`. Ignored when preservation codes are in use (weight is then determined by the `0` modifier in the token). |
 #'
 #' Column names are matched case-insensitively. Rows with blank `code` or
 #' `name` are silently dropped.
@@ -133,10 +135,10 @@ read_dic_csv <- function(path) {
   if (length(missing))
     stop("Dictionary CSV '", basename(path), "' is missing required column(s): ",
          paste(missing, collapse = ", "),
-         ".\nRequired: code, name, group.  Optional: alias, is_special.")
+         ".\nRequired: code, name, group.  Optional: alias, is_special, value.")
 
   # Rename to standard names
-  for (std in c("code", "name", "group", "alias", "is_special")) {
+  for (std in c("code", "name", "group", "alias", "is_special", "value")) {
     real <- resolve(std)
     if (!is.na(real) && real != std) df[[std]] <- df[[real]]
   }
@@ -144,6 +146,7 @@ read_dic_csv <- function(path) {
   # Add optional columns if absent
   if (!"alias"      %in% names(df)) df$alias      <- NA_character_
   if (!"is_special" %in% names(df)) df$is_special  <- NA
+  if (!"value"      %in% names(df)) df$value       <- NA_real_
 
   df$code       <- trimws(as.character(df$code  %||% ""))
   df$name       <- trimws(as.character(df$name  %||% ""))
@@ -156,10 +159,14 @@ read_dic_csv <- function(path) {
   inferred <- !nzchar(df$group) | grepl("^[#.]", df$code)
   df$is_special <- ifelse(is.na(explicit), inferred, explicit | inferred)
 
+  # value: grain weight; default 1 when absent or NA
+  df$value <- suppressWarnings(as.numeric(df$value))
+  df$value[is.na(df$value)] <- 1.0
+
   # Drop blank / NA rows; select canonical column order
   keep <- !is.na(df$code) & nzchar(df$code) &
           !is.na(df$name) & nzchar(df$name)
-  df   <- df[keep, c("code", "alias", "group", "name", "is_special"),
+  df   <- df[keep, c("code", "alias", "group", "name", "is_special", "value"),
              drop = FALSE]
   rownames(df) <- NULL
   class(df)    <- c("pollen_dictionary", "data.frame")
@@ -184,7 +191,7 @@ read_dic_csv <- function(path) {
 #' @export
 write_dic_csv <- function(dic, path) {
   stopifnot(inherits(dic, "pollen_dictionary"))
-  write.csv(dic[, c("code", "alias", "group", "name", "is_special"),
+  write.csv(dic[, c("code", "alias", "group", "name", "is_special", "value"),
                drop = FALSE],
             file = path, row.names = FALSE)
   invisible(path)

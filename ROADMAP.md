@@ -110,6 +110,16 @@
 - **Grain History table renders on demand** — table is built only when the
   Grain History tab is open, eliminating redundant rebuilds during counting.
 
+## Done — v0.5.6
+
+- **`pollen_dictionary` `value` column** — optional grain weight column in CSV
+  dictionaries (default `1`). Allows analysts counting without preservation codes
+  to define half-grain codes (e.g. `HI` for "half *Picea*" with `value = 0.5`)
+  directly in the dictionary rather than using the `0` modifier. `.DIC` files
+  always produce `value = 1`. `write_dic_csv()` and `dictionary_template.csv`
+  updated. Counting app `use_pres = FALSE` path now looks up grain weight from
+  `dic$value` instead of hardcoding `1.0`.
+
 ## Done — v0.5.5
 
 - **`write_site()`** — batch YAML export; converts every sample in a loaded

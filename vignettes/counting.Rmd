@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
 ```
 
 `count_app()` is the primary interface in pcountr. It launches a keystroke-driven
-Shiny application designed for use at the microscope: type an ID, a preservation code, press
-Enter, and the count is recorded. Live running totals, continuous autosave, and
+Shiny application designed for use at the microscope: type an ID and a preservation code, press
+Enter or Space, and the count is recorded. Live running totals, continuous autosave, and
 a resume-from-YAML path make it a practical replacement for the PCount DOS
 counting loop.
 
@@ -87,7 +87,7 @@ once counting begins; all other metadata fields remain editable on the
 
 ## Input syntax
 
-Type any of the following in the input field and press Enter:
+Type any of the following in the input field and press **Enter** or **Space** to submit:
 
 | Token | Meaning |
 |---|---|
