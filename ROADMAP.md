@@ -110,6 +110,16 @@
 - **Grain History table renders on demand** — table is built only when the
   Grain History tab is open, eliminating redundant rebuilds during counting.
 
+## Done — v0.5.7
+
+- **Bug fix: CNT → YAML round-trip for modifier grains** — `.tokenise_stream()`
+  now builds grain events with `base`, `pres`, `hidden`, and `anomaly` fields
+  (matching the app's event format) instead of the `pres_set` vector that
+  `write_pollen_count()` did not read. Grains with modifier `9` (hidden) or `0`
+  (half-grain) now survive the CNT → YAML → `read_pollen_count()` round-trip
+  with all flags intact. New test file `test-modifier-roundtrip.R` (7 assertions)
+  guards against regression.
+
 ## Done — v0.5.6
 
 - **`pollen_dictionary` `value` column** — optional grain weight column in CSV

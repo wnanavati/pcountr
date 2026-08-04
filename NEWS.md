@@ -1,5 +1,32 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.5.7
+
+### Bug fix — CNT → YAML round-trip lost `hidden` flag and `pres` for modifier grains
+
+`.tokenise_stream()` in `read_cnt.R` was building grain events with a `pres_set`
+field (a character vector) instead of the `base`, `pres`, and `hidden` fields
+expected by `write_pollen_count()`. As a result, any grain parsed from a `.CNT`
+file with a `9` (hidden) or `0` (half-grain) modifier would be written to YAML
+with `hidden: false` and `pres: null`, silently dropping those flags on
+round-trip. Grains entered live in the counting app were unaffected.
+
+Specifically:
+- `B19` (hidden Betula): round-tripped as `hidden=FALSE`, `pres=""`.
+- `I80` (half Picea): `weight=0.5` was preserved (correct) but `pres` became
+  empty.
+- `A190` (hidden + half): both `hidden` and `pres` were dropped.
+
+The fix aligns the CNT event structure with the app's event format:
+`base`, `pres` (semicolon-separated string), `hidden`, and `anomaly` are now
+set correctly for every grain event produced by `.tokenise_stream()`.
+
+New test file `tests/testthat/test-modifier-roundtrip.R` adds 7 assertions
+covering token parsing, event field correctness, and full CNT → YAML
+round-trips for `9`, `0`, and `90` modifier combinations.
+
+---
+
 ## pcountr 0.5.6
 
 ### Counting app — spacebar submits grain entries

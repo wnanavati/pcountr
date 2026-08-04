@@ -5,7 +5,7 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.5.6.** The verified spine (v0.1.0) is complete
+Status as of this writing: **v0.5.7.** The verified spine (v0.1.0) is complete
 and all planned analytical layers have been built on top of it. 446 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
@@ -20,7 +20,9 @@ reliability fixes. New in v0.5.4: `apply_metadata()` round-trip workflow,
 and `read_site()` now stamps full `source_file` path. New in v0.5.5:
 `write_site()` for batch YAML export and CNT migration. New in v0.5.6:
 optional `value` column in `pollen_dictionary` for half-grain codes in no-pres
-counting mode (see NEWS.md).
+counting mode. New in v0.5.7: bug fix — CNT → YAML round-trip now correctly
+preserves `hidden` flag and `pres` string for `9`- and `0`-modifier grains
+(see NEWS.md).
 
 ---
 

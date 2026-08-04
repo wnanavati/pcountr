@@ -208,9 +208,15 @@ read_cnt <- function(path, site = NULL, quiet = FALSE) {
         position = pos
       )
       ne <- ne + 1L
-      events[[ne]] <- list(type = "grain", code = code,
-                          pres_set = pres_set, weight = weight,
-                          position = pos, traverse = cur_traverse)
+      events[[ne]] <- list(type     = "grain",
+                           code     = code,
+                           base     = base,
+                           pres     = paste(pres_set, collapse = ";"),
+                           weight   = weight,
+                           hidden   = hidden,
+                           position = pos,
+                           traverse = cur_traverse,
+                           anomaly  = FALSE)
       pos <- pos + nchar(mt[1])
       next
     }
