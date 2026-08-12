@@ -5,8 +5,8 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.5.7.** The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 446 test
+Status as of this writing: **v0.5.8.** The verified spine (v0.1.0) is complete
+and all planned analytical layers have been built on top of it. 545 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*
@@ -22,7 +22,10 @@ and `read_site()` now stamps full `source_file` path. New in v0.5.5:
 optional `value` column in `pollen_dictionary` for half-grain codes in no-pres
 counting mode. New in v0.5.7: bug fix — CNT → YAML round-trip now correctly
 preserves `hidden` flag and `pres` string for `9`- and `0`-modifier grains
-(see NEWS.md).
+(see NEWS.md). New in v0.5.8: `extract_remarks()`; `pres` standardised to a
+concatenated digit string (`"19"`, not `"1;9"`); modifier-only preservation
+entries (e.g. `ts9`) now accepted; multi-slide `.CNT` files no longer discard
+slide boundaries after the first (see NEWS.md).
 
 ---
 
@@ -100,7 +103,7 @@ The count stream, after de-wrapping, is a sequence of these token types:
 
 | Token | Meaning |
 |-------|---------|
-| `{ ... }` | slide description (appears once, at the start) |
+| `{ ... }` | slide name — the leading one names slide 1; each subsequent one starts a new slide within the sample |
 | `CODE` + base digit `1`–`8` + optional modifiers `{0,9}` | one pollen grain |
 | `.` | one tracer-spike microsphere (no digit) |
 | `/<label>/` | traverse marker (see §5 — label is free text) |
@@ -115,11 +118,19 @@ The count stream, after de-wrapping, is a sequence of these token types:
 - `9` (hidden) is also a modifier that can follow another digit.
 - **Known code meanings:** 1 = perfect, 2 = corroded, 6 = crumpled, 8 = broken,
   9 = hidden, 0 = half-grain.
-- **Undocumented:** 3, 4, 5, 7 — analyst is sourcing documentation. They are
-  placeholders in the scheme and may be relabelled per project.
-- Combination codes like `680` (crumpled + broken + half) are *possible* but
-  **rare and absent from the verified data**, so the multi-state summary rule is
-  provisional (see §6).
+- **Codes 3, 4, 5, 7** carry no fixed meaning in `pcountr`. Labels for every
+  code come from the `preservation` argument to `pollen_site()`, so the scheme
+  is defined per project (see §6).
+- The base digit is **optional at entry**: a grain may be recorded with a
+  modifier alone (e.g. `ts9` = hidden, no base state). Such grains have an
+  empty `base` and a `pres` of just the modifier.
+- In the data model, `pres` is a **concatenated digit string** — `"19"` for
+  base 1 + hidden, not `"1;9"`. Each state is a single digit, so no separator
+  is needed. YAMLs written before v0.5.8 used semicolons; `read_pollen_count()`
+  strips them on read.
+- Combination codes like `680` (crumpled + broken + half) parse correctly; how
+  they are attributed in a one-class-per-grain summary is controlled by the
+  analyst's `precedence` order (see §6).
 
 ---
 
@@ -159,19 +170,39 @@ mouse-driven entry.
 
 ---
 
-## 6. Provisional / unverified decisions
+## 6. Preservation scheme — analyst-defined by design
 
-- **Multi-state preservation precedence.** When a single grain has more than one
-  state (e.g. crumpled + broken) and a summary table allows one class per grain,
-  `preservation_table(collapse_multistate = TRUE)` picks one via
-  `default_precedence` (currently `8 > 6 > 2 > 9 > 1`). The raw per-grain set is
-  always retained, so nothing is lost. **This precedence is a documented guess.**
-  The verified data has no genuine multi-state grains, so we cannot yet confirm
-  how PCount itself attributes them. *To verify:* obtain a `.CNT`/`.RPT` pair
-  containing combination codes and check PCount's preservation table against ours.
+**The preservation scheme belongs to the analyst, not to `pcountr`.** Both the
+code→label mapping and the multi-state precedence order are arguments on
+`pollen_site()`:
 
-- **Preservation codes 3/4/5/7.** Labelled `undocumented-N` until the analyst
-  finds the original PCount documentation.
+```r
+pollen_site(name, dictionary,
+            preservation = default_preservation,   # code -> label
+            precedence   = default_precedence)     # multi-state order
+```
+
+`default_preservation` follows the Cushing (1967) scheme PCount shipped with, and
+`default_precedence` is `8 > 6 > 2 > 9 > 1`. Both are **defaults, not
+assertions** — a project using a different taxonomy of damage states overrides
+them and every downstream function follows suit.
+
+Consequences of this decision:
+
+- **Codes 3, 4, 5, 7 need no canonical meaning.** They are valid states whose
+  labels come from the analyst's `preservation` vector. There is nothing to
+  look up and no documentation debt.
+- **Multi-state precedence needs no external validation.** When a grain carries
+  more than one state and a summary table allows one class per grain,
+  `preservation_table(collapse_multistate = TRUE)` resolves it via `precedence`.
+  The raw per-grain `pres` string is always retained, so collapsing is a
+  presentation choice that discards nothing and is reversible.
+
+This closes what earlier versions of this document tracked as two open
+validation debts (confirming 3/4/5/7 against original PCount documentation, and
+checking combination-code attribution against a `.CNT`/`.RPT` pair). Neither is
+a gap in the package; both were artefacts of treating a configurable default as
+a fact needing verification.
 
 ---
 
@@ -192,12 +223,13 @@ consistent; `read_cnt(site=)` warns if a code doesn't resolve.
 
 ### `pollen_count` (per-sample)
 - `grains` — a data frame, **one row per grain, in counting order**:
-  `code, base, pres (";"-joined state set), weight, hidden, traverse, position`
+  `code, base, pres (concatenated digit string, e.g. "19"), weight, hidden, traverse, position`
 - `spike_n` — tracer count
 - `traverses` — ordered vector of labels
 - `remarks` — list of `{text, position, traverse}`, verbatim, in sequence
-- `events` — the full ordered event list (grains, spikes, traverses, remarks)
-  interleaved by position — this is what preserves exact counting order
+- `events` — the full ordered event list (grains, spikes, traverses, remarks,
+  slide descriptors) interleaved by position — this is what preserves exact
+  counting order
 - `meta` — `sample_quantity, units, spike_tablets, spike_density, spike_units,
   pollen_sum_groups, depth_top, depth_bottom, age_top, age_bottom,
   sample_name, dic_path, slide, title, source_file`
@@ -292,11 +324,13 @@ the file is always current within a fraction of a second; at most ~300 ms of
 rapid grain entries could be lost in a power failure.
 
 "Done / Save" is a manual confirmation button, not the primary save trigger.
-Resuming from the autosaved YAML restores grains, traverses, remarks, and
-spike total exactly. Individual spike positions within the stream are not
-stored in the YAML (only the total); on resume the stream display reconstructs
-grain and traverse order but spike marks are not interleaved at their original
-positions. All totals and calculated metrics are exact.
+Since v0.4.0 the whole ordered event list — grains, spikes, traverses, remarks,
+slide descriptors — is serialised to YAML (`format_version: 2`), so resuming
+restores the stream exactly as counted, including individual spike positions.
+Older `format_version: 1` YAMLs fall back to the previous reconstruction path,
+which recovers grain and traverse order and the spike *total* but does not
+interleave spike marks at their original positions. Totals and calculated
+metrics are exact in both cases.
 
 ### Live metrics
 Concentration and PAR are recalculated and displayed after every entry. They
@@ -332,6 +366,18 @@ The method is carried forward on New Sample and restored on Resume. All three
 analytical functions that compute concentration (`count_metrics()`,
 `site_matrix()`, and the live app display) branch on this field per sample, so
 a site can contain samples with different methods and each is handled correctly.
+
+### Slides within a sample
+A sample may span several slides. Every sample begins on slide 1; each
+`slide_desc` event begins the next one. In a legacy `.CNT` file these are the
+`{SLIDE NAME}` tokens — the leading one names slide 1, each subsequent one
+starts a new slide. In the app they come from the New Slide button, which
+prompts for a slide ID.
+
+Slide identity is therefore a property of *position in the event stream*, not a
+scalar on the sample. `meta$slide` holds only the first slide's name, kept for
+backward compatibility; anything needing the active slide must walk the stream.
+`extract_remarks()` does this to tell the analyst which slide to return to.
 
 ### Preservation codes optional
 The setup screen asks "Use preservation codes?" (Yes / No), stored as

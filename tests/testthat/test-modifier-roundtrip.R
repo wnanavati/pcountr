@@ -95,9 +95,9 @@ test_that("CNT events carry base, pres, hidden fields (not pres_set)", {
   expect_equal(grain_evs[[1]]$pres,   "1")
   expect_false(grain_evs[[1]]$hidden)
 
-  # B19:  base="1", pres="1;9", hidden=TRUE
+  # B19:  base="1", pres="19", hidden=TRUE
   expect_equal(grain_evs[[2]]$base,   "1")
-  expect_equal(grain_evs[[2]]$pres,   "1;9")
+  expect_equal(grain_evs[[2]]$pres,   "19")
   expect_true(grain_evs[[2]]$hidden)
 
   # I80:  base="8", pres="8", hidden=FALSE, weight=0.5
@@ -106,9 +106,9 @@ test_that("CNT events carry base, pres, hidden fields (not pres_set)", {
   expect_false(grain_evs[[3]]$hidden)
   expect_equal(grain_evs[[3]]$weight, 0.5)
 
-  # A190: base="1", pres="1;9", hidden=TRUE, weight=0.5
+  # A190: base="1", pres="19", hidden=TRUE, weight=0.5
   expect_equal(grain_evs[[4]]$base,   "1")
-  expect_equal(grain_evs[[4]]$pres,   "1;9")
+  expect_equal(grain_evs[[4]]$pres,   "19")
   expect_true(grain_evs[[4]]$hidden)
   expect_equal(grain_evs[[4]]$weight, 0.5)
 })
@@ -135,7 +135,7 @@ test_that("YAML round-trip preserves hidden flag and pres for 9-modifier grains"
 
   # B19 — hidden flag and pres must survive the round-trip
   expect_true(g$hidden[2],           info = "hidden=TRUE lost on YAML round-trip")
-  expect_equal(g$pres[2], "1;9",     info = "pres '1;9' lost on YAML round-trip")
+  expect_equal(g$pres[2], "19",     info = "pres '1;9' lost on YAML round-trip")
   expect_equal(g$weight[2], 1.0)
 })
 
@@ -169,7 +169,7 @@ test_that("YAML round-trip preserves combined 90-modifier (hidden + half-grain)"
   expect_equal(nrow(g), 2L)
   expect_true(g$hidden[2],        info = "hidden lost for combined 90 modifier")
   expect_equal(g$weight[2], 0.5,  info = "weight=0.5 lost for combined 90 modifier")
-  expect_equal(g$pres[2], "1;9",  info = "pres lost for combined 90 modifier")
+  expect_equal(g$pres[2], "19",  info = "pres lost for combined 90 modifier")
 })
 
 test_that("YAML round-trip: metrics unaffected by hidden/half modifiers after fix", {

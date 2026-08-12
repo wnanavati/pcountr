@@ -4,7 +4,7 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.5.7)
+## What it does (v0.5.8)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain
@@ -27,6 +27,9 @@ workflow while saving to a modern, self-contained format.
 - **`apply_metadata()`** — apply an edited metadata CSV back to a site and write
   the updates to the source YAML files; completes the `extract_metadata()` →
   edit → `apply_metadata()` round-trip.
+- **`extract_remarks()`** — table of every inline remark across a site, with the
+  sample, slide, traverse, and the taxon ID counted next to it, so you can find
+  your way back to a flagged spot on a slide.
 - **`site_matrix()`** — wide samples × taxa matrix (percentages, concentrations,
   accumulation rates) for plotting and export.
 - **`write_tlx()`** — export a `pollen_site` to Tilia XML format (`.tlx`) for
@@ -89,8 +92,14 @@ morphotype, or phytolith counts follow the same workflow unchanged.
 ## Design boundaries
 
 - Preservation code `0` is a **half-grain modifier** (weight 0.5), not a state.
-  Codes `1` perfect, `2` corroded, `6` crumpled, `8` broken, `9` hidden are
-  known; `3/4/5/7` are placeholders pending documentation.
+  The base digit is optional at entry, so a modifier alone (e.g. `ts9`) is a
+  valid grain.
+- The **preservation scheme is yours to define.** `pollen_site()` takes both the
+  code→label mapping (`preservation`) and the multi-state precedence order
+  (`precedence`). The defaults follow the Cushing (1967) scheme PCount shipped
+  with — `1` well-preserved, `2` corroded, `6` crumpled, `8` broken, `9` hidden —
+  but any project can substitute its own damage-state taxonomy and every
+  downstream function follows.
 - Chronology construction is **out of scope** — `pcountr` performs
   accumulation-rate arithmetic from ages you supply, but age–depth modelling is
   delegated to tools such as `rbacon`, `clam`, or `neotoma2`.

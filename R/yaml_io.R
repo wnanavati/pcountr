@@ -144,7 +144,7 @@ read_pollen_count <- function(path, site = NULL) {
       switch(e$type,
         grain      = c(base, list(code     = e$code %||% "",
                                   base     = e$base %||% "",
-                                  pres     = e$pres %||% e$base %||% "",
+                                  pres     = gsub(";", "", e$pres %||% e$base %||% ""),
                                   weight   = as.numeric(e$weight %||% 1),
                                   hidden   = isTRUE(e$hidden),
                                   traverse = e$traverse %||% NA_character_,

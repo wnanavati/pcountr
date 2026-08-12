@@ -94,12 +94,19 @@ Type any of the following in the input field and press **Enter** or **Space** to
 | `B1`, `I80`, `A1` | **With preservation codes (default):** taxon code + base preservation digit + optional modifiers |
 | `B10` | Half-grain modifier: code `B`, preservation `1`, modifier `0` (weight 0.5) |
 | `B19` | Hidden grain: code `B`, preservation `1`, modifier `9` |
+| `B9`, `B0` | Modifier alone — a grain recorded as hidden, or as a half-grain, with no base preservation state. The base digit is optional |
 | `B`, `I`, `A` | **Without preservation codes:** code only, when "Use preservation codes?" is set to No |
 | `.` | One tracer microsphere (spike) — only when concentration method is `spike`. Pressing `.` on an empty field submits immediately (no Enter needed) |
 | `/label/` | Traverse marker — stored verbatim in the grain sequence |
 | `[text]` | Inline remark — stored verbatim |
 
-Preservation digits: `1` = perfect, `2` = corroded, `6` = crumpled, `8` = broken.
+Modifiers: `9` = hidden, `0` = half-grain (weight 0.5).
+
+Digits `1`–`8` are preservation states, and **what they mean is up to you.** The
+defaults follow the Cushing (1967) scheme PCount shipped with — `1` well-preserved,
+`2` corroded, `6` crumpled, `8` broken — and `3`, `4`, `5`, `7` are unlabelled in
+that scheme. To use your own damage-state taxonomy, pass a named vector to
+`pollen_site(preservation = )`; every summary and label follows from it.
 
 Unknown or malformed tokens trigger a prominent red alert and an audio beep.
 The grain is **not recorded** — correct and re-enter.
@@ -234,11 +241,41 @@ site <- apply_metadata(site, "meta_fix.csv")
 
 ---
 
+## Finding your remarks again
+
+Remarks you typed as `[text]` during counting are stored verbatim at their
+position in the grain sequence. `extract_remarks()` pulls them all out across a
+site so you can find your way back to whatever you flagged.
+
+```r
+extract_remarks(site)
+```
+
+Each row gives the sample, the slide, the traverse, the remark, and `id` — the
+taxon counted immediately *before* the remark (e.g. `"I1"`), which is what you
+look for down the microscope to locate the spot. Pass `id = "after"` for the
+grain counted immediately after instead.
+
+```r
+# The grain counted just after each remark
+extract_remarks(site, id = "after")
+```
+
+The `slide` column is the slide that was active when you wrote the remark — the
+ID you gave it at the New Slide prompt, or its number within the sample if you
+did not name it.
+
+---
+
 ## Stratigraphic diagram
 
 `site_matrix()` converts the loaded site into parallel matrices and vectors
 ready for `rioja::strat.plot()`. Set `min_present` to hide taxa that appear in
 very few samples.
+
+`strat.plot()` plots against a single y-axis, supplied as `yvar`. Pass
+`mat$DepTop` for a depth axis or `mat$AgeTop` for an age axis, and set `ylabel`
+to match. Axis styling beyond that is rioja's business — see `?rioja::strat.plot`.
 
 ```{r site-matrix}
 mat <- site_matrix(site, min_present = 2)
@@ -254,13 +291,11 @@ if (requireNamespace("rioja", quietly = TRUE)) {
   rioja::strat.plot(
     mat$TaxaPerc[, keep],
     yvar          = mat$DepTop,
-    y2var         = mat$AgeTop,
     y.rev         = TRUE,
     scale.percent = TRUE,
-    cex.xlabel = 0.8, 
-    srt.xlabel = 45,
+    cex.xlabel    = 0.8,
+    srt.xlabel    = 45,
     ylabel        = "Depth (cm)",
-    y2label       = "Age (cal yr BP)",
     title         = "Fake Lake — pollen percentages"
   )
 } else {

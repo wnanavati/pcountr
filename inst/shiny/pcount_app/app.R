@@ -1182,12 +1182,12 @@ server <- function(input, output, session) {
     }
     if (rv$use_pres) {
       # Standard mode: code + preservation digit (e.g. I8, B1, A80)
-      m <- regmatches(s, regexec("^([#$]?[A-Za-z]{1,2})([1-8])([09]*)$", s))[[1]]
-      if (length(m) == 4L) {
+      m <- regmatches(s, regexec("^([#$]?[A-Za-z]{1,2})([1-8]?)([09]*)$", s))[[1]]
+      if (length(m) == 4L && (nzchar(m[3]) || nzchar(m[4]))) {
         code   <- m[2]; base <- m[3]
         mods   <- strsplit(m[4], "")[[1]]
         half   <- "0" %in% mods; hidden <- "9" %in% mods
-        pres   <- paste(unique(c(base, mods[mods != "0"])), collapse = ";")
+        pres   <- paste(unique(c(base, mods[mods != "0"])), collapse = "")
         wt     <- if (half) 0.5 else 1.0
         idx    <- match(code, rv$dic$code)
         if (is.na(idx)) idx <- match(toupper(code), toupper(rv$dic$code))
@@ -1505,8 +1505,8 @@ server <- function(input, output, session) {
                          type = "warning")
         return()
       }
-      m <- regmatches(val, regexec("^([1-8])([09]*)$", val))[[1]]
-      if (length(m) < 3) {
+      m <- regmatches(val, regexec("^([1-8]?)([09]*)$", val))[[1]]
+      if (length(m) < 3 || (!nzchar(m[2]) && !nzchar(m[3]))) {
         showNotification(
           "Invalid preservation code. Use base digit (1–8) + optional modifiers (0=half, 9=hidden).",
           type = "warning")
@@ -1516,7 +1516,7 @@ server <- function(input, output, session) {
       mods   <- strsplit(m[3], "")[[1]]
       half   <- "0" %in% mods
       hidden <- "9" %in% mods
-      pres   <- paste(unique(c(base, mods[mods != "0"])), collapse = ";")
+      pres   <- paste(unique(c(base, mods[mods != "0"])), collapse = "")
       wt     <- if (half) 0.5 else 1.0
       find_and_update(function(i) {
         rv$events[[i]]$base   <- base
@@ -1730,14 +1730,11 @@ server <- function(input, output, session) {
     if (!nrow(g)) return(empty)
 
     notation <- vapply(seq_len(nrow(g)), function(i) {
-      b <- g$base[i]
-      if (is.na(b) || !nzchar(b)) return("—")  # em-dash for no-pres mode
-      parts  <- strsplit(g$pres[i], ";")[[1]]
-      base   <- parts[1]
-      extras <- parts[-1]
-      mods   <- paste0(c(extras, if (g$weight[i] == 0.5) "0" else character(0)),
-                       collapse = "")
-      paste0(base, mods)
+      # pres is a concatenated digit string (e.g. "1", "19"); append the
+      # half-grain modifier 0 for fragments. NA/empty = no-pres mode.
+      p <- g$pres[i]
+      if (is.na(p) || !nzchar(p)) return("—")
+      paste0(p, if (isTRUE(g$weight[i] == 0.5)) "0" else "")
     }, "")
 
     DT::datatable(

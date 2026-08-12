@@ -110,6 +110,32 @@
 - **Grain History table renders on demand** — table is built only when the
   Grain History tab is open, eliminating redundant rebuilds during counting.
 
+## Done — v0.5.8
+
+- **`extract_remarks()`** — remark lookup across a site. Returns
+  `sample_name`, `slide`, `traverse`, `id`, `remark`, where `id` is the taxon
+  code + preservation of the adjacent grain (`id = "before"` default, or
+  `"after"`). Lets an analyst find their way back to a flagged spot on a slide.
+- **Bug fix: preservation code `9` rejected on entry** — the entry regex
+  required a base digit `1`–`8`, so a modifier-only token (`ts9`) could never
+  match. Base digit is now optional in both the grain parser and the Grain
+  History preservation editor.
+- **Bug fix: multi-slide `.CNT` files lost slide boundaries** — mid-stream
+  `{...}` tokens had no tokeniser branch and were discarded as anomalies. They
+  now produce `slide_desc` events, and the leading descriptor is emitted as the
+  opening event so CNT and app event streams match.
+- **Bug fix: vignette documented a nonexistent `rioja::strat.plot()` argument**
+  — `y2var` / `y2label` were never `strat.plot()` parameters, so the documented
+  secondary age axis was silently never drawn (and emitted 128 warnings per
+  diagram). Vignette now uses the single `yvar` axis; the test that asserted the
+  opposite was corrected, and both `strat.plot()` smoke tests now use
+  `expect_no_warning()`.
+- **`pres` standardised to a concatenated digit string** (`"19"`, not `"1;9"`).
+  Fixed `preservation_table(collapse_multistate = TRUE)`, which had silently
+  stopped collapsing multi-state grains, and the app's Grain History
+  preservation column. `read_pollen_count()` strips semicolons for backward
+  compatibility.
+
 ## Done — v0.5.7
 
 - **Bug fix: CNT → YAML round-trip for modifier grains** — `.tokenise_stream()`
@@ -170,15 +196,15 @@
    `tests/testthat/test-site-matrix-rioja.R` covers the full pipeline using
    Fake Lake; rioja tests are guarded with `skip_if_not_installed("rioja")`.
 
-4. **Accumulation-rate end-to-end validation** — once a full site with analyst-supplied
-   ages is available, run `accum_rate()` and compare with independently computed values.
+4. ~~**Accumulation-rate end-to-end validation**~~ — **Resolved (v0.5.8).**
+   `accum_rate()` verified against real sites with analyst-supplied ages.
 
 5. ~~**Rarefaction analysis**~~ — **Done (v0.5.1).** `rarefaction()` implements
    the 100-permutation / 90%-asymptote method per sample, with optional depth
    and age range filters and a `pollen_rarefaction` S3 print method.
 
-6. **`write_tlx()` validation** — round-trip test against a known-good TLX file once a
-   complete site with ages is available; harden unit handling for g-unit sites.
+6. ~~**`write_tlx()` validation**~~ — **Resolved (v0.5.8).** Verified in use on
+   real sites.
 
 ## Optional future features
 
@@ -191,7 +217,16 @@
 
 ## Validation debts to clear when data allows
 
-- A `.CNT`/`.RPT` pair with **combination preservation codes** (e.g. `680`) to verify
-  multi-state attribution against the original PCount output.
-- Documentation for preservation codes **3, 4, 5, 7**.
 - More sites (different dictionaries, ml vs g units) to harden assumptions.
+
+### Closed as not-a-debt (v0.5.8)
+
+The preservation scheme is **analyst-defined** — both the code→label mapping and
+the multi-state precedence order are `pollen_site()` arguments (DESIGN.md §6).
+Two long-standing entries were therefore retired rather than resolved:
+
+- ~~Documentation for preservation codes 3, 4, 5, 7~~ — these carry no canonical
+  meaning in `pcountr`; labels come from the analyst's `preservation` vector.
+- ~~A `.CNT`/`.RPT` pair with combination codes to verify multi-state
+  attribution~~ — attribution is governed by the analyst's `precedence` order, a
+  configurable presentation choice, not a fact about PCount to be reproduced.

@@ -99,13 +99,19 @@ preservation_table <- function(x, collapse_multistate = FALSE) {
   if (!nrow(g)) return(matrix(numeric(0), 0, 0))
 
   # Reconstruct the raw preservation label as PCount wrote it: base digit plus
-  # a trailing 0 for fragments (e.g. "8" -> "80" when half).
-  raw_label <- ifelse(g$weight == 0.5, paste0(g$base, "0"), g$base)
+  # a trailing 0 for fragments (e.g. "8" -> "80" when half). Grains entered as a
+  # modifier alone (e.g. hidden with no base state) have no base digit, so fall
+  # back to the pres string.
+  lbl <- ifelse(is.na(g$base) | !nzchar(g$base), g$pres, g$base)
+  lbl[is.na(lbl)] <- ""
+  raw_label <- ifelse(g$weight == 0.5, paste0(lbl, "0"), lbl)
 
   if (collapse_multistate) {
     prec <- if (!is.null(x$site)) x$site$precedence else default_precedence
     pick <- function(set) {
-      parts <- strsplit(set, ";")[[1]]
+      # pres is a concatenated digit string (e.g. "19"), one character per state
+      if (is.na(set) || !nzchar(set)) return("")
+      parts <- strsplit(set, "")[[1]]
       hit <- prec[prec %in% parts]
       if (length(hit)) hit[1] else parts[1]
     }

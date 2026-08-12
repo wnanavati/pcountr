@@ -79,7 +79,9 @@ test_that("rioja::strat.plot() accepts TaxaPerc + DepTop without error", {
   tmp_pdf <- tempfile(fileext = ".pdf")
   pdf(tmp_pdf)
   on.exit({ dev.off(); unlink(tmp_pdf) }, add = TRUE)
-  expect_no_error(
+  # expect_no_warning, not expect_no_error: an unrecognised argument passed
+  # through `...` to base graphics only warns, so expect_no_error would let it by.
+  expect_no_warning(
     rioja::strat.plot(
       fl_mat$TaxaPerc[, keep, drop = FALSE],
       yvar          = fl_mat$DepTop,
@@ -89,17 +91,23 @@ test_that("rioja::strat.plot() accepts TaxaPerc + DepTop without error", {
   )
 })
 
-test_that("rioja::strat.plot() accepts AgeTop as secondary y axis", {
+# strat.plot() takes a single y-axis variable (`yvar`). It has no secondary-axis
+# argument, so AgeTop is verified as an alternative y-axis, not an additional one.
+# An earlier version of this test passed `y2var`, which is not a strat.plot
+# parameter: it fell through `...` into base graphics and was discarded with a
+# '"y2var" is not a graphical parameter' warning on every internal plotting call.
+# expect_no_error() could not see that, so the test passed while asserting
+# something untrue.
+test_that("rioja::strat.plot() accepts AgeTop as the y-axis variable", {
   skip_if_not_installed("rioja")
   keep    <- colSums(fl_mat$TaxaPerc > 0L, na.rm = TRUE) >= 3L
   tmp_pdf <- tempfile(fileext = ".pdf")
   pdf(tmp_pdf)
   on.exit({ dev.off(); unlink(tmp_pdf) }, add = TRUE)
-  expect_no_error(
+  expect_no_warning(
     rioja::strat.plot(
       fl_mat$TaxaPerc[, keep, drop = FALSE],
-      yvar          = fl_mat$DepTop,
-      y2var         = fl_mat$AgeTop,
+      yvar          = fl_mat$AgeTop,
       y.rev         = TRUE,
       scale.percent = TRUE
     )

@@ -1,5 +1,109 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.5.8
+
+### New — `extract_remarks()`
+
+Returns a data frame of every inline remark across all samples in a
+`pollen_site`, so an analyst can find their way back to a flagged spot on a
+slide. Columns: `sample_name`, `slide`, `traverse`, `id`, `remark`.
+
+The `id` column is the taxon ID of the grain adjacent to the remark — the
+taxon code concatenated with its preservation string (e.g. `"I1"`, or just
+`"I"` when preservation is not recorded). `id = "before"` (default) reports the
+grain counted immediately before the remark; `id = "after"` reports the one
+immediately after.
+
+Slides are tracked per sample: every sample begins on slide 1, and each
+`slide_desc` event begins the next one. The `slide` column reports the
+analyst's name for the active slide, or its ordinal within the sample if it was
+never named. Samples in the legacy `format_version: 1` YAML have no event
+stream, so their remarks report `id = NA` and a single slide; convert them with
+`write_site()`.
+
+### Bug fix — preservation code `9` rejected on entry
+
+Entering a grain as a taxon code plus a bare modifier (e.g. `ts9` — hidden,
+with no base preservation state) was rejected with "Entry not recognised". The
+entry regex in `count_app()` required a base digit `1`–`8`, so `9` and `0` alone
+could never match. Both the grain entry parser and the Grain History
+preservation-cell editor now treat the base digit as optional, requiring only
+that at least one digit be present.
+
+### Bug fix — multi-slide `.CNT` files lost every slide boundary after the first
+
+`read_cnt()` stripped the leading `{...}` slide descriptor into `meta$slide`,
+but `.tokenise_stream()` had no branch for `{...}`, so every *subsequent*
+`{SLIDE NAME}` token fell through to the anomaly path — silently discarded and
+reported as unparseable. Mid-stream `{...}` tokens now produce `slide_desc`
+events, and the leading descriptor is emitted as the opening event so
+CNT-derived event streams match app-created ones. This also corrects the
+counting app's slide counter when resuming a CNT-derived count.
+
+Note: this adds one `slide_desc` event per slide to CNT-derived event streams.
+Any test asserting an exact event count will shift, and mid-stream `{...}`
+tokens that were previously counted as anomalies no longer are.
+
+### Scope decision — the preservation scheme is analyst-defined
+
+Both the code→label mapping and the multi-state precedence order are already
+`pollen_site()` arguments (`preservation`, `precedence`), making them defaults
+rather than claims about the world. Documenting them as unverified guesses was
+a mistake, and two long-standing validation debts have been retired rather than
+resolved:
+
+- Documentation for preservation codes `3`, `4`, `5`, `7` — these carry no
+  canonical meaning in `pcountr`; labels come from the analyst's `preservation`
+  vector, so there is nothing to source.
+- A `.CNT`/`.RPT` pair with combination codes (e.g. `680`) to check multi-state
+  attribution against original PCount output — attribution follows the analyst's
+  `precedence` order, a reversible presentation choice, not a PCount behaviour
+  to reproduce.
+
+`DESIGN.md` §6 was rewritten from "Provisional / unverified decisions" to state
+the design directly. `default_precedence`'s documentation no longer describes
+itself as unverified. No code changed.
+
+Separately, the `accum_rate()` and `write_tlx()` validation items are marked
+resolved — both are verified in use on real sites with analyst-supplied ages.
+
+### Bug fix — vignette documented a `rioja::strat.plot()` argument that does not exist
+
+The *Counting at the Microscope* vignette instructed analysts to pass
+`y2var = mat$AgeTop` (and `y2label`) to `rioja::strat.plot()` to add a secondary
+age axis. `strat.plot()` has no such arguments. They fell through `...` into base
+graphics and were discarded, so the age axis was never drawn — silently. The only
+symptom was a `'"y2var" is not a graphical parameter'` warning repeated on every
+internal plotting call (128 per diagram).
+
+`strat.plot()` takes a single y-axis variable, `yvar`. The vignette now shows
+depth or age passed as `yvar`, and leaves axis styling to rioja.
+
+The accompanying test asserted the same untruth — it was named "accepts AgeTop as
+secondary y axis" and passed because `expect_no_error()` cannot see a warning. It
+now verifies that AgeTop works as *the* y-axis variable, and both `strat.plot()`
+smoke tests use `expect_no_warning()` so an unrecognised argument fails loudly
+instead of passing quietly.
+
+### `pres` is now a concatenated digit string
+
+The per-grain `pres` field changed from a semicolon-separated set (`"1;9"`) to a
+plain concatenated digit string (`"19"`). Each preservation state is a single
+digit, so the separator carried no information and the two formats were used
+inconsistently across the codebase — the Grain History editor validated against
+the concatenated form while the parsers wrote the separated form, which is what
+surfaced the `9` bug above. `read_pollen_count()` strips semicolons on read, so
+existing YAMLs written in the old format load correctly.
+
+Callers that split `pres` on `";"` were updated:
+- `preservation_table(collapse_multistate = TRUE)` — had silently stopped
+  collapsing multi-state grains, since splitting `"19"` on `";"` yields the
+  whole string rather than its digits.
+- The counting app's Grain History preservation column — now also displays
+  modifier-only grains (previously shown as `—`).
+
+---
+
 ## pcountr 0.5.7
 
 ### Bug fix — CNT → YAML round-trip lost `hidden` flag and `pres` for modifier grains

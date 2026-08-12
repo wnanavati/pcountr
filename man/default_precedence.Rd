@@ -16,9 +16,9 @@ one. This vector defines the precedence, highest first. It is only used for
 presentation; the raw per-grain preservation set is always retained.
 }
 \details{
-NOTE: This precedence is a documented default and may differ from how the
-original PCount program attributed combination codes. Codes follow the
-Cushing (1967) scheme defined in \link{default_preservation}. The example data
-shipped with this package contains no genuine multi-state grains, so the
-rule is currently unverified against the original software.
+This is a \strong{default, not a rule}. Pass \code{precedence} to \code{\link[=pollen_site]{pollen_site()}} to use
+a different order; collapsing is a presentation choice that discards nothing,
+since the raw per-grain \code{pres} string is always kept. Codes follow the
+Cushing (1967) scheme defined in \link{default_preservation}, which is likewise
+overridable via \code{pollen_site(preservation = )}.
 }

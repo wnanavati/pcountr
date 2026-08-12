@@ -58,6 +58,17 @@ read_cnt <- function(path, site = NULL, quiet = FALSE) {
 
   parsed <- .tokenise_stream(stream)
 
+  # The leading {...} names the first slide. Emit it as the opening event so
+  # CNT-derived event streams match app-created ones, where slide 1 always has
+  # a slide_desc event. Mid-stream {...} tokens are already events (see
+  # .tokenise_stream), so slide ordinals line up in both formats.
+  if (!is.na(slide)) {
+    parsed$events <- c(
+      list(list(type = "slide_desc", text = slide, position = 0L)),
+      parsed$events
+    )
+  }
+
   count <- pollen_count(
     grains = parsed$grains,
     spike_n = parsed$spike_n,
@@ -147,6 +158,7 @@ read_cnt <- function(path, site = NULL, quiet = FALSE) {
   re_spike    <- "^\\."
   re_traverse <- "^/([^/]+)/"
   re_remark   <- "^\\[([^]]*)\\]"
+  re_slide    <- "^\\{([^}]*)\\}"
   re_grain    <- "^([#$]?[A-Za-z]{1,2})([1-8])([09]*)"
 
   sub_from <- function(p) substr(stream, p, n)
@@ -175,6 +187,17 @@ read_cnt <- function(path, site = NULL, quiet = FALSE) {
                              traverse = cur_traverse)
         remarks[[length(remarks) + 1L]] <-
           list(text = mt[2], position = pos, traverse = cur_traverse)
+        pos <- pos + nchar(mt[1])
+        next
+      }
+    }
+
+    # New slide within the sample: {SLIDE NAME}
+    if (substr(s, 1, 1) == "{") {
+      mt <- regmatches(s, regexec(re_slide, s))[[1]]
+      if (length(mt) == 2L) {
+        ne <- ne + 1L
+        events[[ne]] <- list(type = "slide_desc", text = mt[2], position = pos)
         pos <- pos + nchar(mt[1])
         next
       }
@@ -211,7 +234,7 @@ read_cnt <- function(path, site = NULL, quiet = FALSE) {
       events[[ne]] <- list(type     = "grain",
                            code     = code,
                            base     = base,
-                           pres     = paste(pres_set, collapse = ";"),
+                           pres     = paste(pres_set, collapse = ""),
                            weight   = weight,
                            hidden   = hidden,
                            position = pos,
@@ -251,7 +274,7 @@ read_cnt <- function(path, site = NULL, quiet = FALSE) {
   data.frame(
     code     = vapply(grains, `[[`, "", "code"),
     base     = vapply(grains, `[[`, "", "base"),
-    pres     = vapply(grains, function(g) paste(g$pres_set, collapse = ";"), ""),
+    pres     = vapply(grains, function(g) paste(g$pres_set, collapse = ""), ""),
     weight   = vapply(grains, `[[`, 0, "weight"),
     hidden   = vapply(grains, `[[`, FALSE, "hidden"),
     traverse = vapply(grains, function(g) g$traverse %||% NA_character_, ""),

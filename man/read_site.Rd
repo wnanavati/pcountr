@@ -20,9 +20,9 @@ read_site(
 
 \item{dic}{Path to a \code{.DIC} or \code{.csv} dictionary file, or a pre-loaded
 \code{pollen_dictionary}. The dictionary is \strong{required} — it defines the sum
-groups (A/B/F/…) used by all analytical functions. Auto-detection: if exactly
-one \code{.DIC} file exists in \code{folder} it is loaded automatically; zero or
-multiple \code{.DIC} files raise an error. CSV dictionaries are never
+groups (A/B/F/…) used by all analytical functions. Auto-detection: if
+exactly one \code{.DIC} file exists in \code{folder} it is loaded automatically; zero
+or multiple \code{.DIC} files raise an error. CSV dictionaries are never
 auto-detected and must be passed explicitly. Folders of \code{.yaml} files
 produced by \code{count_app()} typically contain no \code{.DIC} — always supply
 \code{dic = "path/to/dictionary.csv"} in that case.}

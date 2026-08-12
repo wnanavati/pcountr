@@ -32,11 +32,11 @@ default_preservation <- c(
 #' one. This vector defines the precedence, highest first. It is only used for
 #' presentation; the raw per-grain preservation set is always retained.
 #'
-#' NOTE: This precedence is a documented default and may differ from how the
-#' original PCount program attributed combination codes. Codes follow the
-#' Cushing (1967) scheme defined in [default_preservation]. The example data
-#' shipped with this package contains no genuine multi-state grains, so the
-#' rule is currently unverified against the original software.
+#' This is a **default, not a rule**. Pass `precedence` to [pollen_site()] to use
+#' a different order; collapsing is a presentation choice that discards nothing,
+#' since the raw per-grain `pres` string is always kept. Codes follow the
+#' Cushing (1967) scheme defined in [default_preservation], which is likewise
+#' overridable via `pollen_site(preservation = )`.
 #'
 #' @format A character vector of single-digit codes, highest precedence first.
 #' @export
