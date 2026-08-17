@@ -28,7 +28,7 @@
   one-line DIC migration; `dictionary_template.csv` + README for GitHub
 - **`count_app()`** — Shiny counting app (see NEWS.md for full feature list)
 - **`sample_number`** field on `pollen_count` and in YAML
-- **`LM_depths.txt`** — real depth sheet for the Little Mosquito Lake extdata site
+- **Depth sheet** for the local validation site (unpublished; not distributed)
 - 279 test assertions passing
 
 ## Done — v0.3.0
@@ -110,6 +110,25 @@
 - **Grain History table renders on demand** — table is built only when the
   Grain History tab is open, eliminating redundant rebuilds during counting.
 
+## Done — v0.6.0
+
+- **`rarefaction()` rewritten — pollen count targets** (breaking). The previous
+  "optimal pollen sum" was defined as a fraction of each sample's *own* observed
+  richness, which a rarefaction curve reaches by construction. `meets_optimal`
+  had no code path to `FALSE`, `pct_asymptote` was pinned at 100%, and the
+  recommended count scaled with effort. The asymptote is now extrapolated with a
+  Michaelis–Menten model after Lesven et al. (2026), so a count can genuinely
+  fall short; targets for 70/80/90% of `Smax` follow in closed form from
+  `n_p = K·p/(1−p)`, the relationship underlying their Table 3. No adequacy
+  verdict is returned — the analytical objective is the analyst's to set. See
+  DESIGN.md §12.
+- **Deterministic targets** — the mean curve is computed analytically (Hurlbert,
+  1971) rather than by simulation, so `Smax`, `K`, and all targets are
+  reproducible without `set.seed()`. Permutations now serve only the confidence
+  band on plotted curves.
+- **Half-grains count as whole detections**; unusable fits return `NA` rather
+  than a fabricated number; `stats` added to `Imports`.
+
 ## Done — v0.5.8
 
 - **`extract_remarks()`** — remark lookup across a site. Returns
@@ -185,9 +204,8 @@
 
 ## Planned (in priority order)
 
-1. **More site validation data** — load the remaining LM `.CNT` files (LMSH159–LMSH302)
-   once added to `inst/extdata/`; harden `read_cnt()` against any format variants they
-   reveal.
+1. **More site validation data** — load the remaining `.CNT` files from the local
+   validation corpus; harden `read_cnt()` against any format variants they reveal.
 
 2. ~~**Shiny app — keyboard shortcut for spike**~~ — **Done (v0.5.3).** Pressing `.` on an
    empty input field submits a spike immediately without Enter.
@@ -199,9 +217,11 @@
 4. ~~**Accumulation-rate end-to-end validation**~~ — **Resolved (v0.5.8).**
    `accum_rate()` verified against real sites with analyst-supplied ages.
 
-5. ~~**Rarefaction analysis**~~ — **Done (v0.5.1).** `rarefaction()` implements
-   the 100-permutation / 90%-asymptote method per sample, with optional depth
-   and age range filters and a `pollen_rarefaction` S3 print method.
+5. ~~**Rarefaction analysis**~~ — **Done (v0.5.1); rewritten (v0.6.0).** The
+   original 90%-of-observed-richness method was circular and always reported
+   sufficiency; `rarefaction()` now extrapolates the asymptote with a
+   Michaelis–Menten model and reports objective-specific count targets
+   (DESIGN.md §12).
 
 6. ~~**`write_tlx()` validation**~~ — **Resolved (v0.5.8).** Verified in use on
    real sites.

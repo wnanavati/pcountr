@@ -516,9 +516,9 @@ setup_panel <- function(is_resume = FALSE, meta = NULL) {
 
     # ── Title / slide / save (only for fresh counts; on resume these come from YAML) ──
     if (!is_resume) textInput("first_slide", "First slide ID",
-                               placeholder = "e.g. LM23sh#001-1"),
+                               placeholder = "e.g. FL001-1"),
     textInput("title_line", "Sample title",
-              placeholder = "e.g. Little Mosquito Lake  LM23sh#001  13MAY24",
+              placeholder = "e.g. Fake Lake  FL001  13MAY24",
               value = def_title),
     tags$label("Save YAML to"),
     fluidRow(

@@ -1,5 +1,121 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.6.0
+
+### Breaking — `rarefaction()` rewritten; the old "optimal pollen sum" was circular
+
+**The bug.** A rarefaction curve computed from a sample terminates, by
+construction, at that sample's observed richness: drawing all `N` grains always
+recovers every taxon present, so `E[S(N)] = S_obs` identically. The previous
+implementation defined the "optimal pollen sum" as the count at which the curve
+reached `threshold × S_obs` — a fraction of the sample's *own* observed
+richness. Consequences:
+
+- `pct_asymptote` was `curve_mean[N] / S_obs`, arithmetically pinned at
+  **100.0%** for every sample, in every dataset.
+- Because the curve ends at `S_obs ≥ threshold × S_obs`, a crossing point always
+  existed at or before `N`. `optimal_sum ≤ n_grains` always held, so
+  `meets_optimal` had **no code path to `FALSE`** — a 69-grain count passed
+  exactly as readily as a 328-grain one.
+- `optimal_sum` scaled with `n_grains`, because it answered "at what count had I
+  found 90% of the taxa I happened to find?" It measured effort, not the
+  assemblage.
+
+**The fix.** The asymptote is now *extrapolated beyond* the observed count,
+following Lesven et al. (2026). Richness is modelled as
+
+```
+R(n) = Smax * n / (K + n)
+```
+
+where `Smax` is maximum (asymptotic) richness and `K` the count recovering half
+of it. Since `Smax` exceeds what was observed, a sample can genuinely fall short
+and the recommended count no longer tracks the count already made. Inverting the model gives targets in closed form:
+
+```
+n_p = K * p / (1 - p)
+```
+
+so 70%, 80%, and 90% of `Smax` need `7K/3`, `4K`, and `9K` grains. This is
+consistent with Table 3 of Lesven et al.: solving for `K` independently from
+each of their published tier columns agrees to within 0.4 grains at all ten of
+their sites. Their figures are not reproducible digit-for-digit, since each cell
+is rounded independently and the tabulated `K` is itself rounded to an integer.
+
+**No verdict is returned.** `threshold`, `threshold_taxa`, `optimal_sum`,
+`meets_optimal`, and `pct_asymptote` are all removed, and the `threshold`
+argument is gone. Adequacy depends on the analytical objective, which belongs to
+the analyst: Lesven et al. found ~250 grains sufficient for dominant vegetation
+assemblages (~70% of richness) but recommend ~1000 for biodiversity work or
+detection of rare taxa (85–95%). New columns `s_max`, `k`, `pct_smax`, `n70`,
+`n80`, `n90`, and `converged` report what a count recovered and what further
+effort would buy.
+
+**Site-level target.** `site_target` gives the 90th percentile of the per-sample
+targets at each tier, printed as a final table row. Samples whose fit is
+unusable are excluded and counted in `n_failed`.
+
+### Deterministic targets — exact rarefaction replaces simulation
+
+This is a deliberate departure from both source papers: Lesven et al. estimated
+the curve by resampling (1000 draws per increment) and Iglesias et al. by 100
+random rearrangements. `pcountr` computes it analytically from the exact
+expectation given by Hurlbert (1971):
+
+```
+E[S(n)] = sum_i [ 1 - C(N - N_i, n) / C(N, n) ]
+```
+
+summed over the taxa present — implemented as the algebraically identical
+`S_obs - sum_i C(N - N_i, n) / C(N, n)`, evaluated on the log scale — so
+`Smax`, `K`, and every target are **deterministic and reproducible without
+`set.seed()`**. Permutations (`n_sim`) are used only for the confidence band on
+the returned curves and affect no reported number. This also removes the
+percentile-clamping workaround the old code needed because 100 draws gave an
+unstable 2.5th percentile.
+
+The model is fitted by separable least squares: `Smax` has a closed-form
+solution for any given `K`, so only `K` is optimised (via `stats::optimize()`,
+over `log(K)`), reducing the fit to one well-conditioned dimension with no
+starting values. `optimize()` assumes unimodality and returns a local optimum;
+on the curves tested this agreed with a dense grid search, but that is not
+guaranteed in general. Lesven et al. fitted the same model by
+Levenberg–Marquardt; both approaches minimise the same sum of squares.
+
+### Other changes to `rarefaction()`
+
+- **Half-grains count as whole grains.** Each recorded grain is one detection; a
+  fragment is still an observed individual. The old `ceiling(sum(weight))` per
+  taxon turned three half-grains into two individuals and biased precisely the
+  rare taxa that determine where the curve flattens.
+- **Unusable fits return `NA`, not a fabricated number.** Counts with `N < 30`
+  or fewer than 4 taxa are not extrapolated, nor are fits where `Smax` falls
+  below observed richness or `K` exceeds `20N` (no saturation information).
+  These print as `--` and set `converged = FALSE`. A failed fit means *unknown*,
+  not *inadequate*.
+- `stats` added to `Imports` and all `stats` calls qualified.
+
+### Interpretation guidance now in the documentation
+
+`?rarefaction` and `DESIGN.md` §12 record that `Smax` is an extrapolation, not
+an observation; that Lesven et al. found *no* curve reaching a true asymptote
+within 1000 grains; and that fits from ~300-grain counts sit on the steep limb
+of the curve, so `Smax` is unstable and generally **underestimated** — targets
+should be read as conservative lower bounds. Also noted: tier counts depend only
+on `K`, so two samples can need identical counts while having different
+ceilings; and richness depends on taxonomic resolution, so a lumping dictionary
+yields smaller targets.
+
+### Migration
+
+Code reading `$summary$optimal_sum`, `$meets_optimal`, `$pct_asymptote`, or
+`$threshold_taxa`, or passing `threshold =`, must be updated. The nearest
+equivalents are `n70`/`n80`/`n90` for recommended counts and `pct_smax` for the
+share of richness recovered. Any previously reported "optimal pollen sum" from
+`pcountr` should be recomputed and should not be cited.
+
+---
+
 ## pcountr 0.5.8
 
 ### New — `extract_remarks()`
@@ -653,8 +769,8 @@ modern CSV dictionary format on top of the verified v0.1.0 spine.
   site automatically.
 - `pollen_site()` gains a `samples` slot; `print.pollen_site()` reports sample
   count and depth range.
-- `inst/extdata/LM_depths.txt`: real depth sheet for the 20-sample Little
-  Mosquito Lake extdata site.
+- Depth sheet for the 20-sample local validation site (unpublished data; held
+  locally and not distributed with the package).
 
 ### Stratigraphic output
 
@@ -723,8 +839,8 @@ calculations to the digit, and writes a modern native format.
 
 ### Verified
 
-- Reproduces `LM23SH00.RPT` exactly (all sums, spike, ratio, concentration,
-  traverse stats).
-- Parses all 20 Little Mosquito Lake samples; surfaces exactly 7 known
-  data-entry anomalies.
+- Reproduces an original PCount `.RPT` report exactly (all sums, spike, ratio,
+  concentration, traverse stats).
+- Parses all 20 samples of the local validation site; surfaces every known
+  data-entry anomaly.
 - 87 test assertions passing.

@@ -2,13 +2,12 @@
 % Please edit documentation in R/rarefaction.R
 \name{rarefaction}
 \alias{rarefaction}
-\title{Rarefaction analysis of pollen richness per sample}
+\title{Rarefaction analysis and pollen count targets}
 \usage{
 rarefaction(
   site,
   groups = NULL,
   n_sim = 100L,
-  threshold = 0.9,
   depth_range = NULL,
   age_range = NULL
 )
@@ -19,10 +18,9 @@ rarefaction(
 \item{groups}{Character vector of dictionary group codes to include
 (e.g. \code{c("A","B")}). Defaults to \code{site$pollen_sum}.}
 
-\item{n_sim}{Number of random permutations per sample. Default \code{100L}.}
-
-\item{threshold}{Fraction of observed richness defining the optimal pollen
-sum. Default \code{0.90} (90\%).}
+\item{n_sim}{Number of permutations used for the confidence band on the
+returned curves. Does not affect \code{Smax}, \code{K}, or any target. Default
+\code{100L}; set to \code{0L} to skip.}
 
 \item{depth_range}{Numeric vector \code{c(min, max)} of \code{depth_top} values
 (inclusive) to restrict which samples are analysed. \code{NULL} uses all
@@ -35,41 +33,145 @@ samples. Applied after \code{depth_range}.}
 \value{
 An object of class \code{pollen_rarefaction}, a named list:
 \describe{
-\item{\code{summary}}{Data frame with one row per sample:
-\code{sample}, \code{depth_top}, \code{n_grains} (grains in the ΣP denominator),
-\code{n_taxa} (observed richness), \code{threshold_taxa} (90\% of \code{n_taxa}),
-\code{optimal_sum} (recommended minimum count), \code{meets_optimal} (logical),
-\code{pct_asymptote} (\% of asymptote the actual count achieves).}
-\item{\code{curves}}{Named list, one element per sample. Each element is a
-list with \code{curve_mean}, \code{curve_lo} (2.5th percentile), and \code{curve_hi}
-(97.5th percentile) — numeric vectors of length \code{n_grains}.}
+\item{\code{summary}}{Data frame, one row per sample: \code{sample}, \code{depth_top},
+\code{n_grains} (grains in the sum), \code{n_taxa} (observed richness), \code{s_max},
+\code{k}, \code{pct_smax} (100 * \code{n_taxa} / \code{s_max}), \code{n70}, \code{n80}, \code{n90}
+(grains needed for those shares of \code{s_max}), and \code{converged}.}
+\item{\code{site_target}}{Named numeric vector (\verb{70\%}, \verb{80\%}, \verb{90\%}): the 90th
+percentile of the per-sample targets across samples with usable fits.}
+\item{\code{curves}}{Named list, one element per sample, each with
+\code{curve_mean} (analytic expectation), \code{curve_fit} (fitted
+Michaelis-Menten curve), and — when \code{n_sim > 0} — \code{curve_lo} and
+\code{curve_hi} (2.5th and 97.5th percentiles of the permutations).}
 \item{\code{groups}}{Group codes used.}
-\item{\code{threshold}}{The threshold fraction supplied.}
-\item{\code{n_sim}}{Number of permutations used.}
+\item{\code{n_sim}}{Permutations used for the confidence band.}
+\item{\code{n_failed}}{Number of samples whose fit was not usable.}
 }
 }
 \description{
-Determines the minimum pollen count (optimal pollen sum) needed for a
-statistically representative sample, following the simulation approach of
-Buzas & Hayek (2005) and as applied in palynological practice: pollen grains
-in each sample are randomly rearranged \code{n_sim} times, and cumulative taxon
-richness is tracked across each permutation. The optimal pollen sum is the
-smallest count at which the mean rarefaction curve reaches \code{threshold}
-(default 90\%) of the sample's observed richness.
+Estimates how many grains a sample would need for a given share of its
+taxonomic richness. For each sample the rarefaction curve is computed, a
+Michaelis-Menten model is fitted to it to extrapolate maximum richness
+(\code{Smax}), and the grain counts required to recover 70\%, 80\%, and 90\% of
+\code{Smax} are derived. A site-level count target is reported as the 90th
+percentile of the per-sample targets.
 }
-\details{
-Only taxa whose dictionary group codes are in \code{groups} contribute to the
-analysis — the same denominator used by \code{\link[=site_matrix]{site_matrix()}}. Half-grain weights
-(preservation code 0, weight 0.5) are rounded up to 1 for integer-count
-rarefaction.
+\section{Why the asymptote must be extrapolated}{
 
-Results are stochastic. For reproducibility, call \code{\link[base:set.seed]{base::set.seed()}} before
-this function.
+A rarefaction curve computed from a sample terminates, by construction, at
+that sample's observed richness: drawing all \code{N} grains always recovers every
+taxon present. Any criterion phrased as a fraction of \emph{observed} richness is
+therefore self-referential — it is satisfied automatically at the count the
+analyst happened to make, and the count it recommends simply scales with
+effort. Versions of \code{pcountr} before 0.6.0 made this error.
+
+The asymptote must instead be \strong{extrapolated beyond the observed count}.
+Following Lesven et al. (2026), richness is modelled as
+
+\deqn{R(n) = \frac{S_{max} \cdot n}{K + n}}{R(n) = Smax * n / (K + n)}
+
+where \code{Smax} is maximum (asymptotic) richness and \code{K} is the grain count at
+which half of \code{Smax} is recovered. Because \code{Smax} lies beyond what was
+observed, a sample can genuinely fall short, and the recommended count no
+longer tracks the count already made.
+
+Inverting the model gives the count needed for a proportion \code{p} of \code{Smax} in
+closed form:
+
+\deqn{n_p = K \cdot \frac{p}{1 - p}}{n_p = K * p / (1 - p)}
+
+so 70\%, 80\%, and 90\% of \code{Smax} require \verb{7K/3}, \verb{4K}, and \verb{9K} grains
+respectively. Every reported target depends only on \code{K} — the steepness of
+the curve — so two samples may need identical counts while having different
+ceilings.
+
+This relationship is consistent with Table 3 of Lesven et al. (2026): solving
+for \code{K} independently from each of their published 60\%, 80\%, and 90\% columns
+yields values agreeing to within 0.4 grains at every one of their ten sites.
+Their tabulated figures cannot be reproduced digit-for-digit, because each
+cell is rounded independently and the \code{K} column is itself rounded to an
+integer.
 }
+
+\section{What this function does not do}{
+
+No adequacy verdict is returned. Whether a count is sufficient depends on the
+analytical objective, which is the analyst's to set: Lesven et al. (2026)
+found ~250 grains adequate for reconstructing dominant vegetation
+assemblages (~70\% of richness) but recommended ~1000 grains for biodiversity
+assessment or detection of rare taxa (85-95\% of richness). The \code{pct_smax}
+column reports what a count actually recovered; the tier columns report what
+further effort would buy.
+}
+
+\section{Computation}{
+
+Lesven et al. estimated the curve by resampling (1000 random draws without
+replacement at each increment), and Iglesias et al. by 100 random
+rearrangements. \code{pcountr} departs from both and computes the curve
+\strong{analytically}, from the exact expectation given by Hurlbert (1971):
+
+\deqn{E[S(n)] = \sum_i \left[ 1 - {{N - N_i} \choose n} / {N \choose n} \right]}{E[S(n)] = sum_i [ 1 - C(N - N_i, n) / C(N, n) ]}
+
+summed over the \code{S} taxa present, with \code{N} grains in total and \code{N_i} of the
+\emph{i}th taxon. The implementation evaluates the algebraically identical
+\verb{S - sum_i C(N - N_i, n) / C(N, n)} on the log scale.
+
+Consequently \code{Smax}, \code{K}, and the tier counts are \strong{deterministic} and need
+no \code{\link[base:set.seed]{base::set.seed()}}. Permutations (\code{n_sim}) are used only for the confidence
+band returned in \code{curves}, and do not affect any reported target.
+
+The model is fitted by separable least squares: for a given \code{K}, \code{Smax} has a
+closed-form least-squares solution, so only \code{K} is optimised numerically
+(via \code{\link[stats:optimize]{stats::optimize()}}) over \code{log(K)}. Reducing the problem to one
+well-conditioned dimension makes the search robust and removes any dependence
+on starting values. Note that \code{\link[stats:optimize]{stats::optimize()}} assumes the objective is
+unimodal over the interval and returns a local optimum; for the rarefaction
+curves tested this coincided with a dense grid search, but it is not
+guaranteed in general. Lesven et al. fitted the same model by
+Levenberg-Marquardt; both approaches minimise the same sum of squares.
+
+Only taxa whose dictionary group codes are in \code{groups} contribute — the same
+denominator used by \code{\link[=site_matrix]{site_matrix()}} and \code{\link[=count_metrics]{count_metrics()}}. Non-pollen-sum
+groups (e.g. aquatics \code{Q}, indeterminable \code{X}) are excluded. Each recorded
+grain counts as one detection, so half-grains (preservation modifier \code{0},
+weight 0.5) count as whole grains: a fragment is still an observed
+individual, and rounding summed weights would bias precisely the rare taxa
+that determine where the curve flattens.
+}
+
+\section{Interpretation and limits}{
+
+\code{Smax} is a model extrapolation, not an observation. Lesven et al. fitted
+curves from 1000-grain counts and found that \emph{none} reached a true asymptote
+within that range; fits from ~300-grain counts sit on the steep limb of the
+curve, where \code{Smax} is poorly constrained. Treat the targets as provisional
+and inspect \code{s_max} and \code{k} rather than relying on a single number. Fits that fail the sanity checks return \code{NA}
+rather than a fabricated value.
+
+Richness also depends on taxonomic resolution: a dictionary that lumps types
+yields lower \code{Smax} and smaller targets. Targets are sample- and
+site-specific and should not be transferred between sites without
+recomputing.
+}
+
 \references{
-Buzas, M.A. & Hayek, L.C. (2005). On richness and evenness within and
-between communities. \emph{Paleobiology}, 31(2), 199-220.
+Lesven, J.A., Gaboriau, D.M., Richard, P.J.H., Ali, A.A., Asselin, H.,
+Blache, M., Girardin, M.P., Jean-Sépet, M., Moroy, N. & Bergeron, Y.
+(2026). Objective-specific pollen count thresholds for robust and relevant
+assemblages in boreal and northern temperate forests of eastern Canada.
+\emph{Palaeogeography, Palaeoclimatology, Palaeoecology}, 699, 113994.
+\doi{10.1016/j.palaeo.2026.113994}
+
+Iglesias, V., Quintana, F., Nanavati, W. & Whitlock, C. (2017).
+Interpreting modern and fossil pollen data along a steep environmental
+gradient in northern Patagonia. \emph{The Holocene}, 27(7), 1008-1018.
+\doi{10.1177/0959683616678467}
+
+Hurlbert, S.H. (1971). The nonconcept of species diversity: a critique and
+alternative parameters. \emph{Ecology}, 52(4), 577-586.
+\doi{10.2307/1934145}
 }
 \seealso{
-\code{\link[=site_matrix]{site_matrix()}}, \code{\link[=read_site]{read_site()}}
+\code{\link[=site_matrix]{site_matrix()}}, \code{\link[=count_metrics]{count_metrics()}}, \code{\link[=read_site]{read_site()}}
 }

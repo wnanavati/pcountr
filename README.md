@@ -4,7 +4,7 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.5.8)
+## What it does (v0.6.0)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain
@@ -44,6 +44,11 @@ workflow while saving to a modern, self-contained format.
   configurable precedence rule for multi-state grains.
 - **`accum_rate()`** — accumulation rates for a full site, with per-taxon influx
   matrices.
+- **`rarefaction()`** — how many grains to count. Extrapolates each sample's
+  richness asymptote (`Smax`) with a Michaelis–Menten model and reports the
+  counts needed for 70%, 80%, and 90% of it, plus a site-level target. Reports
+  rather than judges: adequacy depends on your objective, and the output shows
+  what a count recovered alongside what more effort would buy.
 
 ### Native YAML format
 - **`write_pollen_count()` / `read_pollen_count()`** — one self-contained YAML
@@ -96,10 +101,10 @@ morphotype, or phytolith counts follow the same workflow unchanged.
   valid grain.
 - The **preservation scheme is yours to define.** `pollen_site()` takes both the
   code→label mapping (`preservation`) and the multi-state precedence order
-  (`precedence`). The defaults follow the Cushing (1967) scheme PCount shipped
-  with — `1` well-preserved, `2` corroded, `6` crumpled, `8` broken, `9` hidden —
-  but any project can substitute its own damage-state taxonomy and every
-  downstream function follows.
+  (`precedence`). The built-in defaults are `1` well-preserved, `2` corroded,
+  `6` crumpled, `8` broken, `9` hidden, after Cushing (1967) — but any project
+  can substitute its own damage-state taxonomy and every downstream function
+  follows.
 - Chronology construction is **out of scope** — `pcountr` performs
   accumulation-rate arithmetic from ages you supply, but age–depth modelling is
   delegated to tools such as `rbacon`, `clam`, or `neotoma2`.

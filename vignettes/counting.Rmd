@@ -103,10 +103,10 @@ Type any of the following in the input field and press **Enter** or **Space** to
 Modifiers: `9` = hidden, `0` = half-grain (weight 0.5).
 
 Digits `1`–`8` are preservation states, and **what they mean is up to you.** The
-defaults follow the Cushing (1967) scheme PCount shipped with — `1` well-preserved,
-`2` corroded, `6` crumpled, `8` broken — and `3`, `4`, `5`, `7` are unlabelled in
-that scheme. To use your own damage-state taxonomy, pass a named vector to
-`pollen_site(preservation = )`; every summary and label follows from it.
+built-in defaults are `1` well-preserved, `2` corroded, `6` crumpled, `8` broken
+(after Cushing, 1967); `3`, `4`, `5`, `7` carry no label. To use your own
+damage-state taxonomy, pass a named vector to `pollen_site(preservation = )`;
+every summary and label follows from it.
 
 Unknown or malformed tokens trigger a prominent red alert and an audio beep.
 The grain is **not recorded** — correct and re-enter.
@@ -238,6 +238,52 @@ extract_metadata(site, file = "meta_fix.csv")
 # Open meta_fix.csv, fill the spike_units column for each sample, then:
 site <- apply_metadata(site, "meta_fix.csv")
 ```
+
+---
+
+## How many grains should I count?
+
+`rarefaction()` estimates this from counts you have already made. For each
+sample it builds the rarefaction curve, extrapolates the richness asymptote
+(`Smax`) with a Michaelis–Menten model, and reports the grain counts needed to
+recover 70%, 80%, and 90% of it.
+
+```r
+r <- rarefaction(site)
+r
+```
+
+The `%Smax` column is what your count actually recovered; the three tier columns
+are what further effort would buy. The final row gives a site-level target — the
+90th percentile across samples — so one number covers most of the core.
+
+**Why not simply count until the curve flattens?** Because a curve built from
+one sample flattens at that sample's own richness by construction: drawing all
+your grains always recovers every taxon you found. Judging a count against its
+own richness always concludes that it was sufficient. The asymptote has to be
+extrapolated *past* what you counted, which is what the model does — see
+`DESIGN.md` §12.
+
+**No verdict is reported, deliberately.** Adequacy depends on what you are doing
+with the data. Lesven et al. (2026) found ~250 grains sufficient to reconstruct
+dominant vegetation assemblages, recovering ~70% of richness, but recommend
+~1000 grains for biodiversity assessment or detecting rare taxa (85–95% of
+richness). Iglesias et al. (2017) likewise report their optima as consistent with
+the established convention of 300 grains for standard studies and 500–1000 where
+rare pollen types are of interest. Pick the tier that fits your question.
+
+Two things worth knowing when you read the output. `Smax` is a model
+extrapolation, not an observation — Lesven et al. found no curve reaching a true
+asymptote even at 1000 grains, and fits from ~300-grain counts are still on the
+steep part of the curve, where the asymptote is poorly constrained. Treat the
+targets as provisional and read `Smax` and `k` alongside them. And evenness
+matters alongside richness: Iglesias et al. (2017) note that the count needed
+depends on both, since a sample dominated by one taxon spends much of its count
+on that taxon.
+
+Samples too small to extrapolate (fewer than 30 grains or 4 taxa), or whose fit
+fails a sanity check, print `--` rather than a fabricated number, and are left
+out of the site target.
 
 ---
 

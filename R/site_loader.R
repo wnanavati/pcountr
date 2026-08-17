@@ -22,8 +22,8 @@
 #'
 #' @section Metadata sheet:
 #' A CSV with one row per sample. Rows are matched to files case-insensitively
-#' and without regard to extension (`LMSH001` matches `LMSH001.CNT`,
-#' `lmsh001.yaml`, etc.). Columns for sample quantity, units, and spike are
+#' and without regard to extension (`FL001` matches `FL001.CNT`,
+#' `fl001.yaml`, etc.). Columns for sample quantity, units, and spike are
 #' ignored -- those are always read from the count file itself.
 #'
 #' Supply your own column names via `col_map` (see below). When the sheet is

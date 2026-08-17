@@ -71,8 +71,8 @@ warning and keeps the YAML value).
 \section{Metadata sheet}{
 
 A CSV with one row per sample. Rows are matched to files case-insensitively
-and without regard to extension (\code{LMSH001} matches \code{LMSH001.CNT},
-\code{lmsh001.yaml}, etc.). Columns for sample quantity, units, and spike are
+and without regard to extension (\code{FL001} matches \code{FL001.CNT},
+\code{fl001.yaml}, etc.). Columns for sample quantity, units, and spike are
 ignored -- those are always read from the count file itself.
 
 Supply your own column names via \code{col_map} (see below). When the sheet is
