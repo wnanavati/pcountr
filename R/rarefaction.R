@@ -35,6 +35,15 @@
 #' the curve — so two samples may need identical counts while having different
 #' ceilings.
 #'
+#' `pct_smax` is the share of `Smax` the **fitted curve** reaches at the count
+#' actually made, `100 * N / (K + N)`. It is deliberately model-based, not
+#' `n_taxa / s_max`: the least-squares fit sits slightly below observed richness
+#' at `n = N`, so the observed ratio reads higher and can contradict the tier
+#' columns. Taking it from the model makes the row consistent by construction,
+#' since `N >= K * p/(1 - p)` if and only if `N/(K + N) >= p` — so `pct_smax` of
+#' 80 or more holds exactly when `N` is at least `n80`. Compare `n_taxa` against
+#' `s_max` directly if you want the raw observed share.
+#'
 #' This relationship is consistent with Table 3 of Lesven et al. (2026): solving
 #' for `K` independently from each of their published 60%, 80%, and 90% columns
 #' yields values agreeing to within 0.4 grains at every one of their ten sites.
@@ -115,16 +124,8 @@
 #'   \describe{
 #'     \item{`summary`}{Data frame, one row per sample: `sample`, `depth_top`,
 #'       `n_grains` (grains in the sum), `n_taxa` (observed richness), `s_max`,
-#'       `k`, `pct_smax`, `n70`, `n80`, `n90` (grains needed for those shares of
-#'       `s_max`), and `converged`.
-#'
-#'       `pct_smax` is the share of `s_max` the fitted curve reaches at the count
-#'       actually made, `100 * n_grains / (k + n_grains)`. It is model-based, so
-#'       it agrees with the tier columns exactly: `pct_smax >= 70` if and only if
-#'       `n_grains >= n70`. Note it is *not* `n_taxa / s_max`, which reads higher
-#'       because the least-squares fit sits a little below observed richness at
-#'       `n = n_grains`; compare `n_taxa` against `s_max` directly if you want
-#'       the raw observed share.}
+#'       `k`, `pct_smax` (see below), `n70`, `n80`, `n90` (grains needed for those
+#'       shares of `s_max`), and `converged`.}
 #'     \item{`site_target`}{Named numeric vector (`70%`, `80%`, `90%`): the 90th
 #'       percentile of the per-sample targets across samples with usable fits.}
 #'     \item{`curves`}{Named list, one element per sample, each with

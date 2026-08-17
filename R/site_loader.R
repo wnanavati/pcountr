@@ -177,7 +177,7 @@ write_site <- function(site, folder, overwrite = FALSE) {
     path <- file.path(folder, paste0(k, ".yaml"))
     if (!overwrite && file.exists(path)) {
       message("Skipping (exists): ", basename(path),
-              "  — use overwrite = TRUE to replace.")
+              "  - use overwrite = TRUE to replace.")
       next
     }
     write_pollen_count(site$samples[[k]], path)

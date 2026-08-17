@@ -1,5 +1,51 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.6.2
+
+### Bug fix — malformed `man/rarefaction.Rd` truncated the help page
+
+Installing 0.6.1 emitted a run of `unexpected section header` warnings and
+`unexpected END_OF_INPUT`. The package installed and worked correctly, but
+everything in `?rarefaction` from `\description` onward was discarded — the
+description, all four `@section` blocks, the references, and the see-also list.
+
+The cause was in the roxygen for `@return`. A blank line followed by *indented*
+prose inside a `\describe{}` item is read by roxygen's markdown parser as an
+indented code block, so it emitted `\preformatted{}` and swallowed the remaining
+`\item{}` entries as literal text. That left `\value{}` with an unclosed brace,
+and Rd parsing consumed the rest of the file.
+
+The `pct_smax` explanation has been moved out of `\value{}` — where a multi-
+paragraph note did not belong — into the section that defines the tier targets.
+`\value{}` is again a compact field list.
+
+Note that neither `devtools::document()` nor `install_github()` fails on invalid
+Rd; both only warn. `devtools::check_man()` catches it, and is now the
+recommended check before release.
+
+No change to any function, result, or test.
+
+### Portability — non-ASCII characters removed from R code
+
+`R CMD check --as-cran` raised a WARNING for non-ASCII characters in
+`R/metadata_io.R` and `R/site_loader.R`. Three `message()` strings contained an
+em-dash (`U+2014`), which is now a plain hyphen:
+
+- `apply_metadata()`: "no source_file - updated in memory only."
+- `apply_metadata()`: "source_file is not a YAML - updated in memory only."
+- `write_site()`: "Skipping (exists): ... - use overwrite = TRUE to replace."
+
+A hyphen was chosen over the `—` escape because these print to the console,
+and an em-dash renders as mojibake on a Windows console not running UTF-8.
+
+Non-ASCII characters remain in roxygen comments, which the check permits, and in
+the counting app's UI strings under `inst/`, which are served as UTF-8 and are
+outside the scope of this check.
+
+`devtools::check()` now reports 0 errors, 0 warnings, 0 notes.
+
+---
+
 ## pcountr 0.6.1
 
 ### Bug fix — `pct_smax` contradicted the tier columns

@@ -4,7 +4,7 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.6.1)
+## What it does (v0.6.2)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain

@@ -200,11 +200,11 @@ apply_metadata <- function(site, csv, write = TRUE) {
     for (k in unique(modified)) {
       src <- site$samples[[k]]$meta$source_file
       if (is.null(src) || is.na(src) || !nzchar(src)) {
-        message("'", k, "': no source_file — updated in memory only.")
+        message("'", k, "': no source_file - updated in memory only.")
         next
       }
       if (!grepl("\\.(yaml|yml)$", src, ignore.case = TRUE)) {
-        message("'", k, "': source_file is not a YAML — updated in memory only.")
+        message("'", k, "': source_file is not a YAML - updated in memory only.")
         next
       }
       # Resolve a bare filename against the CSV's directory as a fallback.

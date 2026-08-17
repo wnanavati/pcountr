@@ -5,8 +5,8 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.6.1.** The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 545 test
+Status as of this writing: **v0.6.2.** The verified spine (v0.1.0) is complete
+and all planned analytical layers have been built on top of it. 507 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*
@@ -28,7 +28,9 @@ entries (e.g. `ts9`) now accepted; multi-slide `.CNT` files no longer discard
 slide boundaries after the first (see NEWS.md). New in v0.6.0: `rarefaction()`
 rewritten — the previous "optimal pollen sum" was circular and always reported
 sufficiency; counts are now derived from an extrapolated richness asymptote
-(§12).
+(§12). v0.6.1: `pct_smax` redefined as the fitted curve's share at the count
+made, so it can no longer contradict the tier columns (§12). v0.6.2: repaired a
+malformed `rarefaction` help page (documentation only).
 
 ---
 
