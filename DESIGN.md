@@ -5,7 +5,7 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.6.0.** The verified spine (v0.1.0) is complete
+Status as of this writing: **v0.6.1.** The verified spine (v0.1.0) is complete
 and all planned analytical layers have been built on top of it. 545 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
@@ -478,6 +478,33 @@ so only `K` is optimised, over `log(K)` — which reduces the problem to one
 well-conditioned dimension with no starting values and no added dependency.
 `stats::optimize()` assumes unimodality and returns a local optimum; on the
 curves tested this matched a dense grid search, but that is not guaranteed.
+
+### Reported quantities must come from the same source
+
+`pct_smax` is the share of `Smax` the **fitted curve** reaches at the count made,
+`100 * N / (K + N)`. It is deliberately *not* `n_taxa / s_max`.
+
+This distinction caused a real defect in v0.6.0, worth recording. `pct_smax` was
+defined as observed richness over the modelled asymptote while the tier columns
+came purely from the model. Because Michaelis–Menten approximates the whole curve
+rather than interpolating its endpoint, the fit sits slightly *below* observed
+richness at `n = N` — so the observed ratio was systematically more optimistic
+than the model, and rows contradicted themselves: a sample could report reaching
+90% of `Smax` on 347 grains while its own `n90` column asked for 531.
+
+Taking the share from the model makes the row consistent by construction, since
+
+```
+N >= K*p/(1-p)   <=>   N/(K+N) >= p
+```
+
+so `pct_smax >= 80` holds exactly when `N >= n80`. It also matches the sense in
+which Lesven et al. state that 250 grains recovers >70% of richness — a model
+quantity, not an observed one.
+
+The general lesson: an observed quantity and a modelled one should not be placed
+in the same row inviting comparison unless they are commensurable. The observed
+share remains available by comparing `n_taxa` against `s_max` directly.
 
 ### No verdict is returned
 

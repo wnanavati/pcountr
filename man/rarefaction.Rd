@@ -35,17 +35,27 @@ An object of class \code{pollen_rarefaction}, a named list:
 \describe{
 \item{\code{summary}}{Data frame, one row per sample: \code{sample}, \code{depth_top},
 \code{n_grains} (grains in the sum), \code{n_taxa} (observed richness), \code{s_max},
-\code{k}, \code{pct_smax} (100 * \code{n_taxa} / \code{s_max}), \code{n70}, \code{n80}, \code{n90}
-(grains needed for those shares of \code{s_max}), and \code{converged}.}
-\item{\code{site_target}}{Named numeric vector (\verb{70\%}, \verb{80\%}, \verb{90\%}): the 90th
-percentile of the per-sample targets across samples with usable fits.}
-\item{\code{curves}}{Named list, one element per sample, each with
-\code{curve_mean} (analytic expectation), \code{curve_fit} (fitted
-Michaelis-Menten curve), and — when \code{n_sim > 0} — \code{curve_lo} and
-\code{curve_hi} (2.5th and 97.5th percentiles of the permutations).}
-\item{\code{groups}}{Group codes used.}
-\item{\code{n_sim}}{Permutations used for the confidence band.}
-\item{\code{n_failed}}{Number of samples whose fit was not usable.}
+\code{k}, \code{pct_smax}, \code{n70}, \code{n80}, \code{n90} (grains needed for those shares of
+\code{s_max}), and \code{converged}.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{  `pct_smax` is the share of `s_max` the fitted curve reaches at the count
+  actually made, `100 * n_grains / (k + n_grains)`. It is model-based, so
+  it agrees with the tier columns exactly: `pct_smax >= 70` if and only if
+  `n_grains >= n70`. Note it is *not* `n_taxa / s_max`, which reads higher
+  because the least-squares fit sits a little below observed richness at
+  `n = n_grains`; compare `n_taxa` against `s_max` directly if you want
+  the raw observed share.\}
+\\item\{`site_target`\}\{Named numeric vector (`70\%`, `80\%`, `90\%`): the 90th
+  percentile of the per-sample targets across samples with usable fits.\}
+\\item\{`curves`\}\{Named list, one element per sample, each with
+  `curve_mean` (analytic expectation), `curve_fit` (fitted
+  Michaelis-Menten curve), and — when `n_sim > 0` — `curve_lo` and
+  `curve_hi` (2.5th and 97.5th percentiles of the permutations).\}
+\\item\{`groups`\}\{Group codes used.\}
+\\item\{`n_sim`\}\{Permutations used for the confidence band.\}
+\\item\{`n_failed`\}\{Number of samples whose fit was not usable.\}
+}\if{html}{\out{</div>}}
+
 }
 }
 \description{

@@ -110,6 +110,17 @@
 - **Grain History table renders on demand** — table is built only when the
   Grain History tab is open, eliminating redundant rebuilds during counting.
 
+## Done — v0.6.1
+
+- **Bug fix: `pct_smax` contradicted the tier columns.** It was defined as
+  observed richness over the modelled asymptote (`n_taxa / s_max`) while
+  `n70`/`n80`/`n90` came from the fitted model, so a sample could report reaching
+  90% of `Smax` on 347 grains while its own `n90` asked for 531. The
+  least-squares fit sits slightly below observed richness at `n = N`, making the
+  observed ratio systematically optimistic. `pct_smax` is now the fitted curve's
+  share at the count made, `100 * N / (K + N)`, which is algebraically equivalent
+  to the tiers. `s_max`, `k`, and all targets are unaffected. See DESIGN.md §12.
+
 ## Done — v0.6.0
 
 - **`rarefaction()` rewritten — pollen count targets** (breaking). The previous

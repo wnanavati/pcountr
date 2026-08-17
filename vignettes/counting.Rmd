@@ -253,9 +253,16 @@ r <- rarefaction(site)
 r
 ```
 
-The `%Smax` column is what your count actually recovered; the three tier columns
-are what further effort would buy. The final row gives a site-level target — the
-90th percentile across samples — so one number covers most of the core.
+The `%Smax` column is the share of the ceiling your count reaches, read off the
+fitted curve; the three tier columns are what further effort would buy. The two
+agree by construction — if `%Smax` says 85%, you are past `n80` and short of
+`n90`. The final row gives a site-level target, the 90th percentile across
+samples, so one number covers most of the core.
+
+`%Smax` is deliberately taken from the fitted curve rather than from your observed
+taxa divided by `Smax`. The fit sits a little below observed richness at your
+count, so the raw ratio reads higher and would contradict the tiers. If you want
+the observed share, compare `Taxa` against `Smax` directly.
 
 **Why not simply count until the curve flattens?** Because a curve built from
 one sample flattens at that sample's own richness by construction: drawing all

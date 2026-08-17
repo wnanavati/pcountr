@@ -115,8 +115,16 @@
 #'   \describe{
 #'     \item{`summary`}{Data frame, one row per sample: `sample`, `depth_top`,
 #'       `n_grains` (grains in the sum), `n_taxa` (observed richness), `s_max`,
-#'       `k`, `pct_smax` (100 * `n_taxa` / `s_max`), `n70`, `n80`, `n90`
-#'       (grains needed for those shares of `s_max`), and `converged`.}
+#'       `k`, `pct_smax`, `n70`, `n80`, `n90` (grains needed for those shares of
+#'       `s_max`), and `converged`.
+#'
+#'       `pct_smax` is the share of `s_max` the fitted curve reaches at the count
+#'       actually made, `100 * n_grains / (k + n_grains)`. It is model-based, so
+#'       it agrees with the tier columns exactly: `pct_smax >= 70` if and only if
+#'       `n_grains >= n70`. Note it is *not* `n_taxa / s_max`, which reads higher
+#'       because the least-squares fit sits a little below observed richness at
+#'       `n = n_grains`; compare `n_taxa` against `s_max` directly if you want
+#'       the raw observed share.}
 #'     \item{`site_target`}{Named numeric vector (`70%`, `80%`, `90%`): the 90th
 #'       percentile of the per-sample targets across samples with usable fits.}
 #'     \item{`curves`}{Named list, one element per sample, each with
@@ -251,8 +259,13 @@ rarefaction <- function(site,
       n_taxa     = S_obs,
       s_max      = fit$s_max,
       k          = fit$k,
-      pct_smax   = if (is.na(fit$s_max)) NA_real_
-                   else round(100 * S_obs / fit$s_max, 1),
+      # Share of Smax reached at the count actually made, from the fitted curve:
+      # R(N)/Smax = N/(K+N). Model-based, so it is exactly consistent with the
+      # tier columns (N >= K*p/(1-p) if and only if N/(K+N) >= p). Using observed
+      # richness over Smax instead would read higher, because the least-squares
+      # fit sits slightly below observed richness at n = N.
+      pct_smax   = if (is.na(fit$k)) NA_real_
+                   else round(100 * N / (fit$k + N), 1),
       n70        = .mm_target(fit$k, 7, 3),   # p/(1-p) = 7/3
       n80        = .mm_target(fit$k, 4),      #           4
       n90        = .mm_target(fit$k, 9),      #           9
@@ -425,8 +438,10 @@ print.pollen_rarefaction <- function(x, ...) {
               "Site (q90)", "", "", "", "", "",
               fmt(st[["70%"]]), fmt(st[["80%"]]), fmt(st[["90%"]])))
 
-  cat("\nSmax = extrapolated richness (Michaelis-Menten);",
-      "%Smax = share recovered by this count.\n")
+  cat("\nSmax = extrapolated richness (Michaelis-Menten).\n")
+  cat("%Smax = share of Smax the fitted curve reaches at this count",
+      "(= N/(K+N)); consistent\n  with the tier columns. Compare Taxa against",
+      "Smax for the raw observed share.\n")
   if (x$n_failed > 0L)
     cat(sprintf("%d of %d fits unusable (--); excluded from the site percentile.\n",
                 x$n_failed, nrow(df)))

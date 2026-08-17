@@ -1,5 +1,46 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.6.1
+
+### Bug fix — `pct_smax` contradicted the tier columns
+
+In 0.6.0, `pct_smax` was `100 * n_taxa / s_max` — an **observed** richness over a
+**modelled** asymptote — while `n70`/`n80`/`n90` came purely from the fitted
+model. Mixing the two made rows self-contradictory. A sample could report having
+reached 90% of `Smax` on 347 grains while its own `n90` column asked for 531:
+
+```
+Sample        Grains  Taxa  Smax  %Smax    70%   80%   90%
+KF24-1A130       347    11    12  90.4%    138   236   531   <- 90% at 347?
+```
+
+The cause is that the least-squares fit sits slightly *below* observed richness at
+`n = N` — Michaelis–Menten approximates the whole curve rather than interpolating
+its endpoint. The observed ratio is therefore systematically more optimistic than
+the model, so every sample looked closer to its ceiling than the targets implied.
+
+`pct_smax` is now the share of `Smax` the **fitted curve** reaches at the count
+made:
+
+```
+pct_smax = 100 * N / (K + N)
+```
+
+which is exactly equivalent to the tiers, since `N >= K*p/(1-p)` if and only if
+`N/(K+N) >= p`. A row can no longer disagree with itself, and the quantity now
+matches what Lesven et al. mean by "250 grains recovers >70% of richness." The
+row above becomes `%Smax = 85.5%` — past `n80`, short of `n90`.
+
+The observed share is unchanged and still available: compare `n_taxa` against
+`s_max` directly. Only the derived percentage was wrong; `s_max`, `k`, and all
+tier targets are unaffected, so **counts reported by 0.6.0 remain valid** — it was
+the percentage column that misrepresented them.
+
+New regression test asserts the equivalence for every tier on every converged
+sample.
+
+---
+
 ## pcountr 0.6.0
 
 ### Breaking — `rarefaction()` rewritten; the old "optimal pollen sum" was circular

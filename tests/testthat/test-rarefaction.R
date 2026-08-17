@@ -197,11 +197,27 @@ test_that("the fitted curve reaches p * Smax at the reported target", {
   }
 })
 
-test_that("pct_smax is the share of Smax recovered, and never exceeds 100", {
+test_that("pct_smax is the fitted curve's share of Smax at the count made", {
   r  <- rarefaction(site_rf, n_sim = 0L)
   df <- r$summary[r$summary$converged, ]
-  expect_equal(df$pct_smax, round(100 * df$n_taxa / df$s_max, 1))
-  expect_true(all(df$pct_smax <= 100 + 1e-9))
+  expect_equal(df$pct_smax, round(100 * df$n_grains / (df$k + df$n_grains), 1))
+  expect_true(all(df$pct_smax > 0 & df$pct_smax < 100))
+})
+
+test_that("pct_smax agrees with the tier columns exactly", {
+  # N >= K*p/(1-p)  <=>  N/(K+N) >= p. A row that says it has reached 80% of
+  # Smax must also have counted at least n80 grains, or the table contradicts
+  # itself -- the defect that made pct_smax observed-based in the first draft.
+  r  <- rarefaction(site_rf, n_sim = 0L)
+  df <- r$summary[r$summary$converged, ]
+  for (i in seq_len(nrow(df))) {
+    expect_equal(df$pct_smax[i] >= 70, df$n_grains[i] >= df$n70[i],
+                 info = paste("70% tier inconsistent for", df$sample[i]))
+    expect_equal(df$pct_smax[i] >= 80, df$n_grains[i] >= df$n80[i],
+                 info = paste("80% tier inconsistent for", df$sample[i]))
+    expect_equal(df$pct_smax[i] >= 90, df$n_grains[i] >= df$n90[i],
+                 info = paste("90% tier inconsistent for", df$sample[i]))
+  }
 })
 
 # ── Site-level target ───────────────────────────────────────────────────────
