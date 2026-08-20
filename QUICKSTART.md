@@ -75,20 +75,30 @@ minimise RStudio, don't close it.
 
 ### The setup screen
 
-Fill in what you know and leave the rest. The important fields:
+Fill in what you know and leave the rest. The fields, in the order they appear:
 
 | Field | What to put |
 |---|---|
-| **Dictionary** | Browse to your taxon dictionary (`.csv` or `.DIC` file) |
-| **Sample title** | Anything that identifies the sample, e.g. `Fake Lake FL001 13MAY24` |
-| **Depth top / bottom** | Depth of the sample in cm. Leave blank if unknown |
-| **Calculate concentration?** | **Spike** if you added exotic marker tablets, **Volumetric** if you processed a known volume, **None** if you don't need concentrations |
-| **Spike tablets / density** | From your tablet batch, if you chose Spike |
-| **Sample quantity** | How much sediment you processed, and whether that was ml or g |
+| **Open Existing Count (.yaml)** | Only if you are picking up a count you started earlier. The dictionary loads automatically from the saved file |
+| **Dictionary file (.DIC or .csv)** | Browse to your taxon dictionary |
+| **ΣP — analyst defined pollen sum groups** | Tick the groups that make up your pollen sum. The choices come from your dictionary, so this stays empty until one is loaded |
+| **Calculate concentration?** | **Yes, using spikes** if you added exotic marker tablets, **Yes, volumetrically** if you processed a known volume, **No** if you don't need concentrations |
+| **Sample quantity** | Update for your sample |
+| **Sample units** | Update for your sample — `ml` or `g` |
+| **Spike quantity** | Update for your sample. Only shown if you chose spikes |
+| **Spike density** | Update for your sample. Only shown if you chose spikes |
+| **Spike units** | Update for your sample — `ml`, `g` or `tablets`. Only shown if you chose spikes |
 | **Use preservation codes?** | **Yes** if you record grain condition, **No** if you only tally taxa |
-| **Save YAML to** | Where to save. Pick a folder you'll remember |
+| **Sample name** | Your label for the sample, e.g. `FL24#001` |
+| **Depth top / bottom (cm)** | Depth of the sample in cm. Leave blank if unknown |
+| **Age top / bottom (years BP)** | Leave blank unless you already have an age model. Present = 1950 CE |
+| **First slide ID** | Your name for the first slide, e.g. `FL001-1`. New counts only |
+| **Sample title** | Anything that identifies the sample, e.g. `Fake Lake FL001 13MAY24` |
+| **Save YAML to** | Where to save. Type a path or use **Browse**. Pick a folder you'll remember |
 
-Then click **Start Counting**.
+Sample name, depths and ages are all optional — the heading above them says so.
+
+Then click **▶ Start Counting**.
 
 ### Counting
 
@@ -162,8 +172,8 @@ rarefaction(site)
 You get a table like this:
 
 ```
-Sample     Depth Grains Taxa Smax  %Smax      70%    80%    90%
-GOR001       0.0    304   22   23  85.5%       69    118    264
+Sample       Depth Grains Taxa Smax  %Smax      70%    80%    90%
+FL004         15.0    375   13   14  88.6%      113    193    433
 ```
 
 Reading it:
@@ -174,11 +184,12 @@ Reading it:
 - **%Smax** — the share of that total your count has reached
 - **70% / 80% / 90%** — how many grains you would need to reach those shares
 
-The last row gives a single target for the whole site.
+That is one row from the middle of the output; you get one row per sample, and a
+final `Site (q90)` row giving a single target for the whole site.
 
 **How many should you aim for?** It depends on your question. Around 250–300
 grains is enough to characterise the dominant vegetation. If you care about rare
-taxa or biodiversity, published work suggests 1000. The table tells you the cost
+taxa, published work suggests 1000. The table tells you the cost
 of each choice for *your* material; it does not tell you which to pick.
 
 Two cautions. `Smax` is extrapolated, so treat it as a rough lower bound —

@@ -524,7 +524,7 @@ setup_panel <- function(is_resume = FALSE, meta = NULL) {
     p("Sample location & age — optional",
       style = "color:#a0a0a0;font-size:12px;margin-bottom:6px;"),
     textInput("sample_name", "Sample name",
-              placeholder = "e.g. KF24sh#001", value = def_sname),
+              placeholder = "e.g. FL24#001", value = def_sname),
     fluidRow(
       column(6, numericInput("depth_top",    "Depth top (cm)",    value = def_dtop,
                              min = 0, step = 0.25)),
