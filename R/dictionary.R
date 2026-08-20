@@ -118,8 +118,12 @@ read_dic <- function(path) {
 #' @seealso [read_dic()], [write_dic_csv()]
 #' @export
 read_dic_csv <- function(path) {
+  # encoding = "UTF-8" marks the strings rather than converting them, so taxon
+  # names carrying diacritics (Neotoma spells one of them "Isoëtes") survive
+  # on machines whose native encoding is not UTF-8. Harmless for ASCII files.
   df <- tryCatch(
-    read.csv(path, stringsAsFactors = FALSE, check.names = FALSE),
+    read.csv(path, stringsAsFactors = FALSE, check.names = FALSE,
+             encoding = "UTF-8"),
     error = function(e) stop("Could not read dictionary CSV '", path,
                              "': ", e$message)
   )

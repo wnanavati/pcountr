@@ -200,6 +200,14 @@ input[type='text']:focus, input[type='number']:focus {
 }
 .cur-trav   { color: #9cdcfe; font-size: 12px; margin-top: 4px; }
 
+/* Beep-on-count toggle, sat under Undo. Compact so it reads as a setting
+   rather than a control competing with the action buttons. */
+.beep-toggle { margin: 6px 0 0 0; }
+.beep-toggle .control-label {
+  color: #a0a0a0; font-size: 12px; font-weight: normal; margin-bottom: 2px;
+}
+.beep-toggle .radio-inline { color: #d4d4d4; font-size: 12px; }
+
 /* ── Buttons ── */
 .btn-full { width: 100%; margin: 3px 0; }
 .btn-primary   { background: #0e639c !important; color: #fff !important;
@@ -365,6 +373,25 @@ function playBeep() {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.35);
+  } catch(e) {}
+}
+
+// Confirmation tick for a recorded count. Deliberately unlike playBeep():
+// a short quiet sine rather than a long harsh square, so the error alert
+// stays distinguishable when the analyst is looking down the microscope.
+function playTick() {
+  try {
+    var ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    var osc  = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = 1200;
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.06);
   } catch(e) {}
 }
 "
@@ -543,6 +570,7 @@ counting_panel <- function() {
       Shiny.addCustomMessageHandler('scroll',      function(m){ scrollStream(); });
       Shiny.addCustomMessageHandler('focus_input', function(m){ focusGrainInput(); });
       Shiny.addCustomMessageHandler('beep',        function(m){ playBeep(); });
+      Shiny.addCustomMessageHandler('tick',        function(m){ playTick(); });
       $(document).off('keydown.grain').on('keydown.grain', '#grain_input', function(e) {
         if (e.key === 'Enter') { e.preventDefault(); submitEntry(); }
         // Spacebar submits grain codes; ignored mid-remark ([...) or mid-traverse (/...).
@@ -730,6 +758,12 @@ counting_panel <- function() {
                        class = "btn-info btn-full"),
           actionButton("undo_btn", "⟵  Undo",
                        class = "btn-warning btn-full"),
+          div(class = "beep-toggle",
+              radioButtons("count_beep", "Beep on count",
+                           choices  = c("No", "Yes"),
+                           selected = if (isTRUE(getOption("pcountr.count_beep",
+                                                           FALSE))) "Yes" else "No",
+                           inline   = TRUE)),
           hr(),
           div(class = "stat-label", textOutput("save_msg", inline = FALSE)),
           br(),
@@ -1240,7 +1274,18 @@ server <- function(input, output, session) {
     val      <- input$entry_submit$value %||% ""
     consumed <- do_entry(val)
     session$sendCustomMessage("scroll", list())
-    if (consumed) { session$sendCustomMessage("focus_input", list()); grain_save_pending(grain_save_pending() + 1L) }
+    if (consumed) {
+      # Optional confirmation tick. Session-only: read straight from the input,
+      # never stored on the sample or written to YAML. Grains and spike only --
+      # traverses, remarks and undo are deliberate single actions, not tallies.
+      if (identical(input$count_beep, "Yes")) {
+        last <- rv$events[[length(rv$events)]]$type
+        if (!is.null(last) && last %in% c("grain", "spike"))
+          session$sendCustomMessage("tick", list())
+      }
+      session$sendCustomMessage("focus_input", list())
+      grain_save_pending(grain_save_pending() + 1L)
+    }
   }, ignoreInit = TRUE)
 
   # ── Entry alert modal (unknown code / malformed input) -------------------

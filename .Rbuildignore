@@ -1,5 +1,6 @@
 ^DESIGN\.md$
 ^ROADMAP\.md$
+^QUICKSTART\.md$
 ^COWORK\.md$
 ^.*\.tar\.gz$
 ^\.git$

@@ -8,8 +8,8 @@
 "AR","","A","Acer rubrum",FALSE
 "AI","","A","Acer saccharinum-type",FALSE
 "AS","","A","Acer saccharum",FALSE
-"AC","","A","Alnus crispa-type",FALSE
-"A","","A","Alnus rugosa",FALSE
+"AC","","A","Alnus viridis subsp. crispa-type",FALSE
+"A","","A","Alnus incana",FALSE
 "AU","","A","Alnus undiff.",FALSE
 "As","","A","Asimina",FALSE
 "B","","A","Betula",FALSE
@@ -46,8 +46,8 @@
 "PW","","A","Pinaceae undiff.",FALSE
 "$P","","A","Pinus",FALSE
 "EE","","A","Pinus edulis-type",FALSE
-"E","","A","Pinus subgen. Diploxylon",FALSE
-"H","","A","Pinus subgen. Haploxylon",FALSE
+"E","","A","Pinus subg. Pinus",FALSE
+"H","","A","Pinus subg. Strobus",FALSE
 "P","","A","Pinus undiff.",FALSE
 "PL","","A","Platanus",FALSE
 "$O","","A","Populus",FALSE
@@ -72,7 +72,7 @@
 "U","","A","Ulmus",FALSE
 "VL","","A","Viburnum lentago",FALSE
 "VR","","A","Viburnum rafinesquianum-type",FALSE
-"VM","","A","Viburnum trilobum-type",FALSE
+"VM","","A","Viburnum opulus-type",FALSE
 "VT","","A","Vitis",FALSE
 "QX","","A","Zanthoxylum americanum",FALSE
 "AO","","B","Allium",FALSE
@@ -83,7 +83,7 @@
 "AE","","B","Anemone quinquefolia-type",FALSE
 "UM","","B","Apiaceae",FALSE
 "R","","B","Artemisia",FALSE
-"LG","","B","Asteraceae subfam. Cichorioideae",FALSE
+"LG","","B","Cichorioideae",FALSE
 "V","","B","Asteraceae subfam. Asteroideae undiff.",FALSE
 "GV","","B","Avena-type",FALSE
 "OW","","B","Avena/Triticum",FALSE
@@ -92,7 +92,7 @@
 "CR","","B","Brassicaceae undiff.",FALSE
 "CI","","B","Campanula aparinoides-type",FALSE
 "CP","","B","Campanula rotundifolia-type",FALSE
-"CU","","B","Campanula uliginosa-type",FALSE
+"CU","","B","Campanula aparinoides-type",FALSE
 "HC","","B","Cannabaceae",FALSE
 "CB","","B","Cannabis sativa-type",FALSE
 "CY","","B","Caryophyllaceae",FALSE
@@ -118,7 +118,7 @@
 "HX","","B","Hypoxis hirsuta",FALSE
 "IM","","B","Impatiens",FALSE
 "IA","","B","Iva annua-type",FALSE
-"IX","","B","Iva xanthifolia-type",FALSE
+"IX","","B","Cyclachaena xanthiifolia-type",FALSE
 "KO","","B","Bassia-type",FALSE
 "LA","","B","Laportea-type",FALSE
 "LI","","B","Liliaceae undiff.",FALSE
@@ -142,13 +142,13 @@
 "PI","","B","Pilea-type",FALSE
 "PN","","B","Plantago",FALSE
 "G","","B","Poaceae",FALSE
-"PM","","B","Polygonum amphibium",FALSE
-"PO","","B","Polygonum lapathifolium-type",FALSE
+"PM","","B","Persicaria amphibia",FALSE
+"PO","","B","Persicaria lapathifolia-type",FALSE
 "PA","","B","Polygonum ramosissimum-type",FALSE
 "PY","","B","Polygonum tenue-type",FALSE
-"TP","","B","Potentilla palustris-type",FALSE
+"TP","","B","Comarum palustre-type",FALSE
 "PZ","","B","Primula-type",FALSE
-"RL","","B","Ranunculus longirostris-type",FALSE
+"RL","","B","Ranunculus aquatilis-type",FALSE
 "RN","","B","Ranunculus pensylvanicus-type",FALSE
 "RA","","B","Ranunculus undiff.",FALSE
 "RZ","","B","Rhamnaceae",FALSE
@@ -202,19 +202,19 @@
 "SF","","F","Sphagnum",FALSE
 "DT","","F","Thelypteris palustris-type",FALSE
 "TW","","F","Trilete spore undiff.",FALSE
-"GY","","F","c.f. Gymnocarpium",FALSE
+"GY","","F","cf. Gymnocarpium",FALSE
 "AL","","Q","Alisma",FALSE
 "BR","","Q","Brasenia schreberi",FALSE
 "CC","","Q","Callitriche",FALSE
 "HI","","Q","Hippuris",FALSE
-"IS","","Q","Isoetes",FALSE
+"IS","","Q","Isoëtes",FALSE
 "LM","","Q","Lemna",FALSE
 "MN","","Q","Menyanthes trifoliata",FALSE
 "MY","","Q","Myriophyllum",FALSE
 "NU","","Q","Nuphar",FALSE
 "NY","","Q","Nymphaea",FALSE
 "CO","","Q","Stuckenia",FALSE
-"UP","","Q","Potamogeton subgen. Eupotamogeton",FALSE
+"UP","","Q","Potamogeton",FALSE
 "RP","","Q","Ruppia",FALSE
 "SG","","Q","Sagittaria",FALSE
 "SZ","","Q","Scheuchzeria",FALSE

@@ -5,8 +5,8 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.6.2.** The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 507 test
+Status as of this writing: **v0.7.0.** The verified spine (v0.1.0) is complete
+and all planned analytical layers have been built on top of it. 592 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*
@@ -30,7 +30,11 @@ rewritten — the previous "optimal pollen sum" was circular and always reported
 sufficiency; counts are now derived from an extrapolated richness asymptote
 (§12). v0.6.1: `pct_smax` redefined as the fitted curve's share at the count
 made, so it can no longer contradict the tier columns (§12). v0.6.2: repaired a
-malformed `rarefaction` help page (documentation only).
+malformed `rarefaction` help page (documentation only). New in v0.7.0:
+Tilia/Neotoma lookup integration -- `read_tilia_lookup()` and
+`standardize_dic()` (§13); an optional confirmation tone on each count in
+`count_app()` (session-only, default off); and `QUICKSTART.md` for users with no
+R experience.
 
 ---
 
@@ -543,3 +547,171 @@ Each recorded grain counts as one detection, so a half-grain (modifier `0`,
 weight 0.5) contributes one individual. Richness is about detections, and
 rounding summed weights per taxon biases exactly the rare taxa that determine
 where the curve flattens.
+
+---
+
+## 13. Tilia / Neotoma lookups — an authority, not a source
+
+`read_tilia_lookup()` and `standardize_dic()` reconcile a dictionary against
+Neotoma's taxon authority as distributed with Tilia. This section records why the
+lookup is checked against rather than copied from.
+
+### A lookup cannot be a counting dictionary
+
+Two reasons, both structural:
+
+- **The codes are the wrong kind.** Every lookup taxon has a `Code`, but it is
+  Tilia's display abbreviation — `Ane.s.`, `Nit.or`, `Pla.sp1LLC` — three to ten
+  characters for spreadsheet column headers. Counting needs one or two characters
+  the analyst can type three hundred times without looking. Those are the
+  analyst's own and cannot come from an authority file.
+- **The scale is wrong.** The pollen lookup holds 49,188 taxa because it is the
+  whole Neotoma taxonomy: 8,513 diatoms, 15,257 insects, 890 ostracodes. Only
+  22,426 are palynomorphs. A working dictionary holds tens. Matching is therefore
+  restricted to palynomorph `TaxaGroup`s by default, which also stops a pollen
+  taxon matching a beetle.
+
+So the dictionary stays the analyst's, and the lookup supplies standardised names
+and ecological groups on request. The payoff is chiefly Neotoma submission via
+`write_tlx()`.
+
+### Two group dimensions, and why they are not remapped
+
+Tilia nests a four-letter `EcolGroup` inside a three-letter `TaxaGroup`. The
+ecological groups relevant to pollen are `TRSH` trees and shrubs, `UPHE` upland
+herbs, `VACR` terrestrial vascular cryptogams, `AQVP` aquatic vascular plants,
+`UPBR`/`AQBR` bryophytes, `UNID` unknown palynomorphs, `ANAC` anachronic
+(reworked), plus `SUCC`, `MANG`, `PALM` and others.
+
+These do **not** map one-to-one onto PCount's `A`/`B`/`F`/`Q`/`X`. Checking a
+231-taxon dictionary against the lookup found 19 disagreements: taxa filed under
+`B` that Neotoma classes `TRSH`, others it classes `SUCC` or `AQVP`.
+
+**No comparison is made by default.** `group_map` is `NULL`, `group_differs` is
+`NA`, and `ecol_group` is reported purely as reference for a Neotoma upload.
+
+The reasoning: an ecological group is in practice a "sum by" list, and the
+baggage around ecological affinity makes a standardised list impractical to hold
+centrally. Cyperaceae is `UPHE` in the lookup but legitimately aquatic in some
+settings, and the analyst who saw the landscape is better placed to judge than an
+authority file. Flagging such a row as a disagreement would present the lookup's
+assignment as correct and the analyst's as deviant, which is not a defensible
+default.
+
+The comparison is therefore opt-in via `group_map`, and even then nothing is
+changed — reassigning a group moves a taxon between pollen sums and so alters
+every percentage, concentration and accumulation rate.
+
+This is consistent with how the rest of the package already works: `pollen_sum`
+*is* the sum-by list, configured per site, and `preservation` / `precedence` are
+overridable the same way (§6).
+
+Read with `group_map` supplied, the audit does still surface real filing errors —
+*Cystopteris bulbifera* (a fern) under herbs, cf. *Hypericum* (a herb) under
+spores — which is why it remains available rather than removed.
+
+### Fuzzy matching may never be applied in bulk
+
+String similarity is unreliable on taxon names, and the failures are not subtle.
+Ranking the `suggestion` rows from the 231-taxon ECG dictionary by score
+interleaves the useful with the unusable:
+
+| Similarity | Dictionary name | Best candidate | Verdict |
+|---|---|---|---|
+| 0.91 | `Lycopodiella inundatum` | *Lycopodiella inundata* | right — gender agreement |
+| 0.89 | `Zygadenus` | *Zigadenus* | right — spelling |
+| 0.75 | `Cerealia undiff.` | *Sordaria* undiff. | wrong — cereal grasses to a fungus |
+| 0.75 | `Primula quadriflora-type` | *Primula farinosa-type* | wrong — a different species |
+| 0.72 | `Dendrolycopodium obscurum` | *Lycopodium obscurum* | right — a real synonymy |
+| 0.67 | `Microcharcoal` | Microchaetaceae | wrong — charcoal to a cyanobacterium |
+
+No cutoff separates these. A threshold of 0.75 would accept the fungus and the
+wrong *Primula* while rejecting the correct *Lycopodium* synonymy directly below
+them. The signal is not in the string.
+
+Ties compound it. `Spinulum annotinum` scores 0.60 against three candidates at
+once — *Lycopodium annotinum*, which is the correct answer, plus *Tripolium
+pannonicum* (an aster) and *Trifolium pannonicum* (a clover). `Pre-Quaternary
+undiff.` scores 0.59 against four families simultaneously (*Arecaceae*,
+*Primulaceae*, *Proteaceae*, *Pteridaceae* undiff.). `which.max` returns whichever
+appears first in the pool, so on tied rows the displayed candidate is an artefact
+of pool order rather than a property of the data.
+
+Hence `status = "suggestion"` is advisory only: reachable by individual code or
+name, never as a class, and with no `"all"` shorthand.
+
+### Normalisation folds spelling, not meaning
+
+`.norm_taxon()` folds diacritics, punctuation and abbreviation variants
+(`c.f.`/`cf.`, `subgen.`/`subg.`, `subfam.`/`subf.`) and nothing else.
+
+It must not touch `-type`, `cf.` or `aff.`. Those encode determination precision:
+`Betula-type` is a morphotype resembling *Betula*, not a determination of it. An
+early draft stripped `-type` and classified `Tidestromia lanuginosa-type` as a
+mechanical variant of *Tidestromia lanuginosa*, which would have promoted a
+morphotype to a species identification without comment.
+
+Extending normalisation to the **synonym** table as well as the accepted-name
+table matters more than it sounds. A dictionary written with `subgen.` where
+Neotoma writes `subg.` hides authoritative answers behind an abbreviation: doing
+so resolved `Pinus subgen. Diploxylon` to *Pinus* subg. *Pinus* and
+`Pinus subgen. Haploxylon` to *Pinus* subg. *Strobus* — precisely the pair that
+fuzzy matching got backwards.
+
+Diacritic folding uses explicit `\u` escapes rather than
+`iconv(to = "ASCII//TRANSLIT")`, whose output is platform-dependent and can emit
+`?` on Windows, silently breaking matches such as *Isoetes* / *Isoëtes*.
+
+### No alias table ships with the package
+
+Once normalised synonym matching is in place, what remains unresolved is not
+universal fact but local convention: whether `Monolete spore undiff.` is
+Neotoma's `Filicopsida (monolete) undiff.`, how reworked pre-Quaternary grains
+are recorded, whether a regional morphotype has an authority equivalent at all.
+
+A bundled table would mean `pcountr` asserting taxonomic equivalences on the
+analyst's behalf, maintaining them as Neotoma revises, and imposing a North
+American ECG-derived view on users whose hard cases differ entirely. So
+`aliases` is a user file, `read_tilia_lookup()` stays a pure reader, and pointing
+`aliases` at a non-existent path writes a template from the unresolved rows.
+Alias matches are reported as `status = "alias"`, distinct from an authoritative
+`synonym`, so it is always clear which substitutions came from Neotoma and which
+from the analyst.
+
+### The Neotoma API was evaluated and not adopted (v0.7.0)
+
+Neotoma serves taxa over HTTP at `api.neotomadb.org/v2.0/data/taxa`, queryable by
+name, by ID, or in bulk with `limit`/`offset`, without a key. The fields map
+one-to-one onto the XML and add two the lookup lacks: `status` (extant/extinct)
+and the taxonomic authority `publication`.
+
+It was still not adopted, for one decisive reason: **the API does not expose the
+synonymy.** Deprecated names are present as taxa -- `Alnus rugosa` returns
+`taxonid` 14749, the same ID the XML assigns it as a `<Synonym>` -- flagged only
+by a bracketed `taxoncode` (`[Aln.rg]`) and null `ecolgroup`/`highertaxonid`.
+Nothing in the response says it now refers to taxon 344, *Alnus incana*. The XML
+states that mapping outright.
+
+That mapping is what `standardize_dic()` depends on most: it resolves every
+`synonym` row, and it is what turns `Pinus subgen. Diploxylon` into *Pinus* subg.
+*Pinus* authoritatively. Left to fuzzy matching that name scores highest against
+*Cornus* subg. *Cynoxylon*, a dogwood, at 0.62. An API-backed implementation
+would silently demote such rows from `synonym` to `suggestion`.
+
+The XML is also local, offline, and versioned with the analyst's Tilia install,
+which suits a function run beside a microscope.
+
+Three later uses remain open, none of them replacements:
+
+- `status = "extinct"` bears on reworked pre-Quaternary categories and is absent
+  from the lookup entirely.
+- Authority publications would let a methods section cite *why* a name is
+  accepted.
+- A light currency check could flag names revised since the lookup snapshot was
+  written, without re-downloading 11 MB.
+
+Two things were not established and would need confirming before any of that:
+whether an undocumented synonymy endpoint exists -- the Swagger UI is a
+JavaScript shell and could not be read programmatically -- and whether
+bracketed-`taxoncode`-with-null-`ecolgroup` is a documented contract or an
+implementation detail unsafe to rely on.

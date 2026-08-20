@@ -110,6 +110,69 @@
 - **Grain History table renders on demand** — table is built only when the
   Grain History tab is open, eliminating redundant rebuilds during counting.
 
+## Done — v0.7.0
+
+- **`read_tilia_lookup()`** — reads Tilia's Neotoma taxon lookup XML into a data
+  frame, with Neotoma's synonymy and the `TaxaGroup`/`EcolGroup` hierarchy as
+  attributes. Eleven proxy files supported; session-cached, since the pollen file
+  is ~11 MB and holds 49,188 taxa. A pure reader, making no judgements.
+- **`standardize_dic()`** — reconciles a dictionary against that authority and
+  reports rather than rewrites. Six `status` classes (`exact`, `variant`,
+  `synonym`, `alias`, `suggestion`, `unmatched`); names adopted selectively via
+  `apply =`, mixing classes with individual codes. `suggestion` is never
+  applicable as a class and there is no `"all"` shorthand — fuzzy matching scores
+  `Cerealia undiff.` at 0.75 against *Sordaria* undiff. (a fungus), above the
+  correct `Dendrolycopodium obscurum` → *Lycopodium obscurum* at 0.72, so no
+  threshold separates them. Only names are ever written; groups are never
+  changed. See DESIGN.md §13.
+- **No alias table ships** — unresolved cases are lab convention, not universal
+  fact. Pointing `aliases` at a non-existent path writes a template from the
+  unresolved rows to fill in once.
+- **Matching restricted to palynomorph `TaxaGroup`s by default** — 22,426 of
+  49,188 taxa, which also prevents matching a pollen taxon against a beetle.
+- **Ecological groups are not compared by default** — `group_map = NULL`, on the
+  reasoning that an ecological group is a local "sum by" choice rather than a
+  fact to harmonise (Cyperaceae is `UPHE` in the lookup but aquatic in some
+  settings). `ecol_group` is still reported for upload reference; the audit is
+  opt-in via `group_map`.
+- **Bundled dictionary updated to Tilia 3.2 nomenclature** —
+  `inst/extdata/fake_lake/ECG.csv`, 15 of 231 names reconciled via
+  `apply = c("variant", "synonym")`. Codes and groups untouched, so existing
+  counts are unaffected. `read_dic_csv()` now reads with `encoding = "UTF-8"`,
+  since one accepted name carries a diacritic.
+- `utils` added to `Imports`.
+
+- **Optional confirmation tone on each count** — `count_app()` gains a
+  **Beep on count** Yes/No control under Undo. A soft tick (0.06 s, 1200 Hz sine)
+  on each grain and spike, deliberately unlike the 0.35 s 880 Hz square-wave
+  error alert so the two stay distinguishable at the microscope. Session-only,
+  default No, never written to the sample; `options(pcountr.count_beep = TRUE)`
+  sets the default.
+- **`QUICKSTART.md`** — standalone guide for users with no R experience:
+  installing R and RStudio, counting a sample, loading counts, reading
+  `rarefaction()` output, and plotting. Linked from `README.md`, excluded from
+  the build.
+
+### Still to do for this feature
+
+- **Dictionary-tab search in `count_app()`** — search the lookup by name, click to
+  add a row with the accepted name and ecological group pre-filled, analyst
+  supplies the code. This is what keeps 49,188 taxa off the screen: you only ever
+  see what you searched for.
+
+## Done — v0.6.2
+
+- **Bug fix: malformed `man/rarefaction.Rd`.** A blank line followed by indented
+  prose inside a `\describe{}` item was parsed as a markdown code block, emitting
+  `\preformatted{}` and leaving `\value{}` with an unclosed brace — truncating
+  `?rarefaction` from `\description` onward. The `pct_smax` note moved to the
+  section defining the tier targets. `devtools::check_man()` catches this class of
+  error; `document()` and `install_github()` only warn.
+- **Non-ASCII removed from R code** — three `message()` strings held an em-dash,
+  raising a `--as-cran` WARNING. Now plain hyphens, chosen over `—` because
+  these print to consoles that may not be UTF-8. First release to pass
+  `R CMD check --as-cran` with 0 errors, 0 warnings, 0 notes.
+
 ## Done — v0.6.1
 
 - **Bug fix: `pct_smax` contradicted the tier columns.** It was defined as

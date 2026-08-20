@@ -4,7 +4,7 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.6.2)
+## What it does (v0.7.0)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain
@@ -50,6 +50,17 @@ workflow while saving to a modern, self-contained format.
   rather than judges: adequacy depends on your objective, and the output shows
   what a count recovered alongside what more effort would buy.
 
+### Taxonomy — Tilia / Neotoma reconciliation
+- **`read_tilia_lookup()`** — read Tilia's Neotoma taxon lookup (`.xml`, normally
+  in `C:/ProgramData/Tilia/Lookup`) into a data frame, with Neotoma's own synonymy
+  and the `TaxaGroup`/`EcolGroup` hierarchy attached.
+- **`standardize_dic()`** — check your dictionary against that authority and
+  report what it finds: exact matches, orthographic variants, deprecated names
+  with their accepted replacements, and where your groups disagree with Neotoma's
+  ecological groups. Nothing is changed unless you ask; names are adopted
+  selectively with `apply =`, by class or by individual code. Smooths Neotoma
+  submission via `write_tlx()`.
+
 ### Native YAML format
 - **`write_pollen_count()` / `read_pollen_count()`** — one self-contained YAML
   file per sample carrying grains, metadata, and analyst-supplied depth and age.
@@ -60,6 +71,13 @@ workflow while saving to a modern, self-contained format.
 - **`read_cnt()`** — parse a legacy `.CNT` count file into a per-grain
   `pollen_count` object, preserving counting order, traverse labels, tracer-spike
   marks, and inline `[...]` remarks.
+
+## New to R?
+
+**Start with [QUICKSTART.md](QUICKSTART.md)** — a step-by-step guide that assumes
+no programming experience. It covers installing R, counting a sample in the app,
+checking whether you counted enough grains, and producing a stratigraphic
+diagram.
 
 ## Quick start — count, plot, export
 

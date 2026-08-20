@@ -1,5 +1,196 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.7.0
+
+### New — Tilia / Neotoma taxon lookup integration
+
+Two functions for reconciling a dictionary against Neotoma's taxon authority, as
+distributed with Tilia.
+
+**`read_tilia_lookup(path, type)`** parses Tilia's lookup XML into a data frame:
+`taxon_id`, `name`, `author`, `code`, `taxa_group`, `ecol_group`, `higher_id`,
+with Neotoma's own synonymy attached as `attr(, "synonyms")` and the
+`TaxaGroup`/`EcolGroup` hierarchy as `attr(, "groups")`. Defaults to
+`C:/ProgramData/Tilia/Lookup`, overridable by argument or
+`options(pcountr.tilia_lookup =)`, and handles eleven proxy files. Results are
+cached for the session, keyed on path and modification time, because the pollen
+file is ~11 MB. A pure reader: it makes no judgements about what it finds.
+
+**`standardize_dic(dic, lookup, aliases, apply)`** classifies every taxon name in
+a dictionary and reports what it found. By default **nothing is changed.**
+
+### Why reconcile rather than adopt the lookup wholesale
+
+A lookup cannot serve as a counting dictionary. Its `Code` field holds Tilia's
+display abbreviation (`Ane.s.`, `Pla.sp1LLC`), not the one- or two-character
+keystroke code typed at the microscope. And the pollen file is the entire Neotoma
+taxonomy — 49,188 taxa, of which 8,513 are diatoms and 15,257 insects. Only
+22,426 are palynomorphs, and a working dictionary holds tens. The lookup is an
+authority to check against; the dictionary stays the analyst's.
+
+Matching is therefore restricted to palynomorph `TaxaGroup`s by default
+(`VPL BRY UPA ALG FUN ACR DIN PLA LAB CHR`), which also removes any chance of
+matching a pollen taxon against a beetle.
+
+### The `status` classes
+
+Assigned by cascade — exact, then alias, then Neotoma synonymy, then
+orthographic, then fuzzy:
+
+- **`exact`** — name found verbatim among accepted taxa.
+- **`variant`** — differs only in orthography: diacritics, `c.f.`/`cf.`,
+  `subgen.`/`subg.`. Safe to apply mechanically.
+- **`synonym`** — Neotoma's own synonymy maps it to a different accepted taxon.
+  Authoritative, but still a taxonomic judgement, and the revision can run
+  either way: modern segregates such as *Spinulum annotinum* are *newer* than the
+  lookup's *Lycopodium annotinum*.
+- **`alias`** — matched your own `aliases` file. Your assertion, so applicable in
+  bulk.
+- **`suggestion`** — closest name by string similarity, with score.
+- **`unmatched`** — nothing above `cutoff`.
+
+**`suggestion` is never applicable as a class**, only by individual code or name,
+and there is deliberately no `"all"` shorthand. Testing against a real 231-taxon
+dictionary showed why. `Cerealia undiff.` scores 0.75 against *Sordaria* undiff.
+— cereal grasses against a fungus — and `Primula quadriflora-type` scores 0.75
+against a different species, *Primula farinosa-type*. Yet the correct
+`Dendrolycopodium obscurum` → *Lycopodium obscurum* scores only 0.72, *below*
+both. Any threshold admitting the good matches admits the bad ones. Scores also
+tie: `Spinulum annotinum` hits 0.60 against the correct *Lycopodium annotinum*
+and against a clover simultaneously, and the row displayed is decided by pool
+order. The signal is not in the string.
+
+### `apply` takes classes and individual rows together
+
+```r
+dic <- standardize_dic(dic, lookup, apply = c("variant", "synonym", "V", "ZG"))
+```
+
+Classes for what you trust wholesale, codes or names for what you have vetted
+individually. Any element matching neither a class nor a row is an **error**, not
+a silent no-op, and every change is echoed old → new. The call itself becomes a
+record of exactly what was adopted.
+
+### Orthographic normalisation is deliberately narrow
+
+It folds diacritics, punctuation and abbreviation variants — nothing else. In
+particular it does **not** strip `-type`, `cf.` or `aff.`, which encode how
+precise a determination is: `Betula-type` is a morphotype resembling *Betula*,
+not a determination of *Betula*. Stripping it would classify
+`Tidestromia lanuginosa-type` as a mechanical variant of
+*Tidestromia lanuginosa*, silently promoting a morphotype to a species
+identification. Diacritic folding uses explicit `\u` escapes rather than
+`iconv(to = "ASCII//TRANSLIT")`, whose output is platform-dependent and can emit
+`?` on Windows.
+
+### Ecological groups are not compared by default
+
+`standardize_dic()` makes **no comparison** between your ecological groups and
+the lookup's: `group_map` defaults to `NULL` and `group_differs` is `NA` unless
+you supply a mapping. `ecol_group` is still reported, for reference when
+preparing an upload.
+
+This is on the reasoning that an ecological group is in practice a "sum by"
+list, and that the baggage around ecological affinity makes a single standardised
+list impractical to hold centrally. Cyperaceae is `UPHE` in the lookup but
+legitimately aquatic in some settings, and the analyst who saw the landscape is
+better placed to judge than an authority file. Flagging such a row as a
+disagreement would present the lookup as correct and the analyst as deviant,
+which is not a defensible default. `pcountr` already treats this as local
+configuration -- `pollen_sum` is the sum-by list, set per site.
+
+Pass e.g. `group_map = c(A = "TRSH", B = "UPHE", F = "VACR", Q = "AQVP",
+X = "UNID")` if you do want the audit. Even then, nothing is changed.
+
+### Bundled dictionary updated to Tilia 3.2 nomenclature
+
+`inst/extdata/fake_lake/ECG.csv` -- the dictionary shipped with the example data
+-- has been reconciled against the Neotoma pollen lookup with
+`apply = c("variant", "synonym")`, updating 15 of its 231 names so that new users
+begin with current nomenclature. Notably `Alnus rugosa` to *Alnus incana*,
+`Pinus subgen. Diploxylon`/`Haploxylon` to *Pinus* subg. *Pinus*/*Strobus*,
+`Polygonum amphibium` to *Persicaria amphibia*, and `Potentilla palustris-type`
+to *Comarum palustre*-type. Codes, groups, aliases and `is_special` flags are
+untouched, so existing counts are unaffected -- `.CNT` and YAML files reference
+codes, not names.
+
+Two consequences worth knowing. `Potamogeton subgen. Eupotamogeton` becomes
+`Potamogeton`, which is Neotoma's accepted equivalent but drops a rank; revert
+that row if you record the subgenus deliberately. And `Isoetes` becomes
+`Isoëtes`, the first non-ASCII character in a shipped dictionary --
+`read_dic_csv()` now passes `encoding = "UTF-8"` so it survives on machines whose
+native encoding is not UTF-8.
+
+### No alias table ships with the package
+
+Cases that need one are lab conventions rather than universal facts — whether
+`Monolete spore undiff.` is Neotoma's `Filicopsida (monolete) undiff.`, or how
+reworked pre-Quaternary grains are recorded. A package asserting those on the
+analyst's behalf would be making a scientific claim it cannot stand behind, and
+imposing a North American view on users elsewhere. Instead, point `aliases` at a
+path that does not exist and a template is written from the unresolved rows for
+you to fill in once.
+
+### Note on fuzzy scores
+
+Similarity is normalised Levenshtein distance via `utils::adist`, so scores are
+not comparable to those from other string-distance measures. It is stricter than
+a longest-common-subsequence ratio, and usefully so: on a real 231-taxon
+dictionary, five of six locally-defined reworked pre-Quaternary categories fall
+below the 0.55 cutoff and report `unmatched`, which is the honest answer —
+`Pre-Quaternary (Cingutriletes)` peaks at 0.50 against *Arecaceae* (trilete), a
+palm. The sixth, `Pre-Quaternary undiff.`, still draws a suggestion at 0.59,
+tied across four unrelated families, which is why suggestions are advisory only.
+
+### Robustness
+
+A synonym's accepted taxon may lie outside the filtered pool -- 439 of the 2,182
+synonyms in the pollen lookup point at non-palynomorph taxa. Resolving those with
+`[[` raised "subscript out of bounds"; such rows now fall through to fuzzy
+matching, which is correct, since the accepted taxon is out of scope for a pollen
+dictionary. Regression test added.
+
+### New — optional confirmation tone on each count
+
+`count_app()` gains a **Beep on count** Yes/No control beneath the Undo button.
+When set to Yes, a soft tick sounds each time a grain or spike is recorded, so an
+analyst can keep their eyes on the microscope and still know the entry landed.
+
+Deliberate choices:
+
+- **The tone is distinct from the error beep.** The existing alert is a 0.35 s
+  880 Hz square wave, meant to be noticed. The confirmation is a 0.06 s 1200 Hz
+  sine at roughly a third of the volume. Reusing the alert tone would have
+  destroyed its purpose — the analyst could not tell a recorded grain from a
+  rejected one.
+- **Grains and spike only.** Traverses, remarks, and Undo are deliberate single
+  actions rather than repeated tallies, so they stay silent.
+- **Session-only, default No.** The setting is read straight from the control and
+  is never stored on the sample or written to YAML — it is a preference, not data.
+  It resets whenever the app is reopened. To have it on by default, set
+  `options(pcountr.count_beep = TRUE)` in your `.Rprofile`.
+
+The tick fires server-side once the entry is confirmed valid, so a rejected token
+produces the error beep alone.
+
+### New — `QUICKSTART.md`
+
+A standalone guide for palynologists who have never used R: installing R and
+RStudio, installing the package, counting a sample, loading finished counts,
+reading the `rarefaction()` output, and producing a stratigraphic diagram. Every
+code block is complete and copy-pasteable, and there is a troubleshooting section
+covering the traps that actually occur — chiefly the need to restart R after
+installing, and Windows path backslashes.
+
+Linked from `README.md` and excluded from the build via `.Rbuildignore`, like
+`DESIGN.md` and `ROADMAP.md`.
+
+### Packaging
+
+`utils` added to `Imports`.
+
+---
+
 ## pcountr 0.6.2
 
 ### Bug fix — malformed `man/rarefaction.Rd` truncated the help page

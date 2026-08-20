@@ -207,7 +207,7 @@ test_that("pct_smax is the fitted curve's share of Smax at the count made", {
 test_that("pct_smax agrees with the tier columns exactly", {
   # N >= K*p/(1-p)  <=>  N/(K+N) >= p. A row that says it has reached 80% of
   # Smax must also have counted at least n80 grains, or the table contradicts
-  # itself -- the defect that made pct_smax observed-based in the first draft.
+  # itself, which is why pct_smax is model-based rather than observed.
   r  <- rarefaction(site_rf, n_sim = 0L)
   df <- r$summary[r$summary$converged, ]
   for (i in seq_len(nrow(df))) {
