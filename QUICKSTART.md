@@ -73,6 +73,35 @@ count_app()
 A counting window opens in your web browser. R must stay open while you count —
 minimise RStudio, don't close it.
 
+### Don't have a dictionary yet?
+
+The setup screen will ask for a taxon dictionary — the file that maps your
+keystroke codes to taxon names. Two ways to get one:
+
+- **Use the bundled one.** A ready-to-use, 231-taxon North American pollen
+  dictionary ships with the package. Find where it lives by pasting:
+
+  ```r
+  system.file("extdata", "fake_lake", "ECG.csv", package = "pcountr")
+  ```
+
+  Copy that file somewhere convenient and browse to it during setup. Its
+  names match current Neotoma nomenclature.
+
+- **Build one for your region.** `build_dic_neotoma()` drafts a dictionary
+  from the taxa recorded at Neotoma sites near your coordinates:
+
+  ```r
+  d <- build_dic_neotoma(lat = 46.45, long = -112.17,
+                         file = "C:/Users/you/Documents/my_dictionary.csv")
+  ```
+
+  This queries the Neotoma database over the internet and **may take a few
+  minutes** depending on the radius. The result is a draft: open the CSV in
+  a spreadsheet, fill in a short code for each taxon (1–2 letters, e.g. `P`
+  for *Pinus*), adjust the groups if you disagree with them, and delete
+  anything you'll never count. See `?build_dic_neotoma` for the details.
+
 ### The setup screen
 
 Fill in what you know and leave the rest. The fields, in the order they appear:

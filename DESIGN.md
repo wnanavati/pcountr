@@ -5,8 +5,8 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.7.0.** The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 592 test
+Status as of this writing: **v0.8.0.** The verified spine (v0.1.0) is complete
+and all planned analytical layers have been built on top of it. 638 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*
@@ -34,7 +34,8 @@ malformed `rarefaction` help page (documentation only). New in v0.7.0:
 Tilia/Neotoma lookup integration -- `read_tilia_lookup()` and
 `standardize_dic()` (§13); an optional confirmation tone on each count in
 `count_app()` (session-only, default off); and `QUICKSTART.md` for users with no
-R experience.
+R experience. New in v0.8.0: `build_dic_neotoma()` drafts a region-specific
+dictionary from the Neotoma records nearest a coordinate (§14).
 
 ---
 
@@ -678,7 +679,7 @@ Alias matches are reported as `status = "alias"`, distinct from an authoritative
 `synonym`, so it is always clear which substitutions came from Neotoma and which
 from the analyst.
 
-### The Neotoma API was evaluated and not adopted (v0.7.0)
+### The Neotoma API: rejected for reconciliation (v0.7.0), adopted for dictionary building (v0.8.0)
 
 Neotoma serves taxa over HTTP at `api.neotomadb.org/v2.0/data/taxa`, queryable by
 name, by ID, or in bulk with `limit`/`offset`, without a key. The fields map
@@ -715,3 +716,140 @@ whether an undocumented synonymy endpoint exists -- the Swagger UI is a
 JavaScript shell and could not be read programmatically -- and whether
 bracketed-`taxoncode`-with-null-`ecolgroup` is a documented contract or an
 implementation detail unsafe to rely on.
+
+**This was later revisited, and the conclusion narrowed rather than reversed.**
+The API remains unsuitable for `standardize_dic()`, for exactly the reason
+above: reconciling a deprecated name requires the synonymy, and the API does
+not expose it. But *building* a dictionary needs the opposite thing -- accepted
+names in current use -- which the API serves well. So the API is now used for
+that one purpose only, in `build_dic_neotoma()`. See section 14. The Tilia XML
+remains the sole authority for reconciliation, and the offline path is
+untouched.
+
+---
+
+## 14. Region-specific dictionaries from Neotoma (v0.8.0)
+
+`build_dic_neotoma()` returns a draft dictionary of the taxa most widely
+recorded near a coordinate. It is a starting point, not an authority: the
+analyst fills in the codes and reviews the groups, then checks the result
+against a Tilia lookup with `standardize_dic()`.
+
+### Proximity, not political boundaries
+
+The first design used `country` and `region`, since Neotoma stores nested
+geopolitical units and `gpid` accepts them directly. That was replaced by a
+coordinate and a radius, because vegetation does not stop at a state line. The
+measured difference is not small: a 250 km search around a site in western
+Montana returns 38 sites reaching into Idaho and Wyoming, where `gpid =
+"Montana"` returns 16. The state boundary was excluding the nearest analogues.
+
+Ambiguity was a secondary reason. `gpname=Montana` resolves to two units --
+7754, a state of the United States, and 637, a province of Bulgaria -- and the
+API picks one silently. A coordinate cannot be ambiguous.
+
+### Measured costs, which shaped the defaults
+
+| Query | Time | Result |
+|---|---|---|
+| `gpid = "Montana"`, pollen, `all_data` | 4.8 s | 16 sites |
+| `loc` 50 km, sites, `all_data` | 74.2 s | 5 sites |
+| `loc` 100 km | 143.1 s | 24 sites |
+| `loc` 250 km | 146.0 s | 166 sites |
+| `loc` 500 km | 209.6 s | 1284 sites |
+| **`loc` 250 km + `datasettype`, datasets** | **39-49 s** | **38 sites** |
+
+Three conclusions follow, and each is a default in the code:
+
+1. **Query datasets, not sites.** Filtering `datasettype` server-side made the
+   same 250 km box three times faster than the equivalent `get_sites()` call.
+2. **A generous radius is nearly free.** 74 s to return five sites at 50 km
+   means roughly 70 s is fixed overhead, and the whole 50-500 km range spans
+   only 74-210 s. Shrinking the box to save time does not work, so the default
+   radius is 250 km.
+3. **Bound the download, not the search.** Enumeration is cheap; each download
+   is about 92 KB. So enumeration uses `all_data = TRUE` -- without it the API
+   silently caps at 25 and ranking an arbitrary 25 sites by distance would be
+   meaningless -- while `max_sites` caps the expensive step. Cost is therefore
+   set by the analyst rather than by how dense the region happens to be.
+
+### Presence, not abundance
+
+Taxa are ranked by the number of distinct sites they occur in. Ranking by
+abundance would return little beyond *Pinus*, *Artemisia* and Poaceae; ranking
+by sample count would reward a taxon that is locally abundant at one site over
+one that is present across the whole region. A dictionary should list what an
+analyst is likely to *meet*, which is a presence question.
+
+The tally counts distinct site-taxon pairs, not rows, and is computed from
+`samples()` rather than `taxa()`. `taxa()` looks like the natural choice --
+it returns `sites` and `samples` counts directly -- but it aggregates by
+`units`, `element`, `elementtype` and more, so one taxon can span several rows.
+Summing those double-counts sites that appear in two of them and taking the
+maximum undercounts sites that appear in one, and the true distinct-site count
+cannot be recovered from the aggregate. Counting pairs is correct by
+construction.
+
+### What is filtered, and what deliberately is not
+
+`units == "NISP"` does most of the work: it drops every laboratory row, since
+tablets are recorded in `grains/tablet`, sample quantity in `ml` and the spike
+count in `number`. `LABO` and unidentified groups are then excluded from the
+ranking explicitly.
+
+Two things are kept on purpose. Algal colonies (`Botryococcus`, `Pediastrum`)
+are `NISP`, neither laboratory nor unidentified, and analysts genuinely tally
+them -- so `datasettype = "pollen"` yields a palynomorph dictionary rather than
+a strictly-pollen one. And `Unknown` and `Indeterminable` are added back as
+fixed entries alongside the spike, in Neotoma's own spelling, so they return
+`exact` from `standardize_dic()`.
+
+Slash-combined names such as `Larix/Pseudotsuga` are single morphotypes and are
+never split.
+
+### Codes are left blank, and groups are only a starting value
+
+Entry codes are an analyst's muscle memory; nobody should inherit someone
+else's. The consequence is that the result is not a `pollen_dictionary` and
+will not load until the codes are filled, because `read_dic_csv()` drops rows
+with a blank code. The function therefore returns a plain data frame and says
+so, rather than handing back something that looks valid and loads empty.
+
+Groups are imported from Neotoma's `ecologicalgroup` because a blank group
+would make `read_dic_csv()` infer `is_special = TRUE` for every taxon. They are
+a starting value only. This follows the same reasoning as section 13: a
+dictionary's groups encode the analyst's pollen-sum decisions and are not the
+lookup's to correct. The first real run returned `Cyperaceae` as `UPHE`, which
+is precisely the case where an analyst with local knowledge may say `AQVP`.
+
+### Charcoal does not work, and cannot
+
+Charcoal has five datasettypes, and none carries a taxon vocabulary. Every
+`datum` in a macrocharcoal dataset has one of two `variablename` values,
+`Charcoal` or `Sample quantity`. What varies is the size fraction in
+`elementtype` -- two records inspected used `>500 um` and `>125 um`. A "which
+size classes are used near me" query would be useful and is a different
+function. `datasettype` is passed through verbatim, so a charcoal type returns
+a near-empty draft without a special case.
+
+### Dependency and testing
+
+`neotoma2` is in `Suggests:`, guarded by `requireNamespace()` and called with
+`::`. It imports `sf`, `leaflet`, `dplyr` and more, which is a poor trade for
+software that must work offline beside a microscope. `sf` is avoided even for
+the geometry: `parseLocation()` accepts a GeoJSON character string, so the
+bounding box is built with `sprintf()` and the distances with haversine in base
+R.
+
+One neotoma2 constraint is worth recording, since it cost an afternoon: `loc`
+accepts an `sf` object, an `sfg`, a numeric bbox or a GeoJSON string, but *not*
+an `sfc`. `parseLocation()` has no `sfc` branch and no `else` guard, so an
+`sfc` falls through every branch and fails with `object 'geojson' not found`
+before any request is sent. Present in both CRAN 1.0.12 and GitHub 1.1.0.
+
+The network path is not tested. `R CMD check` must not depend on
+api.neotomadb.org, and a spatial query there takes tens of seconds. The tally,
+the filtering, the fixed entries, the geometry and the distance arithmetic are
+all tested against a fixture shaped like real `samples()` output -- the same
+approach as the synthetic Tilia lookup in section 13.
+

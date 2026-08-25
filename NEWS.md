@@ -1,5 +1,90 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.8.0
+
+### New — region-specific dictionaries from Neotoma
+
+`build_dic_neotoma()` builds a draft dictionary from the Neotoma records
+nearest a coordinate:
+
+```r
+build_dic_neotoma(lat = 46.45167, long = -112.16583,
+                  radius_km = 250, max_sites = 20,
+                  datasettype = "pollen", n = 50)
+```
+
+It returns the taxa recorded at the most distinct sites within the radius,
+plus fixed entries for the spike, `Unknown` and `Indeterminable`. Entry codes
+are left **blank** on purpose — codes are the analyst's muscle memory, and
+nobody should inherit someone else's. The result is therefore a plain data
+frame, not a `pollen_dictionary`, and will not load until the codes are filled
+in; `read_dic_csv()` drops rows with a blank code. Pass `file =` to write it
+as CSV, then finish it by hand and check it with `standardize_dic()`.
+
+**Proximity rather than a political boundary.** An earlier design took a
+country and a state. It was replaced because vegetation does not stop at a
+state line, and the difference is measurable: a 250 km search around a site in
+western Montana finds 38 sites, reaching into Idaho and Wyoming, where
+`gpid = "Montana"` finds 16. A coordinate is also unambiguous, where
+`gpname = Montana` resolves to both a US state and a Bulgarian province with no
+warning.
+
+**Ranked by presence, not abundance.** Taxa are ordered by the number of
+distinct sites they occur in. Abundance ranking would return little beyond
+*Pinus*, *Artemisia* and Poaceae, and sample-count ranking would favour a taxon
+abundant at one site over one present across the region. The tally counts
+distinct site-taxon pairs from `samples()`; `taxa()` is not used, because it
+aggregates by units and element type and its site counts cannot be
+re-aggregated to unique taxa without double-counting.
+
+**Cost is set by you, not by the region.** Enumeration uses `all_data = TRUE`
+— without it the API silently caps at 25 records, and ranking an arbitrary 25
+sites by distance would be meaningless — while `max_sites` bounds the download,
+which is the expensive part at roughly 92 KB per dataset. A generous
+`radius_km` is nearly free: about 70 s of the query is fixed overhead, and the
+50–500 km range spans only 74–210 s, so shrinking the box to save time does not
+work.
+
+**Groups are a starting value.** Neotoma's `ecologicalgroup` is imported into
+the `group` column, on the same reasoning as `standardize_dic()`: a
+dictionary's groups encode your pollen-sum decisions and are not the lookup's
+to correct. Note this means groups arrive as `TRSH`/`UPHE`/`AQVP` rather than
+single letters, and that `Cyperaceae` arrives as `UPHE` — exactly the case
+where local knowledge may say otherwise.
+
+Non-pollen palynomorphs are kept: algal colonies such as *Botryococcus* are
+`NISP` and genuinely tallied, so `datasettype = "pollen"` yields a palynomorph
+dictionary rather than a strictly-pollen one. Slash-combined names such as
+`Larix/Pseudotsuga` are single morphotypes and are never split.
+
+### Notes and limitations
+
+- **Charcoal returns nothing useful.** None of Neotoma's five charcoal
+  datasettypes carries a taxon vocabulary — every row is `Charcoal` or
+  `Sample quantity`, with the size fraction in `elementtype`. `datasettype` is
+  passed through verbatim, so a charcoal type simply yields a near-empty draft.
+- **`neotoma2` is in `Suggests:`**, guarded at runtime. It imports `sf`,
+  `leaflet` and `dplyr`, which is a poor trade for software that must work
+  offline at a microscope. `sf` is avoided even for the geometry — the bounding
+  box is a GeoJSON string built with `sprintf()`, and distances use haversine
+  in base R.
+- **Two cosmetic `samples()` warnings are muffled.** One is
+  `"no non-missing arguments to max"`; the other has an empty message, because
+  neotoma2 formats it with `sprintf()` on a value that is always `NULL`. Both
+  concern age attribution only and no rows are dropped. The muffling is matched
+  by exact text or emptiness, so `"No assigned samples. Did you run
+  get_downloads()?"` still surfaces.
+- **The network path is not tested,** by design. `R CMD check` must not depend
+  on api.neotomadb.org. The tally, filtering, fixed entries, geometry and
+  distance arithmetic are tested against a fixture shaped like real `samples()`
+  output.
+- If you pass a geometry yourself, note that neotoma2's `loc` does not accept
+  an `sfc` — `parseLocation()` has no `sfc` branch and fails with
+  `object 'geojson' not found` before sending anything. Use `sf::st_sf()`.
+
+See DESIGN.md section 14 for the measured timings behind each default.
+
+
 ## pcountr 0.7.0
 
 ### New — Tilia / Neotoma taxon lookup integration

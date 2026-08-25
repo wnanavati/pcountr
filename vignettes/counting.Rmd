@@ -33,9 +33,12 @@ assemblage counted by traversing a slide follows the same workflow unchanged.
 
 Three things:
 
-1. **A dictionary** — either a PCount `.DIC` file or a CSV in the pcountr
-   template format. The dictionary maps taxon codes to names and sum groups.
-   See `inst/extdata/dictionary_template.csv` for the column layout.
+1. **A dictionary** — a PCount `.DIC` file, a CSV in the pcountr template
+   format, or a draft built from nearby Neotoma records with
+   `build_dic_neotoma()` (fill in the codes before use — it may take a few
+   minutes to run, depending on the radius). The dictionary maps taxon codes
+   to names and sum groups. See `inst/extdata/dictionary_template.csv` for
+   the column layout.
 
 2. **Spike parameters** — the number of spike tablets (or volume/mass) added
    per sample, and the concentration of your spike standard.

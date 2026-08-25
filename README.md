@@ -4,7 +4,7 @@ An interactive counter and analysis toolkit for pollen counting that can be used
 slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
 workflow while saving to a modern, self-contained format.
 
-## What it does (v0.7.0)
+## What it does (v0.8.0)
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type grain
@@ -49,6 +49,15 @@ workflow while saving to a modern, self-contained format.
   counts needed for 70%, 80%, and 90% of it, plus a site-level target. Reports
   rather than judges: adequacy depends on your objective, and the output shows
   what a count recovered alongside what more effort would buy.
+
+### Dictionaries — build one from nearby records
+
+- **`build_dic_neotoma()`** — draft a dictionary from the Neotoma records
+  nearest a coordinate, ranked by how many distinct sites each taxon occurs in.
+  Proximity rather than state lines: a 250 km search in western Montana reaches
+  into Idaho and Wyoming and finds more relevant analogues than the state does.
+  Entry codes are left blank for you to fill in, and groups arrive from
+  Neotoma's ecological groups as a starting value. Requires `neotoma2`.
 
 ### Taxonomy — Tilia / Neotoma reconciliation
 - **`read_tilia_lookup()`** — read Tilia's Neotoma taxon lookup (`.xml`, normally

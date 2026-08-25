@@ -195,9 +195,13 @@ read_dic_csv <- function(path) {
 #' @export
 write_dic_csv <- function(dic, path) {
   stopifnot(inherits(dic, "pollen_dictionary"))
+  # fileEncoding is explicit for the same reason read_dic_csv() reads with
+  # encoding = "UTF-8": taxon names can carry diacritics (Neotoma spells one
+  # of them "Iso\u00ebtes"), and the round trip must not depend on the
+  # machine's native encoding.
   write.csv(dic[, c("code", "alias", "group", "name", "is_special", "value"),
                drop = FALSE],
-            file = path, row.names = FALSE)
+            file = path, row.names = FALSE, fileEncoding = "UTF-8")
   invisible(path)
 }
 
