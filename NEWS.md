@@ -1,5 +1,44 @@
 # pcountr NEWS / changelog
 
+## pcountr 0.8.0.9000 (development version)
+
+### Fixed
+
+- `default_preservation` and `default_precedence` were documented with
+  `@export` and shipped help pages, but were absent from `NAMESPACE`, which is
+  maintained by hand. Neither object was actually reachable — `default_preservation`
+  raised "object not found" — so the documented ability to inspect the default
+  preservation scheme did not work. Both are now exported. `R CMD check` had not
+  flagged this: an object that is documented but unexported is not a checked
+  condition.
+
+### Changed — the test suite no longer depends on unpublished data
+
+Every test now runs against data distributed with the package. Previously seven
+test files read a local, unpublished site, so the suite passed only on one
+machine; it could not run in continuous integration and would have failed on
+CRAN's builders.
+
+- Site-level tests use the bundled **Fake Lake** example site (20 `.CNT` files)
+  and its `metadata_FL.csv`. That sheet uses the standard column names, so the
+  fixtures no longer need a `col_map`.
+- Two files are now published deliberately: `inst/extdata/LMSH001.CNT` and the
+  PCount report `LM23SH00.RPT`. These back the golden test that reproduces an
+  original PCount `.RPT` to the digit, so that claim is now independently
+  reproducible rather than resting on one machine. One sample of twenty; the
+  remaining samples and the depth sheet stay unpublished.
+- Edge cases moved to equivalent Fake Lake material: decimal traverse labels to
+  `FL019`, the inline remark to `FL011`. The site-wide anomaly total is
+  unchanged at 7, since Fake Lake derives from the same counts and carries the
+  same data-entry typos.
+- Three long-standing warnings in the suite are resolved. Two came from
+  metadata sheets that covered a single file, so `.check_sheet_coverage()` also
+  warned about the other nineteen and that second warning leaked past
+  `expect_warning()`; those sheets now cover all twenty. The third was a genuine
+  coverage gap — `read_site()` emits conflict warnings for both `depth_top` and
+  `depth_bottom`, but only the first was asserted.
+
+
 ## pcountr 0.8.0
 
 ### New — region-specific dictionaries from Neotoma

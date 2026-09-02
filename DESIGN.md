@@ -5,8 +5,8 @@ it is. It exists so that any new working session (in Claude Cowork, Claude Code,
 or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
-Status as of this writing: **v0.8.0.** The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 638 test
+Status as of this writing: **v0.8.0.9000** (development; v0.8.0 released). The verified spine (v0.1.0) is complete
+and all planned analytical layers have been built on top of it. 641 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*

@@ -1,5 +1,31 @@
 # pcountr — Roadmap
 
+## In progress — v0.9.0
+
+Cleaning the package for wider sharing and a citable Zenodo release. Work is on
+the `dev` branch.
+
+**Done**
+
+- **Test suite is self-contained.** All tests run on bundled data; the seven
+  files that read an unpublished site now use Fake Lake. Unblocks continuous
+  integration and CRAN. `LMSH001.CNT` and `LM23SH00.RPT` published so the
+  golden PCount comparison is independently reproducible.
+- **`default_preservation` / `default_precedence` exported.** Documented but
+  missing from the hand-maintained `NAMESPACE`.
+
+**Still to do**
+
+- Taxonomy without Tilia: read Neotoma's taxa and synonymy from the API
+  (`dbtables/taxa`, `dbtables/synonyms`) so `standardize_dic()` works on macOS
+  and Linux, with an on-disk cache. Correct DESIGN.md section 13, which
+  currently states the API does not expose the synonymy — it does.
+- Remove the two-letter cap on entry codes; suggest codes in
+  `build_dic_neotoma()` from ECG.csv or derived from the taxon name.
+- Proxy-agnostic pass over the counting app and documentation.
+- Release hygiene: `inst/CITATION`, `CITATION.cff`, `.zenodo.json`,
+  `CONTRIBUTING.md`, and a GitHub Actions check workflow.
+
 ## Done — v0.8.0
 
 - **`build_dic_neotoma()`** — builds a draft dictionary from the Neotoma

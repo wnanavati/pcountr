@@ -12,7 +12,7 @@ make_one_sample_site <- function(depth_top    = 0.0,
                                  depth_bottom = 0.5,
                                  age_top      = 100.0,
                                  age_bottom   = 200.0) {
-  dic  <- read_dic(extdata("ECG.DIC"))
+  dic  <- read_dic(extdata("fake_lake", "ECG.DIC"))
   site <- pollen_site("LM", dic)
   cnt  <- suppressWarnings(
     read_cnt(extdata("LMSH001.CNT"), site = site, quiet = TRUE)
@@ -135,7 +135,7 @@ test_that("only non-special taxa appear in per-taxon matrices", {
 # ---------------------------------------------------------------------------
 
 test_that("multi-sample site returns one row per depth-bearing sample", {
-  dic  <- read_dic(extdata("ECG.DIC"))
+  dic  <- read_dic(extdata("fake_lake", "ECG.DIC"))
   site <- pollen_site("LM", dic)
   make_cnt <- function(f, dt, db, at, ab) {
     cnt <- suppressWarnings(read_cnt(extdata(f), site = site, quiet = TRUE))
@@ -147,7 +147,7 @@ test_that("multi-sample site returns one row per depth-bearing sample", {
   }
   s2 <- pollen_site("LM2", dic, samples = list(
     LMSH001 = make_cnt("LMSH001.CNT", 0.0, 0.5,  100, 200),
-    LMSH009 = make_cnt("LMSH009.CNT", 4.0, 4.5, 500, 650)
+    FL002   = make_cnt("fake_lake/FL002.CNT", 4.0, 4.5, 500, 650)
   ))
   r <- accum_rate(s2)
   expect_equal(nrow(r$data), 2L)
@@ -181,35 +181,35 @@ test_that("depth_bottom <= depth_top triggers an informative error", {
 })
 
 test_that("multiple errors across samples are all reported in one stop()", {
-  dic  <- read_dic(extdata("ECG.DIC"))
+  dic  <- read_dic(extdata("fake_lake", "ECG.DIC"))
   site <- pollen_site("LM", dic)
   make_bare <- function(f) {
     suppressWarnings(read_cnt(extdata(f), site = site, quiet = TRUE))
     # depth will be NA, age will be NA -> multiple errors
   }
   cnt1 <- suppressWarnings(read_cnt(extdata("LMSH001.CNT"), site = site, quiet = TRUE))
-  cnt2 <- suppressWarnings(read_cnt(extdata("LMSH009.CNT"), site = site, quiet = TRUE))
+  cnt2 <- suppressWarnings(read_cnt(extdata("fake_lake", "FL002.CNT"), site = site, quiet = TRUE))
   # Give depths but not ages to both
   cnt1$meta$depth_top <- 0.0; cnt1$meta$depth_bottom <- 0.5
   cnt2$meta$depth_top <- 4.0; cnt2$meta$depth_bottom <- 4.5
   s2 <- pollen_site("LM2", dic,
-                    samples = list(LMSH001 = cnt1, LMSH009 = cnt2))
+                    samples = list(LMSH001 = cnt1, FL002 = cnt2))
   err <- tryCatch(accum_rate(s2), error = function(e) conditionMessage(e))
   # Both samples should appear in the error message
   expect_true(grepl("LMSH001", err))
-  expect_true(grepl("LMSH009", err))
+  expect_true(grepl("FL002", err))
 })
 
 test_that("samples without depth_top are skipped with a message", {
   s <- make_one_sample_site()
   # Add a second sample with no depth
-  dic  <- read_dic(extdata("ECG.DIC"))
+  dic  <- read_dic(extdata("fake_lake", "ECG.DIC"))
   site <- pollen_site("LM", dic)
   cnt2 <- suppressWarnings(
-    read_cnt(extdata("LMSH009.CNT"), site = site, quiet = TRUE)
+    read_cnt(extdata("fake_lake", "FL002.CNT"), site = site, quiet = TRUE)
   )
   # cnt2 has no depth -> should be skipped
-  s$samples[["LMSH009"]] <- cnt2
-  expect_message(r <- accum_rate(s), regexp = "LMSH009")
+  s$samples[["FL002"]] <- cnt2
+  expect_message(r <- accum_rate(s), regexp = "FL002")
   expect_equal(nrow(r$data), 1L)
 })

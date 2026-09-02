@@ -87,7 +87,7 @@ test_that("read_dic dispatches to CSV reader for .csv extension", {
 })
 
 test_that("read_dic still reads legacy .DIC files", {
-  dic <- read_dic(extdata("ECG.DIC"))
+  dic <- read_dic(extdata("fake_lake", "ECG.DIC"))
   expect_s3_class(dic, "pollen_dictionary")
   expect_equal(nrow(dic), 232L)
 })
@@ -97,7 +97,7 @@ test_that("read_dic still reads legacy .DIC files", {
 # ---------------------------------------------------------------------------
 
 test_that("write_dic_csv produces a readable CSV that round-trips", {
-  dic_orig <- read_dic(extdata("ECG.DIC"))
+  dic_orig <- read_dic(extdata("fake_lake", "ECG.DIC"))
   tmp      <- tempfile(fileext = ".csv")
   on.exit(unlink(tmp))
 
@@ -113,7 +113,7 @@ test_that("write_dic_csv produces a readable CSV that round-trips", {
 test_that("write_dic_csv returns path invisibly", {
   tmp <- tempfile(fileext = ".csv")
   on.exit(unlink(tmp))
-  dic <- read_dic(extdata("ECG.DIC"))
+  dic <- read_dic(extdata("fake_lake", "ECG.DIC"))
   result <- write_dic_csv(dic, tmp)
   expect_equal(result, tmp)
 })
@@ -121,7 +121,7 @@ test_that("write_dic_csv returns path invisibly", {
 test_that("migrated DIC preserves is_special for spike and # codes", {
   tmp <- tempfile(fileext = ".csv")
   on.exit(unlink(tmp))
-  dic_orig <- read_dic(extdata("ECG.DIC"))
+  dic_orig <- read_dic(extdata("fake_lake", "ECG.DIC"))
   write_dic_csv(dic_orig, tmp)
   dic_rt <- read_dic_csv(tmp)
   # Spike
@@ -136,16 +136,16 @@ test_that("migrated DIC preserves is_special for spike and # codes", {
 # ---------------------------------------------------------------------------
 
 test_that("sample_name round-trips through YAML", {
-  dic  <- read_dic(extdata("ECG.DIC"))
+  dic  <- read_dic(extdata("fake_lake", "ECG.DIC"))
   site <- pollen_site("LM", dic)
   cnt  <- suppressWarnings(
     read_cnt(extdata("LMSH001.CNT"), site=site, quiet=TRUE)
   )
-  cnt$meta$sample_name <- "LM23sh#001"
+  cnt$meta$sample_name <- "FL24#001"
 
   tmp <- tempfile(fileext = ".yaml")
   on.exit(unlink(tmp))
   write_pollen_count(cnt, tmp)
   cnt2 <- read_pollen_count(tmp)
-  expect_equal(cnt2$meta$sample_name, "LM23sh#001")
+  expect_equal(cnt2$meta$sample_name, "FL24#001")
 })

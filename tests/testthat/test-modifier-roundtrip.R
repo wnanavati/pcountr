@@ -175,7 +175,7 @@ test_that("YAML round-trip preserves combined 90-modifier (hidden + half-grain)"
 test_that("YAML round-trip: metrics unaffected by hidden/half modifiers after fix", {
   # Stream: B1 (full) + I80 (half, weight 0.5) + . (spike) + B19 (hidden, weight 1)
   # B and I are in ECG.DIC (groups B and A respectively); basic_sum (ABF) = 1+0.5+1 = 2.5
-  dic  <- read_dic(system.file("extdata", "ECG.DIC", package = "pcountr"))
+  dic  <- read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
   site <- pollen_site("Test", dic)
 
   path <- make_cnt("B1I80.B19")

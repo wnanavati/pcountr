@@ -1,5 +1,5 @@
 test_that("LMSH001 reproduces LM23SH00.RPT to the digit", {
-  dic  <- read_dic(system.file("extdata", "ECG.DIC", package = "pcountr"))
+  dic  <- read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
   site <- pollen_site("Little Mosquito Lake", dic)
   cnt  <- read_cnt(system.file("extdata", "LMSH001.CNT", package = "pcountr"),
                    site = site, quiet = TRUE)
@@ -19,7 +19,7 @@ test_that("LMSH001 reproduces LM23SH00.RPT to the digit", {
 })
 
 test_that("per-taxon weighted counts match the report", {
-  dic  <- read_dic(system.file("extdata", "ECG.DIC", package = "pcountr"))
+  dic  <- read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
   site <- pollen_site("Little Mosquito Lake", dic)
   cnt  <- read_cnt(system.file("extdata", "LMSH001.CNT", package = "pcountr"),
                    site = site, quiet = TRUE)
@@ -32,7 +32,7 @@ test_that("per-taxon weighted counts match the report", {
 })
 
 test_that("YAML round-trip preserves grain count, spike, and metrics", {
-  dic  <- read_dic(system.file("extdata", "ECG.DIC", package = "pcountr"))
+  dic  <- read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
   site <- pollen_site("Little Mosquito Lake", dic)
   cnt  <- read_cnt(system.file("extdata", "LMSH001.CNT", package = "pcountr"),
                    site = site, quiet = TRUE)
@@ -53,7 +53,7 @@ test_that("YAML round-trip preserves grain count, spike, and metrics", {
 })
 
 test_that("YAML round-trip preserves full event stream and spike positions", {
-  dic  <- read_dic(system.file("extdata", "ECG.DIC", package = "pcountr"))
+  dic  <- read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
   site <- pollen_site("LM", dic)
 
   # Synthetic count: slide_desc, B1, spike, A1, spike, I8
@@ -106,7 +106,7 @@ test_that("YAML round-trip preserves full event stream and spike positions", {
 })
 
 test_that("half-grain (code 0) yields weight 0.5", {
-  dic  <- read_dic(system.file("extdata", "ECG.DIC", package = "pcountr"))
+  dic  <- read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
   site <- pollen_site("LM", dic)
   cnt  <- read_cnt(system.file("extdata", "LMSH001.CNT", package = "pcountr"),
                    site = site, quiet = TRUE)

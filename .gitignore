@@ -20,10 +20,14 @@ src/*.dll
 # knitr build artifacts
 /vignettes/workflow_files/
 
-# Unpublished site data (kept local, not for public repo)
+# Unpublished site data (kept local, not for public repo).
+# Two exceptions are published deliberately: LMSH001.CNT and its PCount
+# report LM23SH00.RPT back the golden validation test, so that the claim
+# "reproduces PCount output to the digit" is independently reproducible.
+# One sample of twenty; the rest of the site stays private.
 /inst/extdata/LMSH*.CNT
+!/inst/extdata/LMSH001.CNT
 /inst/extdata/LM_depths.txt
-/inst/extdata/LM23SH00.RPT
 /inst/extdata/ECG.DIC
 
 # Test snapshot artifacts
