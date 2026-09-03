@@ -1,0 +1,36 @@
+{
+  "title": "pcountr: Interactive Stratigraphic Grain Counter with PCount Legacy Support",
+  "version": "0.9.0",
+  "upload_type": "software",
+  "license": "mit",
+  "access_right": "open",
+  "description": "<p>An interactive, keystroke-driven counting application for recording stratigraphic assemblages at the microscope &mdash; pollen, diatoms, charcoal morphotypes, or any proxy counted by traversing a slide. Counts are saved continuously to a self-contained YAML format carrying identifications, metadata, depth and age.</p><p>Provides report calculations (assemblage sums, tracer-spike ratios, concentrations, traverse statistics, preservation tabulations), rarefaction-based count targets derived from an extrapolated richness asymptote, a wide samples-by-taxa matrix for stratigraphic plotting, accumulation rates, and export to Tilia XML (.tlx) for Neotoma integration and upload. Region-specific taxon dictionaries can be drafted from Neotoma records near a coordinate.</p><p>Also reads and converts legacy MS-DOS PCount <code>.CNT</code> count files and their <code>.DIC</code> dictionaries; <code>count_metrics()</code> has been verified to the digit against an original PCount <code>.RPT</code> report. Chronology construction is delegated to dedicated tools such as rbacon and clam.</p><p>Dedicated to the memory of Dr. Eric C. Grimm (1951&ndash;2020), who developed PCount at the Illinois State Museum and distributed it freely to the palynological community from 1994.</p>",
+  "creators": [
+    {
+      "name": "Nanavati, William",
+      "affiliation": "University of Montana",
+      "orcid": "0000-0003-4853-5429"
+    }
+  ],
+  "keywords": [
+    "palynology",
+    "paleoecology",
+    "paleolimnology",
+    "pollen",
+    "diatoms",
+    "microscopy",
+    "stratigraphy",
+    "Quaternary",
+    "Neotoma",
+    "R package",
+    "shiny"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/wnanavati/pcountr",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ],
+  "language": "eng"
+}

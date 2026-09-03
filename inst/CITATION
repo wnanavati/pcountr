@@ -1,0 +1,33 @@
+citHeader("To cite pcountr in publications, please use:")
+
+# NOTE (remove this comment once resolved): after the first Zenodo deposit,
+# add the *concept* DOI -- the one that always resolves to the newest release --
+# as a doi = argument below. The same DOI belongs in CITATION.cff and README.md.
+# A DOI is deliberately absent rather than a placeholder, so that nothing
+# citable ever points at an identifier that does not resolve.
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "{pcountr}: Interactive Stratigraphic Grain Counter with PCount Legacy Support",
+  author   = person("William", "Nanavati",
+                    email   = "william.nanavati@umontana.edu",
+                    comment = c(ORCID = "0000-0003-4853-5429")),
+  year     = "2026",
+  note     = "R package version 0.9.0",
+  url      = "https://github.com/wnanavati/pcountr",
+  textVersion = paste(
+    "Nanavati, W. (2026).",
+    "pcountr: Interactive Stratigraphic Grain Counter with PCount Legacy Support.",
+    "R package version 0.9.0.",
+    "https://github.com/wnanavati/pcountr"
+  )
+)
+
+citFooter(
+  "pcountr is dedicated to the memory of Dr. Eric C. Grimm (1951-2020),",
+  "who developed PCount and distributed it freely to the palynological",
+  "community from 1994. Please cite PCount separately where its file formats",
+  "or report calculations are central to your work:\n",
+  "Grimm, E. C. (1994). PCount (Version 2.0) [MS-DOS software].",
+  "Illinois State Museum, Research and Collections Center, Springfield, IL."
+)

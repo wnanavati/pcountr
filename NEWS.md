@@ -2,6 +2,44 @@
 
 ## pcountr 0.8.0.9000 (development version)
 
+### New — release and contribution metadata
+
+Groundwork for a citable release:
+
+- **`inst/CITATION`** — so `citation("pcountr")` returns something sensible. A
+  `citFooter` asks that PCount be cited separately where its file formats or
+  report calculations are central, which is the honest attribution given how
+  much of §3 and §10 derive from Grimm's work.
+- **`CITATION.cff`** — drives GitHub's "Cite this repository" panel, and carries
+  a `references` entry for PCount 2.0.
+- **`.zenodo.json`** — so the Zenodo deposit gets real metadata rather than
+  whatever it infers from the repository name.
+- **`CONTRIBUTING.md`** — issue guidance, the `dev`-branch workflow, the
+  `document()` / `test()` / `check()` expectation, and the fact that `NAMESPACE`
+  is hand-maintained. It states plainly which real data is published on purpose
+  (`LMSH001.CNT`, `LM23SH00.RPT`, all of Fake Lake) and that nothing else from
+  that site may ever be committed.
+- **`.github/workflows/R-CMD-check.yaml`** — Ubuntu, Windows and macOS at R
+  release. Windows earns its slot because `tilia.R` discovers the lookup
+  directory from `%LOCALAPPDATA%` and `C:/ProgramData`, and that branch runs
+  nowhere else. No job needs the network: the Neotoma tests either fail argument
+  validation before any request or point `pcountr.neotoma_api` at
+  `127.0.0.1:1`.
+
+The citation files deliberately carry **no DOI**. A placeholder would be an
+identifier that does not resolve, so the field is omitted until the first Zenodo
+deposit exists; ROADMAP.md records the one-line edit each file then needs.
+
+`.Rbuildignore` gained the four new paths, and also `vignettes/legacy_files` —
+the build has been producing that directory since the vignette was renamed,
+while the ignore rule still read `workflow_files`.
+
+Not done, and tracked in ROADMAP.md: the `DESCRIPTION` title still reads
+"Interactive Stratigraphic **Grain** Counter", which the agnostic pass missed.
+It is the string that propagates into all three citation files, so it wants
+settling alongside the manuscript title — and it is far cheaper to change before
+a DOI exists than after.
+
 ### Changed — the counting app no longer assumes pollen
 
 pcountr has always worked for diatoms, charcoal morphotypes and other proxies,

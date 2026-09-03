@@ -50,10 +50,34 @@ the `dev` branch.
   guide for palynologists in its first line, so pollen language there is
   accurate rather than careless.
 
+- **Release hygiene.** `inst/CITATION` (with a `citFooter` crediting PCount
+  separately), `CITATION.cff`, `.zenodo.json`, `CONTRIBUTING.md`, and an
+  R-CMD-check workflow on Ubuntu, Windows and macOS at R release. Windows is
+  in the matrix deliberately: `tilia.R`'s lookup-path discovery only runs
+  there. No CI job needs network access — the Neotoma tests either fail
+  argument validation before any request or point at `127.0.0.1:1`.
+
+  Citation metadata deliberately carries **no DOI yet**. A placeholder would be
+  an identifier that does not resolve, so the field is omitted until the first
+  Zenodo deposit exists. `.Rbuildignore` gained the four new paths plus
+  `vignettes/legacy_files`, which the build has been producing since the
+  vignette was renamed while the ignore rule still said `workflow_files`.
+
 **Still to do**
 
-- Release hygiene: `inst/CITATION`, `CITATION.cff`, `.zenodo.json`,
-  `CONTRIBUTING.md`, and a GitHub Actions check workflow.
+- **Settle the package title.** `DESCRIPTION` still reads "Interactive
+  Stratigraphic **Grain** Counter with PCount Legacy Support" — a pollen-framed
+  label the v0.9.0 agnostic pass did not change, and the string that propagates
+  into `inst/CITATION`, `CITATION.cff`, `.zenodo.json` and every citation of the
+  Zenodo record. It should be decided together with the QSR manuscript title so
+  the two are coherent, and it is much cheaper to change before a DOI exists
+  than after. When it changes, update all four files plus `README.md`.
+- **At release, before tagging:** bump `DESCRIPTION` from `0.8.0.9000` to
+  `0.9.0`; set `date-released` in `CITATION.cff` to the tag date; update
+  `README.md`'s "What it does (v0.8.0)" heading.
+- **After the first Zenodo deposit:** add the *concept* DOI (the one that always
+  resolves to the newest release) to `inst/CITATION`, `CITATION.cff` and
+  `README.md`, and drop the explanatory comments left in the first two.
 - `rarefaction()` prints a column headed "Grains" and a banner "Grains needed
   for % of Smax". Rarefaction is not a pollen technique -- it is standard in
   paleolimnology for standardising diatom richness across unequal counts, and

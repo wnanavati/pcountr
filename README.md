@@ -1,5 +1,10 @@
 # pcountr
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/wnanavati/pcountr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/wnanavati/pcountr/actions/workflows/R-CMD-check.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<!-- badges: end -->
+
 An interactive counter and analysis toolkit for stratigraphic assemblages counted
 by traversing a slide — pollen, diatoms, charcoal morphotypes, phytoliths, or any
 proxy tallied the same way. Built around a keystroke-driven Shiny app that

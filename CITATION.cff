@@ -1,0 +1,62 @@
+cff-version: 1.2.0
+message: "If you use pcountr, please cite it using the metadata below."
+type: software
+
+title: "pcountr: Interactive Stratigraphic Grain Counter with PCount Legacy Support"
+version: 0.9.0
+# date-released: set this to the tag date (YYYY-MM-DD) when you cut the release.
+date-released: "2026-09-03"
+license: MIT
+repository-code: "https://github.com/wnanavati/pcountr"
+url: "https://github.com/wnanavati/pcountr"
+
+# After the first Zenodo deposit, add the concept DOI here:
+#   doi: 10.5281/zenodo.XXXXXXX
+# It is omitted rather than stubbed so that GitHub's "Cite this repository"
+# panel never renders a dead identifier.
+
+authors:
+  - family-names: Nanavati
+    given-names: William
+    email: william.nanavati@umontana.edu
+    orcid: "https://orcid.org/0000-0003-4853-5429"
+    affiliation: "University of Montana"
+
+abstract: >-
+  An interactive, keystroke-driven counting application for recording
+  stratigraphic assemblages at the microscope - pollen, diatoms, charcoal
+  morphotypes, or any proxy counted by traversing a slide. Counts are saved
+  continuously to a self-contained YAML format carrying identifications,
+  metadata, depth and age. Provides report calculations (assemblage sums,
+  tracer-spike ratios, concentrations, traverse statistics, preservation
+  tabulations), rarefaction-based count targets, a wide samples-by-taxa matrix
+  for stratigraphic plotting, accumulation rates, and export to Tilia XML for
+  Neotoma integration. Also reads and converts legacy MS-DOS PCount .CNT files
+  and their .DIC dictionaries. Dedicated to the memory of Dr. Eric C. Grimm
+  (1951-2020), who developed PCount at the Illinois State Museum.
+
+keywords:
+  - palynology
+  - paleoecology
+  - paleolimnology
+  - pollen
+  - diatoms
+  - microscopy
+  - stratigraphy
+  - Quaternary
+  - Neotoma
+  - R
+  - shiny
+
+references:
+  - type: software
+    title: "PCount"
+    version: "2.0"
+    authors:
+      - family-names: Grimm
+        given-names: "Eric C."
+    year: 1994
+    notes: >-
+      MS-DOS software. Illinois State Museum, Research and Collections Center,
+      Springfield, Illinois. The .CNT grammar, concentration equation and
+      preservation scheme reimplemented in pcountr derive from PCount 2.0.

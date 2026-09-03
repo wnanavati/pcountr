@@ -12,3 +12,8 @@
 ^\.Rhistory$
 ^vignettes/workflow_files
 ^vignettes/workflow\.Rmd$
+^vignettes/legacy_files
+^CONTRIBUTING\.md$
+^CITATION\.cff$
+^\.zenodo\.json$
+^\.github
