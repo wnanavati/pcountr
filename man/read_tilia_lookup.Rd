@@ -9,7 +9,8 @@ read_tilia_lookup(path = NULL, type = "pollen")
 \arguments{
 \item{path}{Directory holding the lookup files, or the full path to a single
 \code{.xml} file. \code{NULL} (default) uses \code{getOption("pcountr.tilia_lookup")} if
-set, otherwise \verb{C:/ProgramData/Tilia/Lookup}.}
+set, otherwise the first of \verb{\%LOCALAPPDATA\%/Tilia/Lookup} or
+\verb{C:/ProgramData/Tilia/Lookup} that exists.}
 
 \item{type}{Which lookup to read when \code{path} is a directory. One of
 \code{"pollen"} (default), \code{"pollentrap"}, \code{"diatom"}, \code{"plantmacrofossil"},
@@ -28,8 +29,11 @@ pure reader: it returns what the file contains and makes no judgements about
 it. Reconciliation against a dictionary is \code{\link[=standardize_dic]{standardize_dic()}}'s job.
 }
 \details{
-Tilia stores its lookups as XML, one file per proxy, normally in
-\verb{C:/ProgramData/Tilia/Lookup}. Each taxon carries a Neotoma taxon ID, an
+Tilia stores its lookups as XML, one file per proxy, under
+\verb{\%LOCALAPPDATA\%/Tilia/Lookup} or \verb{C:/ProgramData/Tilia/Lookup} depending on
+the install; both are checked. \strong{Tilia runs only on Windows}, so on macOS
+and Linux use \code{\link[=neotoma_taxonomy]{neotoma_taxonomy()}} instead, which fetches the same taxonomy
+from Neotoma's API. Each taxon carries a Neotoma taxon ID, an
 accepted name, a Tilia display abbreviation, a three-letter \code{TaxaGroup}
 (the organism or proxy dimension) and a four-letter \code{EcolGroup} (the
 ecological dimension within it) -- for example \code{TRSH} trees and shrubs,
@@ -63,5 +67,5 @@ palynomorph \code{TaxaGroup}s by default.
 }
 
 \seealso{
-\code{\link[=standardize_dic]{standardize_dic()}}, \code{\link[=read_dic]{read_dic()}}
+\code{\link[=standardize_dic]{standardize_dic()}}, \code{\link[=neotoma_taxonomy]{neotoma_taxonomy()}}, \code{\link[=read_dic]{read_dic()}}
 }

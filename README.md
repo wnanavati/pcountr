@@ -60,6 +60,12 @@ workflow while saving to a modern, self-contained format.
   Neotoma's ecological groups as a starting value. Requires `neotoma2`.
 
 ### Taxonomy — Tilia / Neotoma reconciliation
+
+- **`neotoma_taxonomy()`** — fetch Neotoma's taxon list and synonymy from the
+  API, covering every proxy in one table (filter with `taxa_group`, e.g.
+  `"VPL"`, `"DIA"`). Cached locally after the first call. Use this instead of
+  the Tilia lookups on macOS and Linux, since Tilia is Windows-only.
+
 - **`read_tilia_lookup()`** — read Tilia's Neotoma taxon lookup (`.xml`, normally
   in `C:/ProgramData/Tilia/Lookup`) into a data frame, with Neotoma's own synonymy
   and the `TaxaGroup`/`EcolGroup` hierarchy attached.

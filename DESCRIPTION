@@ -37,6 +37,8 @@ Suggests:
     shinyFiles,
     xml2,
     neotoma2,
+    jsonlite,
+    withr,
     knitr,
     rmarkdown
 VignetteBuilder: knitr

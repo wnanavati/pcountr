@@ -679,28 +679,93 @@ Alias matches are reported as `status = "alias"`, distinct from an authoritative
 `synonym`, so it is always clear which substitutions came from Neotoma and which
 from the analyst.
 
-### The Neotoma API: rejected for reconciliation (v0.7.0), adopted for dictionary building (v0.8.0)
+### The Neotoma API: rejected at v0.7.0 on a mistaken premise, adopted at v0.9.0
 
-Neotoma serves taxa over HTTP at `api.neotomadb.org/v2.0/data/taxa`, queryable by
-name, by ID, or in bulk with `limit`/`offset`, without a key. The fields map
-one-to-one onto the XML and add two the lookup lacks: `status` (extant/extinct)
-and the taxonomic authority `publication`.
+Neotoma serves taxa over HTTP at `api.neotomadb.org/v2.0`, without a key. At
+v0.7.0 the API was rejected for reconciliation on one stated reason: that it
+**did not expose the synonymy**. The evidence looked convincing. `Alnus rugosa`
+returns `taxonid` 14749 from `/data/taxa`, flagged only by a bracketed
+`taxoncode` (`[Aln.rg]`) and a null `ecolgroup`, with nothing in the response
+pointing at taxon 344, *Alnus incana*. The XML states that mapping outright.
 
-It was still not adopted, for one decisive reason: **the API does not expose the
-synonymy.** Deprecated names are present as taxa -- `Alnus rugosa` returns
-`taxonid` 14749, the same ID the XML assigns it as a `<Synonym>` -- flagged only
-by a bracketed `taxoncode` (`[Aln.rg]`) and null `ecolgroup`/`highertaxonid`.
-Nothing in the response says it now refers to taxon 344, *Alnus incana*. The XML
-states that mapping outright.
+**That conclusion was wrong, and the error was one of search rather than of
+reasoning.** Only the documented `/data/taxa` route had been tested. There is
+also a generic table passthrough, `/data/dbtables/{table}`, and
+`dbtables/synonyms` returns exactly the missing mapping:
 
-That mapping is what `standardize_dic()` depends on most: it resolves every
-`synonym` row, and it is what turns `Pinus subgen. Diploxylon` into *Pinus* subg.
-*Pinus* authoritatively. Left to fuzzy matching that name scores highest against
-*Cornus* subg. *Cynoxylon*, a dogwood, at 0.62. An API-backed implementation
-would silently demote such rows from `synonym` to `suggestion`.
+```
+{"synonymid":3,"invalidtaxonid":14747,"validtaxonid":62,"synonymtypeid":1}
+```
 
-The XML is also local, offline, and versioned with the analyst's Tilia install,
-which suits a function run beside a microscope.
+`invalidtaxonid -> validtaxonid` is the deprecated-to-accepted pointer. It
+matches the XML row for row: synonym 14747 is `<Synonym ID="14747">`
+`<Name>Iva ciliata-type</Name><TaxonID>62</TaxonID>`. The `valid` flag that this
+section previously said did not exist is in `dbtables/taxa`; `/data/taxa` omits
+it and offers `status` instead, which is extant/extinct and a different field
+entirely. Two routes, two vocabularies, one wrong inference.
+
+The synonymy is what `standardize_dic()` depends on most -- it resolves every
+`synonym` row, and it is what turns `Pinus subgen. Diploxylon` into *Pinus*
+subg. *Pinus* authoritatively, where fuzzy matching scores that name highest
+against *Cornus* subg. *Cynoxylon*, a dogwood, at 0.62. So the requirement was
+real; only the belief that the API could not meet it was mistaken.
+
+### Why the API path was then built (v0.9.0)
+
+The v0.7.0 decision had a cost that had nothing to do with the synonymy:
+**Tilia installs only on Windows**, so macOS and Linux analysts could not
+reconcile a dictionary at all. The limitation was not even documented -- it was
+communicated solely by a hardcoded path in an error message.
+
+`neotoma_taxonomy()` therefore fetches the taxonomy from the API and returns it
+in the same `tilia_lookup` shape, so `standardize_dic()` accepts either
+interchangeably. `read_tilia_lookup()` remains, and remains the default when a
+Tilia install is present: it is offline and pinned to whatever version that
+install carries.
+
+Three implementation points, each forced by something measured:
+
+- **The taxa table comes from `/data/taxa`, not `dbtables/taxa`.** The dbtables
+  route is leaner but has no `ecolgroup`. Getting groups from
+  `dbtables/ecolgroups` would mean a second unfilterable table *and* a choice
+  of "ecolset" -- there is one per proxy (1 = Default plant, 8 = Default
+  diatom, 10 = Default palynomorph, and so on), and picking wrongly would
+  mislabel every taxon. `/data/taxa` returns the group already resolved, which
+  removes the decision.
+- **Nothing filters server-side.** `taxagroupid=DIA` is silently ignored on
+  both routes -- vascular-plant rows still come back. So the whole table is
+  paged and `taxa_group` is applied to the cached copy. The `publication`
+  string is roughly 60% of the payload and is dropped per page, so the cache is
+  a small fraction of the download.
+- **The result is cached** under `tools::R_user_dir("pcountr", "cache")`, the
+  one location CRAN policy permits a package to write. Without a cache the
+  download would repeat every session, which is both slow and inconsiderate to
+  a community server.
+
+Two consequences worth stating plainly. The API taxonomy is live, so a
+reconciliation run today may not match one next year; the object records its
+fetch time and prints it. And `dbtables/` is undocumented -- it works, and
+Neotoma's own Taxonomy-Viewer is built on it, but it is not a published
+contract, so `read_tilia_lookup()` is the fallback if it ever changes.
+
+**Verified against the Tilia path on real data.** The 231-taxon ECG dictionary
+reconciles identically through both sources: 210 `exact`, 14 `suggestion`,
+7 `unmatched`, with the same suggested targets and the same similarity scores to
+two decimals. `Alnus rugosa` resolves to taxon 344, *Alnus incana* -- the exact
+case this section previously cited as something the API could not do. The two
+snapshots are not identical (the live taxonomy holds 22,462 palynomorphs against
+the Tilia file's 22,426, having gained 36 since that file was written), but none
+of the difference changed a reconciliation outcome. The API fetch returns 59,077
+taxa, of which 56,167 are accepted once the 2,910 deprecated ones are removed --
+a figure that matches the 2,911 synonyms almost exactly, so the accepted and
+deprecated sets are self-consistent. Cached, the whole taxonomy is 780 KB.
+
+**One table, all proxies.** This is the part that outgrows Tilia rather than
+merely matching it. Tilia ships eleven per-proxy XML files and pcountr defaulted
+to the pollen one, so the pollen framing was baked into the file layout. The API
+has a single table spanning vascular plants, diatoms, ostracodes, phytoliths and
+the rest, distinguished by `taxagroupid`. A diatom analyst now gets a real
+vocabulary from the same call that serves a palynologist.
 
 Three later uses remain open, none of them replacements:
 

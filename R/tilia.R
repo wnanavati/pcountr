@@ -35,10 +35,22 @@
     vertebrate       = "NeotomaVertebrateFaunaTaxa.xml")
 }
 
+# Tilia's own documentation gives %LOCALAPPDATA%\\Tilia\\Lookup, while some
+# installs use ProgramData. Both are checked, first existing wins, so a user
+# does not have to know which their install chose. options(pcountr.tilia_lookup)
+# overrides, and the ProgramData path is the fallback when neither exists so
+# that the error message names a concrete location.
 .tilia_default_path <- function() {
   p <- getOption("pcountr.tilia_lookup", NULL)
   if (!is.null(p) && nzchar(p)) return(p)
-  "C:/ProgramData/Tilia/Lookup"
+  local_app <- Sys.getenv("LOCALAPPDATA", "")
+  cands <- c(
+    if (nzchar(local_app)) file.path(gsub("\\\\", "/", local_app), "Tilia", "Lookup"),
+    "C:/ProgramData/Tilia/Lookup",
+    "C:/Users/Public/AppData/Local/Tilia/Lookup"
+  )
+  hit <- cands[dir.exists(cands)]
+  if (length(hit)) hit[1L] else "C:/ProgramData/Tilia/Lookup"
 }
 
 # Session cache, keyed on file path + mtime. Parsing the pollen file takes a few
@@ -52,8 +64,11 @@
 #' pure reader: it returns what the file contains and makes no judgements about
 #' it. Reconciliation against a dictionary is [standardize_dic()]'s job.
 #'
-#' Tilia stores its lookups as XML, one file per proxy, normally in
-#' `C:/ProgramData/Tilia/Lookup`. Each taxon carries a Neotoma taxon ID, an
+#' Tilia stores its lookups as XML, one file per proxy, under
+#' `%LOCALAPPDATA%/Tilia/Lookup` or `C:/ProgramData/Tilia/Lookup` depending on
+#' the install; both are checked. **Tilia runs only on Windows**, so on macOS
+#' and Linux use [neotoma_taxonomy()] instead, which fetches the same taxonomy
+#' from Neotoma's API. Each taxon carries a Neotoma taxon ID, an
 #' accepted name, a Tilia display abbreviation, a three-letter `TaxaGroup`
 #' (the organism or proxy dimension) and a four-letter `EcolGroup` (the
 #' ecological dimension within it) -- for example `TRSH` trees and shrubs,
@@ -84,7 +99,8 @@
 #'
 #' @param path Directory holding the lookup files, or the full path to a single
 #'   `.xml` file. `NULL` (default) uses `getOption("pcountr.tilia_lookup")` if
-#'   set, otherwise `C:/ProgramData/Tilia/Lookup`.
+#'   set, otherwise the first of `%LOCALAPPDATA%/Tilia/Lookup` or
+#'   `C:/ProgramData/Tilia/Lookup` that exists.
 #' @param type Which lookup to read when `path` is a directory. One of
 #'   `"pollen"` (default), `"pollentrap"`, `"diatom"`, `"plantmacrofossil"`,
 #'   `"phytolith"`, `"charcoal"`, `"macrocharcoal"`, `"microcharcoal"`,
@@ -95,7 +111,7 @@
 #'   `taxa_group`, `ecol_group`, `higher_id`, plus the `synonyms` and `groups`
 #'   attributes described above.
 #'
-#' @seealso [standardize_dic()], [read_dic()]
+#' @seealso [standardize_dic()], [neotoma_taxonomy()], [read_dic()]
 #' @export
 read_tilia_lookup <- function(path = NULL, type = "pollen") {
   if (!requireNamespace("xml2", quietly = TRUE))
@@ -189,18 +205,34 @@ read_tilia_lookup <- function(path = NULL, type = "pollen") {
 
 #' @export
 print.tilia_lookup <- function(x, ...) {
+  src <- attr(x, "source") %||% "?"
+  # basename() on a URL leaves only the last path segment ("v2.0"), which tells
+  # the reader nothing; show the host for an API source and the file name for a
+  # Tilia lookup.
+  src <- if (grepl("^https?://", src))
+           sub("^https?://([^/]+).*$", "\\1", src) else basename(src)
+
   cat("<tilia_lookup>", attr(x, "title") %||% "", "\n")
-  cat("  source  :", basename(attr(x, "source") %||% "?"), "\n")
-  cat("  taxa    :", nrow(x), "accepted;",
-      nrow(attr(x, "synonyms") %||% data.frame()), "synonyms\n")
+  cat("  source  :", src, "\n")
+  nsyn <- nrow(attr(x, "synonyms") %||% data.frame())
+  cat("  taxa    :", nrow(x), "accepted;", nsyn, "synonyms\n")
   pal <- sum(x$taxa_group %in% .palyn_taxa_groups(), na.rm = TRUE)
-  cat("  of which", pal, "are palynomorphs\n")
+  # Only worth saying when there are any. A diatom or ostracode lookup is not
+  # a deficient pollen lookup, and reporting "0 palynomorphs" reads as though
+  # it were.
+  if (pal > 0L) cat("  of which", pal, "are palynomorphs\n")
   tg <- sort(table(x$taxa_group), decreasing = TRUE)
   if (length(tg))
     cat("  largest :",
         paste(sprintf("%s (%d)", names(tg)[seq_len(min(5, length(tg)))],
                       as.integer(tg)[seq_len(min(5, length(tg)))]),
               collapse = ", "), "\n")
+  # On a taxa_group-filtered lookup the synonymy is deliberately left whole,
+  # because a deprecated name may point at an accepted taxon inside the filter
+  # even when the deprecated taxon itself sits outside it. Say so, or the count
+  # looks like a filtering bug.
+  if (length(tg) == 1L && nsyn > 0L)
+    cat("  synonymy kept whole across all groups; targets resolve by id\n")
   invisible(x)
 }
 
@@ -317,7 +349,8 @@ print.tilia_lookup <- function(x, ...) {
 #'
 #' @param dic A `pollen_dictionary` (from [read_dic()]) or a data frame with
 #'   `code`, `name` and `group` columns.
-#' @param lookup A `tilia_lookup` from [read_tilia_lookup()]. `NULL` (default)
+#' @param lookup A `tilia_lookup` from [read_tilia_lookup()] or
+#'   [neotoma_taxonomy()]. `NULL` (default)
 #'   calls it with default arguments.
 #' @param aliases Optional path to a two-column CSV (`name`, `accepted_name`) of
 #'   your own equivalences. If the file does not exist, a template is written
@@ -356,9 +389,23 @@ standardize_dic <- function(dic,
   if (!is.data.frame(dic) || !all(c("code", "name") %in% names(dic)))
     stop("`dic` must be a pollen_dictionary or a data frame with `code` and ",
          "`name` columns.", call. = FALSE)
-  if (is.null(lookup)) lookup <- read_tilia_lookup()
+  # With no lookup supplied, prefer a local Tilia install -- it is offline and
+  # is whatever version the analyst's Tilia is pinned to -- and fall back to
+  # Neotoma's API, which is the only route on macOS and Linux since Tilia is
+  # Windows-only.
+  if (is.null(lookup)) {
+    lookup <- tryCatch(read_tilia_lookup(), error = function(e) NULL)
+    if (is.null(lookup)) {
+      message("No Tilia lookup files found; using Neotoma's API instead.")
+      lookup <- neotoma_taxonomy()
+      if (is.null(lookup))
+        stop("Could not obtain a taxonomy from Tilia or from the Neotoma API.",
+             call. = FALSE)
+    }
+  }
   if (!inherits(lookup, "tilia_lookup"))
-    stop("`lookup` must come from read_tilia_lookup().", call. = FALSE)
+    stop("`lookup` must come from read_tilia_lookup() or neotoma_taxonomy().",
+         call. = FALSE)
 
   # ---- the pool of accepted taxa, and Neotoma's synonymy -------------------
   pool <- if (is.null(taxa_groups)) lookup else

@@ -19,7 +19,8 @@ standardize_dic(
 \item{dic}{A \code{pollen_dictionary} (from \code{\link[=read_dic]{read_dic()}}) or a data frame with
 \code{code}, \code{name} and \code{group} columns.}
 
-\item{lookup}{A \code{tilia_lookup} from \code{\link[=read_tilia_lookup]{read_tilia_lookup()}}. \code{NULL} (default)
+\item{lookup}{A \code{tilia_lookup} from \code{\link[=read_tilia_lookup]{read_tilia_lookup()}} or
+\code{\link[=neotoma_taxonomy]{neotoma_taxonomy()}}. \code{NULL} (default)
 calls it with default arguments.}
 
 \item{aliases}{Optional path to a two-column CSV (\code{name}, \code{accepted_name}) of

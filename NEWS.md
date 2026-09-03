@@ -2,7 +2,74 @@
 
 ## pcountr 0.8.0.9000 (development version)
 
+### New — the Neotoma taxonomy without Tilia
+
+`standardize_dic()` previously required Tilia's lookup files, and **Tilia
+installs only on Windows** — so macOS and Linux analysts could not reconcile a
+dictionary at all. The limitation was not even documented; it was communicated
+by a hardcoded path in an error message.
+
+`neotoma_taxonomy()` fetches the same taxonomy from Neotoma's API and returns it
+in the same shape, so `standardize_dic()` accepts either interchangeably:
+
+```r
+lk <- neotoma_taxonomy()                      # all proxies
+lk <- neotoma_taxonomy(taxa_group = "DIA")    # diatoms only
+standardize_dic(my_dic, lk)
+```
+
+With no `lookup` supplied, `standardize_dic()` now tries a local Tilia install
+first — it is offline and pinned to that install's version — and falls back to
+the API.
+
+**Verified to agree with the Tilia path.** The 231-taxon ECG dictionary
+reconciles identically through both sources — 210 `exact`, 14 `suggestion`,
+7 `unmatched`, same targets, same similarity scores — so the two are genuinely
+interchangeable rather than merely similar. The live taxonomy has drifted a
+little from the Tilia snapshot (22,462 palynomorphs against 22,426), but no
+difference changed an outcome. The cached taxonomy is 780 KB.
+
+**One table, all proxies.** This outgrows the Tilia route rather than merely
+matching it. Tilia ships eleven per-proxy XML files and pcountr defaulted to the
+pollen one, so pollen was baked into the file layout. Neotoma's API has a single
+table spanning vascular plants, diatoms, ostracodes, phytoliths and the rest,
+distinguished by `taxa_group`. A diatom analyst now gets a real vocabulary from
+the same call that serves a palynologist.
+
+**Cached, because the fetch is large.** Nothing filters server-side —
+`taxagroupid=DIA` is silently ignored and vascular-plant rows come back anyway —
+so the whole table is paged and filtered locally. The result is cached under
+`tools::R_user_dir("pcountr", "cache")`, the one location CRAN policy permits a
+package to write, so the download happens once per machine rather than once per
+session. `neotoma_taxonomy_cache()` reports where it lives and can clear it. The
+verbose `publication` field is dropped as pages arrive, so the cache is a small
+fraction of the download.
+
+Two caveats stated plainly. The taxonomy is live, so a reconciliation run today
+may not match one next year; the object records its fetch time and prints it.
+And `dbtables/` is undocumented — it works, and Neotoma's own Taxonomy-Viewer is
+built on it, but it is not a published contract, so `read_tilia_lookup()`
+remains as the fallback.
+
+Neotoma data are CC BY 4.0. Cite the database (Williams et al., 2018) alongside
+pcountr if you use this in published work.
+
+### Corrected — an earlier claim about the API was wrong
+
+DESIGN.md section 13 stated that the Neotoma API "does not expose the
+synonymy", and that was the stated reason for rejecting it at v0.7.0. **The
+claim was false.** Only the documented `/data/taxa` route had been tested;
+`/data/dbtables/synonyms` returns `invalidtaxonid -> validtaxonid`, which is
+exactly the deprecated-to-accepted mapping, and it matches Tilia's XML row for
+row. The `valid` flag said not to exist is in `dbtables/taxa`. The section has
+been rewritten to record the mistake rather than quietly drop it.
+
 ### Fixed
+
+- Tilia's lookup path is now discovered rather than hardcoded.
+  `C:/ProgramData/Tilia/Lookup` was the only location checked, but Tilia's own
+  documentation gives `%LOCALAPPDATA%/Tilia/Lookup`; both are tried, first
+  existing wins, and `options(pcountr.tilia_lookup)` still overrides.
 
 - `default_preservation` and `default_precedence` were documented with
   `@export` and shipped help pages, but were absent from `NAMESPACE`, which is

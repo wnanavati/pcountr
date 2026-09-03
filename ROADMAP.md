@@ -13,13 +13,16 @@ the `dev` branch.
   golden PCount comparison is independently reproducible.
 - **`default_preservation` / `default_precedence` exported.** Documented but
   missing from the hand-maintained `NAMESPACE`.
+- **Taxonomy without Tilia.** `neotoma_taxonomy()` fetches Neotoma's taxa and
+  synonymy from the API and returns a `tilia_lookup`-shaped object, so
+  `standardize_dic()` works on macOS and Linux. One table spans all proxies,
+  filtered by `taxa_group`; cached under `tools::R_user_dir()`. DESIGN.md
+  section 13 corrected — the API does expose the synonymy, via
+  `dbtables/synonyms`.
+- **Tilia lookup path discovered** rather than hardcoded to ProgramData.
 
 **Still to do**
 
-- Taxonomy without Tilia: read Neotoma's taxa and synonymy from the API
-  (`dbtables/taxa`, `dbtables/synonyms`) so `standardize_dic()` works on macOS
-  and Linux, with an on-disk cache. Correct DESIGN.md section 13, which
-  currently states the API does not expose the synonymy — it does.
 - Remove the two-letter cap on entry codes; suggest codes in
   `build_dic_neotoma()` from ECG.csv or derived from the taxon name.
 - Proxy-agnostic pass over the counting app and documentation.
