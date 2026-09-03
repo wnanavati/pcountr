@@ -11,6 +11,7 @@ build_dic_neotoma(
   max_sites = 20,
   datasettype = "pollen",
   n = 50,
+  suggest_codes = TRUE,
   file = NULL
 )
 }
@@ -28,6 +29,16 @@ knob that bounds cost.}
 vocabulary and will yield a near-empty result.}
 
 \item{n}{Number of taxa to return.}
+
+\item{suggest_codes}{Fill the \code{code} column with suggestions (default
+\code{TRUE}). Where a taxon name matches an entry in the dictionary shipped
+with the package, that curated code is reused; otherwise a code is built
+from the name -- initials for a two-word name (\emph{Acer negundo} becomes
+\code{AN}), the first two letters for a single word (\emph{Abies} becomes \code{AB}),
+with longer forms only when those are taken. Suggestions are a starting
+point and are meant to be edited: codes are typed hundreds of times per
+sample and are properly a matter of personal habit. Set \code{FALSE} to leave
+the column blank.}
 
 \item{file}{Optional path; when given, the draft is written as CSV.}
 }
@@ -56,11 +67,15 @@ state would.
 }
 \section{What this is not}{
 
-The result is \strong{not} a \code{pollen_dictionary} and will not load until you
-fill in the \code{code} column -- \code{\link[=read_dic_csv]{read_dic_csv()}} drops rows with a blank
-code. Groups are imported from Neotoma's \code{ecologicalgroup} as a starting
-value; they encode your pollen-sum decisions, so edit them freely. Check
-additions against a Tilia lookup afterwards with \code{\link[=standardize_dic]{standardize_dic()}}.
+The result is a plain data frame, not a \code{pollen_dictionary}, because it is
+expected to be reviewed before use. With \code{suggest_codes = TRUE} it would
+load as-is, but the codes are guesses and the groups are Neotoma's rather
+than yours. With \code{suggest_codes = FALSE} it cannot load at all until you
+fill the \code{code} column, since \code{\link[=read_dic_csv]{read_dic_csv()}} drops rows with a blank code.
+
+Groups are imported from Neotoma's \code{ecologicalgroup} as a starting value;
+they encode your sum decisions, so edit them freely. Check the finished
+dictionary with \code{\link[=standardize_dic]{standardize_dic()}}.
 }
 
 \section{Cost}{

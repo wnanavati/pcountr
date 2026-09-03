@@ -52,7 +52,8 @@
 # Rank taxa by the number of distinct sites they occur in and assemble the
 # draft dictionary. Split out from build_dic_neotoma() so the whole tally can
 # be tested against a fixture without touching the network.
-.dic_from_samples <- function(s, n = 50, datasettype = "pollen") {
+.dic_from_samples <- function(s, n = 50, datasettype = "pollen",
+                              suggest_codes = TRUE) {
   need <- c("siteid", "variablename", "units", "ecologicalgroup", "taxongroup")
   miss <- setdiff(need, names(s))
   if (length(miss))
@@ -110,6 +111,128 @@
 
   out <- rbind(fixed, taxa)
   rownames(out) <- NULL
+
+  if (isTRUE(suggest_codes)) {
+    # The spike's "." is fixed by the counting app, so it is held back from
+    # the pool and never reassigned.
+    fill <- !nzchar(out$code)
+    out$code[fill] <- .suggest_codes(out$name[fill], taken = out$code[!fill])
+  }
+  out
+}
+
+# ---- code suggestion ------------------------------------------------------
+#
+# Codes are what an analyst types hundreds of times per sample, so they are
+# ultimately a matter of personal habit. These are a starting point only.
+#
+# Two sources, in order. First the dictionary shipped with the package
+# (inst/extdata/fake_lake/ECG.csv, 231 North American pollen taxa): where a
+# Neotoma name matches one of those entries exactly, its curated code is
+# reused, because a code an analyst actually chose beats one derived
+# mechanically. Otherwise the code is built from the name.
+#
+# Neotoma's own `taxoncode` is deliberately NOT used. It is a Tilia display
+# abbreviation -- "Ace.sa-t", "Ane.s." -- carrying periods and hyphens, and
+# "." alone is the spike. Sanitising those would produce collisions and
+# keystroke-hostile codes.
+#
+# Candidates are tried in an order that reproduces the convention in ECG.csv,
+# where codes are two uppercase letters: initials for a two-word name
+# ("Acer negundo" -> AN), the first two letters for a single word
+# ("Abies" -> AB). Longer forms follow only when those are taken.
+.strip_qualifiers <- function(x) {
+  # Transliterate diacritics first: Neotoma spells one taxon "Isoetes" with a
+  # diaeresis, and stripping non-ASCII before folding would split it into
+  # "Iso" + "tes" and yield a code built from the wrong letters.
+  x <- chartr(
+    paste0("\u00e0\u00e1\u00e2\u00e3\u00e4\u00e5\u00e8\u00e9\u00ea\u00eb",
+           "\u00ec\u00ed\u00ee\u00ef\u00f2\u00f3\u00f4\u00f5\u00f6\u00f9",
+           "\u00fa\u00fb\u00fc\u00fd\u00f1\u00e7",
+           "\u00c0\u00c1\u00c2\u00c3\u00c4\u00c5\u00c8\u00c9\u00ca\u00cb",
+           "\u00cc\u00cd\u00ce\u00cf\u00d2\u00d3\u00d4\u00d5\u00d6\u00d9",
+           "\u00da\u00db\u00dc\u00dd\u00d1\u00c7"),
+    paste0("aaaaaaeeeeiiiiooooouuuuync",
+           "AAAAAAEEEEIIIIOOOOOUUUUYNC"), x)
+
+  x <- gsub("\\([^)]*\\)", " ", x)                  # (parentheticals)
+  # Both boundaries required. Without the trailing \\b, "sp" matches the start
+  # of "Sparganium" and "Spiraea", leaving "arganium" and "iraea" to be coded
+  # from -- which is how Sparganium acquired the code "ARG".
+  x <- gsub("\\b(undiff|spp|sp|cf|aff)\\b\\.?", " ", x, ignore.case = TRUE)
+  x <- gsub("\\b(subg|subgen|subf|subfam|sect|ser|var|subsp)\\b\\.?", " ", x,
+            ignore.case = TRUE)
+  x <- gsub("-type\\b", " ", x, ignore.case = TRUE)
+  x <- gsub("[^A-Za-z ]+", " ", x)                  # drop digits, slashes, dots
+  trimws(gsub("\\s+", " ", x))
+}
+
+# Candidate codes for one name, best first. All uppercase letters, so a code
+# can never end in a digit -- digits are preservation, and a code ending in one
+# would be unparseable at entry.
+.code_candidates <- function(name) {
+  w <- strsplit(.strip_qualifiers(name), " ", fixed = TRUE)[[1]]
+  w <- w[nzchar(w)]
+  if (!length(w)) return(character(0))
+  up <- function(x) toupper(x)
+  w1 <- w[1L]
+  cand <- character(0)
+  if (length(w) >= 2L)
+    cand <- c(cand, up(paste0(substr(w1, 1, 1), substr(w[2L], 1, 1))))
+  cand <- c(cand, up(substr(w1, 1, 2)), up(substr(w1, 1, 1)))
+  if (length(w) >= 2L)
+    cand <- c(cand,
+              up(paste0(substr(w1, 1, 1), substr(w[2L], 1, 2))),
+              up(paste0(substr(w1, 1, 2), substr(w[2L], 1, 1))))
+  cand <- c(cand, up(substr(w1, 1, 3)))
+  # Last resort: first letter plus each letter of the alphabet.
+  cand <- c(cand, paste0(up(substr(w1, 1, 1)), LETTERS))
+  unique(cand[nzchar(cand)])
+}
+
+# The curated codes shipped with the package, as name -> code. Read once per
+# call; returns an empty map if the file is missing so the derived scheme still
+# works from a bare install.
+.ecg_codes <- function() {
+  f <- system.file("extdata", "fake_lake", "ECG.csv", package = "pcountr")
+  if (!nzchar(f) || !file.exists(f)) return(stats::setNames(character(0), character(0)))
+  d <- tryCatch(
+    utils::read.csv(f, stringsAsFactors = FALSE, colClasses = "character",
+                    encoding = "UTF-8"),
+    error = function(e) NULL)
+  if (is.null(d) || !all(c("code", "name") %in% names(d)))
+    return(stats::setNames(character(0), character(0)))
+  d <- d[nzchar(trimws(d$code)) & nzchar(trimws(d$name)), , drop = FALSE]
+  # Letters-only codes: skip the specials ("#B", ".") so a taxon never inherits
+  # a prefix that means something else in the counting app.
+  d <- d[grepl("^[A-Za-z]+$", trimws(d$code)), , drop = FALSE]
+  stats::setNames(trimws(d$code), trimws(d$name))
+}
+
+# Assign a code to each name, avoiding `taken` and each other. Deterministic
+# given the input order, so the same query yields the same codes.
+.suggest_codes <- function(names, taken = character(0)) {
+  ecg  <- .ecg_codes()
+  used <- toupper(taken)
+  out  <- character(length(names))
+  for (i in seq_along(names)) {
+    nm <- names[i]
+    pick <- NA_character_
+    # 1. a curated code for this exact name
+    if (nm %in% names(ecg)) {
+      c0 <- ecg[[nm]]
+      if (!toupper(c0) %in% used) pick <- c0
+    }
+    # 2. otherwise derive one
+    if (is.na(pick)) {
+      for (c0 in .code_candidates(nm)) {
+        if (!toupper(c0) %in% used) { pick <- c0; break }
+      }
+    }
+    if (is.na(pick)) pick <- ""            # give up rather than invent noise
+    out[i] <- pick
+    if (nzchar(pick)) used <- c(used, toupper(pick))
+  }
   out
 }
 
@@ -158,11 +281,15 @@
 #' state would.
 #'
 #' @section What this is not:
-#' The result is **not** a `pollen_dictionary` and will not load until you
-#' fill in the `code` column -- [read_dic_csv()] drops rows with a blank
-#' code. Groups are imported from Neotoma's `ecologicalgroup` as a starting
-#' value; they encode your pollen-sum decisions, so edit them freely. Check
-#' additions against a Tilia lookup afterwards with [standardize_dic()].
+#' The result is a plain data frame, not a `pollen_dictionary`, because it is
+#' expected to be reviewed before use. With `suggest_codes = TRUE` it would
+#' load as-is, but the codes are guesses and the groups are Neotoma's rather
+#' than yours. With `suggest_codes = FALSE` it cannot load at all until you
+#' fill the `code` column, since [read_dic_csv()] drops rows with a blank code.
+#'
+#' Groups are imported from Neotoma's `ecologicalgroup` as a starting value;
+#' they encode your sum decisions, so edit them freely. Check the finished
+#' dictionary with [standardize_dic()].
 #'
 #' @section Cost:
 #' One slow spatial query, then one download per dataset among the
@@ -180,6 +307,15 @@
 #'   `neotoma2::get_table("datasettypes")`. Charcoal types carry no taxon
 #'   vocabulary and will yield a near-empty result.
 #' @param n Number of taxa to return.
+#' @param suggest_codes Fill the `code` column with suggestions (default
+#'   `TRUE`). Where a taxon name matches an entry in the dictionary shipped
+#'   with the package, that curated code is reused; otherwise a code is built
+#'   from the name -- initials for a two-word name (*Acer negundo* becomes
+#'   `AN`), the first two letters for a single word (*Abies* becomes `AB`),
+#'   with longer forms only when those are taken. Suggestions are a starting
+#'   point and are meant to be edited: codes are typed hundreds of times per
+#'   sample and are properly a matter of personal habit. Set `FALSE` to leave
+#'   the column blank.
 #' @param file Optional path; when given, the draft is written as CSV.
 #' @return A `data.frame` with the columns [read_dic_csv()] expects
 #'   (`code`, `alias`, `group`, `name`, `is_special`, `value`), invisibly if
@@ -191,6 +327,7 @@ build_dic_neotoma <- function(lat, long,
                               max_sites  = 20,
                               datasettype = "pollen",
                               n          = 50,
+                              suggest_codes = TRUE,
                               file       = NULL) {
 
   if (!requireNamespace("neotoma2", quietly = TRUE)) {
@@ -203,6 +340,8 @@ build_dic_neotoma <- function(lat, long,
             is.numeric(radius_km), radius_km > 0,
             is.numeric(max_sites), max_sites >= 1,
             is.numeric(n), n >= 1,
+            is.logical(suggest_codes), length(suggest_codes) == 1L,
+            !is.na(suggest_codes),
             is.character(datasettype), length(datasettype) == 1L)
 
   # ---- 1. enumerate candidate records (the one slow call) -----------------
@@ -262,11 +401,19 @@ build_dic_neotoma <- function(lat, long,
   s   <- .quiet_samples(dl)
 
   # ---- 4/5. tally and assemble -------------------------------------------
-  out <- .dic_from_samples(s, n = n, datasettype = datasettype)
+  out <- .dic_from_samples(s, n = n, datasettype = datasettype,
+                           suggest_codes = suggest_codes)
 
-  message(sprintf("%d taxa returned. Fill in `code` (and check `group`) %s",
-                  nrow(out),
-                  "before loading with read_dic()."))
+  if (isTRUE(suggest_codes)) {
+    message(sprintf(
+      "%d taxa returned with suggested codes. Review `code` and `group`, then\n%s",
+      nrow(out),
+      "load with read_dic(). Codes are a starting point, not a convention."))
+  } else {
+    message(sprintf("%d taxa returned. Fill in `code` (and check `group`) %s",
+                    nrow(out),
+                    "before loading with read_dic()."))
+  }
 
   if (!is.null(file)) {
     # fileEncoding is explicit because Neotoma ships diacritics -- a western

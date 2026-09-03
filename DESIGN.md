@@ -749,9 +749,13 @@ Neotoma's own Taxonomy-Viewer is built on it, but it is not a published
 contract, so `read_tilia_lookup()` is the fallback if it ever changes.
 
 **Verified against the Tilia path on real data.** The 231-taxon ECG dictionary
-reconciles identically through both sources: 210 `exact`, 14 `suggestion`,
-7 `unmatched`, with the same suggested targets and the same similarity scores to
-two decimals. `Alnus rugosa` resolves to taxon 344, *Alnus incana* -- the exact
+reconciles identically through both sources: 211 `exact`, 14 `suggestion`,
+6 `unmatched`, with the same suggested targets and the same similarity scores to
+two decimals. (At the time of the first comparison this was 210/14/7; renaming
+the dictionary's entry for code `V` to Neotoma's spelling, `Asteroideae
+undiff.`, moved one row from `unmatched` to `exact` -- an illustration of the
+reconciliation being used for its intended purpose rather than a change in
+either source.) `Alnus rugosa` resolves to taxon 344, *Alnus incana* -- the exact
 case this section previously cited as something the API could not do. The two
 snapshots are not identical (the live taxonomy holds 22,462 palynomorphs against
 the Tilia file's 22,426, having gained 36 since that file was written), but none

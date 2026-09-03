@@ -2,6 +2,59 @@
 
 ## pcountr 0.8.0.9000 (development version)
 
+### New — entry codes of any length, and suggested codes
+
+**The two-character cap on entry codes is gone.** Codes may now be any number
+of letters. Nothing required the old limit: codes are letters and preservation
+codes are digits, so a greedy letter match stops at the first digit whatever
+the code's length. One or two characters remains the sensible habit — every
+keystroke is one an analyst repeats hundreds of times per sample — and the
+documentation says so, but it is advice rather than a rule.
+
+Legacy `.CNT` reading stays capped at two, since files written by PCount cannot
+contain longer codes and keeping that parser tight still catches corruption.
+
+**The Add Dictionary Row dialog now validates the code.** It previously accepted
+any non-empty string, so a code such as `A1` could be added and would then be
+untypeable — the entry parser reads trailing digits as preservation, so it would
+arrive as code `A` with preservation `1`. Codes containing digits, and duplicates
+of existing codes, are now refused with an explanation.
+
+**`build_dic_neotoma()` suggests codes.** The `code` column is filled by default
+(`suggest_codes = TRUE`), from two sources in order:
+
+- Where a Neotoma name matches an entry in the dictionary shipped with the
+  package, that curated code is reused — a code an analyst actually chose beats
+  one derived mechanically. This is why *Artemisia* comes back as `R` and
+  *Apiaceae* as `UM`, which no derivation would produce.
+- Otherwise the code is built from the name, following the convention in that
+  dictionary: initials for a two-word name (*Acer negundo* → `AN`), the first
+  two letters for a single word (*Abies* → `AB`), with longer forms only when
+  those are taken.
+
+Every candidate is letters only, so a suggested code can never end in a digit
+and become unparseable. Assignment is deterministic given the input order, so
+rebuilding a dictionary does not reshuffle codes. `suggest_codes = FALSE`
+restores the blank column.
+
+Neotoma's own `taxoncode` is deliberately not used: it is a Tilia display
+abbreviation (`Ace.sa-t`, `Ane.s.`) carrying periods and hyphens, and `.` alone
+is the spike, so sanitising it would produce collisions and keystroke-hostile
+codes.
+
+**One shipped-dictionary name updated.** The entry for code `V` was
+`Asteraceae subfam. Asteroideae undiff.`, which Neotoma does not recognise, so
+it reconciled as `unmatched` *and* a Neotoma-built dictionary derived a fresh
+code for `Asteroideae undiff.` instead of reusing `V`. Renaming it to Neotoma's
+spelling fixes both: reconciliation of the shipped dictionary is now 211 `exact`
+and 6 `unmatched`, and `Asteroideae undiff.` gets the curated code `V`. A test
+pins that so a future edit cannot silently undo it.
+
+`ECG.DIC` is deliberately left alone. It spells the same taxon
+`Asteraceae subfam. Tubuliflorae undiff.`, older still, and its job is to be
+the legacy PCount artefact that `read_dic()` parses — it happens to illustrate
+exactly the nomenclature drift `standardize_dic()` exists to catch.
+
 ### New — the Neotoma taxonomy without Tilia
 
 `standardize_dic()` previously required Tilia's lookup files, and **Tilia
@@ -23,8 +76,8 @@ first — it is offline and pinned to that install's version — and falls back 
 the API.
 
 **Verified to agree with the Tilia path.** The 231-taxon ECG dictionary
-reconciles identically through both sources — 210 `exact`, 14 `suggestion`,
-7 `unmatched`, same targets, same similarity scores — so the two are genuinely
+reconciles identically through both sources — 211 `exact`, 14 `suggestion`,
+6 `unmatched`, same targets, same similarity scores — so the two are genuinely
 interchangeable rather than merely similar. The live taxonomy has drifted a
 little from the Tilia snapshot (22,462 palynomorphs against 22,426), but no
 difference changed an outcome. The cached taxonomy is 780 KB.

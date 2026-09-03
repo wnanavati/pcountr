@@ -97,10 +97,15 @@ keystroke codes to taxon names. Two ways to get one:
   ```
 
   This queries the Neotoma database over the internet and **may take a few
-  minutes** depending on the radius. The result is a draft: open the CSV in
-  a spreadsheet, fill in a short code for each taxon (1–2 letters, e.g. `P`
-  for *Pinus*), adjust the groups if you disagree with them, and delete
-  anything you'll never count. See `?build_dic_neotoma` for the details.
+  minutes** depending on the radius. The result is a draft with **suggested
+  codes already filled in** — open the CSV in a spreadsheet, change any code
+  you'd rather type differently, adjust the groups if you disagree with them,
+  and delete anything you'll never count.
+
+  Codes can be any number of letters, but one or two keeps counting fast:
+  you'll type each one hundreds of times. Digits aren't allowed in a code,
+  because they mean preservation when you're counting. See
+  `?build_dic_neotoma` for the details.
 
 ### The setup screen
 

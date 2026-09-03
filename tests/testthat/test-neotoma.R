@@ -86,9 +86,9 @@ test_that("the draft has the columns read_dic_csv() expects", {
   d <- .dic_from_samples(fake_samples(), n = 50)
   expect_named(d, c("code", "alias", "group", "name", "is_special", "value"))
   expect_true(all(d$value == 1))
-  # Codes are blank by design: read_dic_csv() drops blank-code rows, so this
-  # is a draft the analyst completes, not a loadable dictionary.
-  expect_true(all(d$code[d$name != "Spike"] == ""))
+  # Codes are suggested by default and filled for every row; the blank-code
+  # behaviour of suggest_codes = FALSE is asserted separately below.
+  expect_true(all(nzchar(d$code)))
 })
 
 test_that("a datasettype with no taxa errors informatively", {
@@ -125,10 +125,11 @@ test_that("the draft survives a write/read round trip, diacritics included", {
   d <- .dic_from_samples(s, n = 50)
   expect_true(iso %in% d$name)
 
-  # Simulate the analyst completing the draft: codes are blank by design, and
-  # read_dic_csv() drops blank-code rows, so fill them before reading back.
-  d$code <- sprintf("%02d", seq_len(nrow(d)))
-  d$code[d$name == "Spike"] <- "."
+  # The suggested codes are used as-is: they are letters only, which is what
+  # the counting app can parse. The previous form of this test fabricated
+  # numeric codes ("01", "02"), which read_dic_csv() accepts but the entry
+  # parser could never read -- it would take the digits as preservation.
+  expect_true(all(grepl("^([#$]?[A-Za-z]+|\\.)$", d$code)))
 
   f <- tempfile(fileext = ".csv")
   on.exit(unlink(f), add = TRUE)
@@ -196,4 +197,94 @@ test_that("bad coordinates are rejected before any query", {
   expect_error(build_dic_neotoma(lat = NA,  long = 0))
   expect_error(build_dic_neotoma(lat = 46,  long = 0, radius_km = -1))
   expect_error(build_dic_neotoma(lat = 46,  long = 0, n = 0))
+})
+
+# ── code suggestion ─────────────────────────────────────────────────────────
+
+test_that("qualifiers are stripped without eating the name itself", {
+  # The bug this guards against: a pattern of \b(sp)\.? without a trailing
+  # boundary matches the leading "Sp" of Sparganium and Spiraea, leaving
+  # "arganium" to be coded from. Sparganium acquired the code "ARG" that way.
+  expect_equal(.strip_qualifiers("Sparganium"), "Sparganium")
+  expect_equal(.strip_qualifiers("Spiraea"),    "Spiraea")
+  expect_equal(.strip_qualifiers("Rosaceae undiff."), "Rosaceae")
+  expect_equal(.strip_qualifiers("Pinus subg. Strobus"), "Pinus Strobus")
+  expect_equal(.strip_qualifiers("Ambrosia-type"), "Ambrosia")
+  expect_equal(.strip_qualifiers("Pre-Quaternary (Cingutriletes)"),
+               "Pre Quaternary")
+  # Slash-combined names are one morphotype; both words survive so the code
+  # can use their initials.
+  expect_equal(.strip_qualifiers("Larix/Pseudotsuga"), "Larix Pseudotsuga")
+})
+
+test_that("diacritics are transliterated, not split on", {
+  # Neotoma spells this taxon with a diaeresis. Folding to ASCII first would
+  # give "Iso tes" and a code built from the wrong letters.
+  expect_equal(.strip_qualifiers("Iso\u00ebtes"), "Isoetes")
+  expect_equal(.code_candidates("Iso\u00ebtes")[1], "IS")
+})
+
+test_that("candidates follow the ECG convention: two uppercase letters first", {
+  expect_equal(.code_candidates("Abies")[1],        "AB")   # single word
+  expect_equal(.code_candidates("Acer negundo")[1], "AN")   # two words
+  expect_equal(.code_candidates("Larix/Pseudotsuga")[1], "LP")
+  # Every candidate is letters only, so a code can never end in a digit --
+  # digits are preservation and would make the code unparseable at entry.
+  expect_true(all(grepl("^[A-Z]+$", .code_candidates("Acer negundo"))))
+})
+
+test_that("codes are unique and avoid what is already taken", {
+  nm <- c("Abies", "Acer negundo", "Acer rubrum", "Alnus", "Artemisia")
+  cd <- .suggest_codes(nm, taken = ".")
+  expect_length(cd, length(nm))
+  expect_equal(length(unique(cd)), length(cd))
+  expect_false("." %in% cd)
+  expect_true(all(nzchar(cd)))
+})
+
+test_that("Asteroideae undiff. gets the curated code V", {
+  # ECG.csv's entry for code V was named "Asteraceae subfam. Asteroideae
+  # undiff.", which Neotoma does not recognise -- so it reconciled as
+  # `unmatched` and a Neotoma-built dictionary derived a code for
+  # "Asteroideae undiff." rather than reusing V. Renaming the ECG entry to
+  # Neotoma's spelling fixes both at once. Pinned because a future edit to
+  # ECG.csv could silently undo it.
+  expect_equal(.suggest_codes("Asteroideae undiff."), "V")
+})
+
+test_that("a curated code from the shipped dictionary is preferred", {
+  # ECG.csv gives Abies the code AB. Reusing a code an analyst actually chose
+  # beats deriving one, and it happens to agree here -- so assert the source
+  # by using a name where the curated code is NOT what derivation would give.
+  cd <- .suggest_codes("Artemisia")
+  expect_equal(cd, "R")     # ECG's code; derivation would give "AR"
+})
+
+test_that("suggest_codes = FALSE leaves the column blank", {
+  d <- .dic_from_samples(fake_samples(), n = 5, suggest_codes = FALSE)
+  expect_true(all(d$code[d$name != "Spike"] == ""))
+  expect_equal(d$code[d$name == "Spike"], ".")
+})
+
+test_that("suggest_codes = TRUE fills every row and keeps the spike", {
+  d <- .dic_from_samples(fake_samples(), n = 50, suggest_codes = TRUE)
+  expect_true(all(nzchar(d$code)))
+  expect_equal(d$code[d$name == "Spike"], ".")
+  expect_equal(length(unique(d$code)), nrow(d))
+  # Codes must be typeable: letters only, or the fixed spike.
+  expect_true(all(grepl("^([#$]?[A-Za-z]+|\\.)$", d$code)))
+})
+
+test_that("suggested codes are stable across calls", {
+  # Deterministic given input order, so a rebuilt dictionary does not silently
+  # reshuffle an analyst's codes.
+  a <- .dic_from_samples(fake_samples(), n = 50, suggest_codes = TRUE)
+  b <- .dic_from_samples(fake_samples(), n = 50, suggest_codes = TRUE)
+  expect_equal(a$code, b$code)
+})
+
+test_that("suggest_codes is validated", {
+  skip_if_not_installed("neotoma2")
+  expect_error(build_dic_neotoma(lat = 46, long = -112, suggest_codes = "yes"))
+  expect_error(build_dic_neotoma(lat = 46, long = -112, suggest_codes = NA))
 })

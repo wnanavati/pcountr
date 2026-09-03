@@ -20,11 +20,15 @@ the `dev` branch.
   section 13 corrected — the API does expose the synonymy, via
   `dbtables/synonyms`.
 - **Tilia lookup path discovered** rather than hardcoded to ProgramData.
+- **Entry codes unbounded in length**; the add-row dialog now rejects codes
+  containing digits (untypeable) and duplicates. Legacy `.CNT` parsing stays
+  capped at two characters.
+- **`build_dic_neotoma()` suggests codes**, reusing curated ones from the
+  shipped dictionary where a name matches and otherwise deriving them from the
+  name. `suggest_codes = FALSE` for the old blank column.
 
 **Still to do**
 
-- Remove the two-letter cap on entry codes; suggest codes in
-  `build_dic_neotoma()` from ECG.csv or derived from the taxon name.
 - Proxy-agnostic pass over the counting app and documentation.
 - Release hygiene: `inst/CITATION`, `CITATION.cff`, `.zenodo.json`,
   `CONTRIBUTING.md`, and a GitHub Actions check workflow.

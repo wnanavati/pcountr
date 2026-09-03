@@ -1216,7 +1216,14 @@ server <- function(input, output, session) {
     }
     if (rv$use_pres) {
       # Standard mode: code + preservation digit (e.g. I8, B1, A80)
-      m <- regmatches(s, regexec("^([#$]?[A-Za-z]{1,2})([1-8]?)([09]*)$", s))[[1]]
+      #
+      # Codes are letters only and of any length. Length is unbounded because
+      # nothing forces a two-character limit: letters and preservation digits
+      # cannot be confused, so a greedy letter match stops at the first digit
+      # whatever the code length. One or two characters stays the sensible
+      # habit -- every keystroke is one an analyst repeats hundreds of times --
+      # but that is advice for the documentation, not a rule for the parser.
+      m <- regmatches(s, regexec("^([#$]?[A-Za-z]+)([1-8]?)([09]*)$", s))[[1]]
       if (length(m) == 4L && (nzchar(m[3]) || nzchar(m[4]))) {
         code   <- m[2]; base <- m[3]
         mods   <- strsplit(m[4], "")[[1]]
@@ -1239,11 +1246,11 @@ server <- function(input, output, session) {
       }
       session$sendCustomMessage("beep", list())
       showModal(code_alert_modal(s,
-        "This does not match any recognised token. Valid entries: code+digit (e.g. I8), /traverse/, [remark], or . (spike)."))
+        "This does not match any recognised token. Valid entries: code+digit (e.g. I8), /traverse/, [remark], or . (spike). Codes are letters only."))
       return(FALSE)
     } else {
       # No-preservation mode: code only (e.g. I, B, A)
-      m <- regmatches(s, regexec("^([#$]?[A-Za-z]{1,2})$", s))[[1]]
+      m <- regmatches(s, regexec("^([#$]?[A-Za-z]+)$", s))[[1]]
       if (length(m) == 2L) {
         code <- m[2]
         idx  <- match(code, rv$dic$code)
@@ -1638,6 +1645,21 @@ server <- function(input, output, session) {
     name <- trimws(input$new_dic_name %||% "")
     if (!nzchar(code) || !nzchar(name)) {
       showNotification("Code and Name are required.", type = "warning"); return()
+    }
+    # A code containing a digit could never be typed: the entry parser reads
+    # trailing digits as preservation, so "A1" would arrive as code "A" with
+    # preservation 1. Reject it here rather than let the analyst discover it
+    # mid-count.
+    if (!grepl("^[#$]?[A-Za-z]+$", code)) {
+      showNotification(
+        paste0("'", code, "' cannot be used as a code. Codes are letters only, ",
+               "optionally prefixed with # or $ -- digits are read as ",
+               "preservation codes when counting."),
+        type = "warning", duration = 8); return()
+    }
+    if (code %in% rv$dic$code) {
+      showNotification(paste0("'", code, "' is already in the dictionary."),
+                       type = "warning"); return()
     }
     new_row <- data.frame(
       code       = code,
