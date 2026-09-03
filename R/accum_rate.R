@@ -1,16 +1,20 @@
-#' Compute pollen accumulation rates (PAR / pollen influx) for a site
+#' Compute accumulation rates (PAR / influx) for a site
 #'
-#' Calculates pollen concentration, deposition time, and pollen influx for
-#' each depth-bearing sample in a loaded site. Both total and per-taxon values
-#' are returned.
+#' Calculates concentration, deposition time, and influx for each depth-bearing
+#' sample in a loaded site. Both total and per-taxon values are returned.
+#'
+#' `PAR` is kept as the conventional acronym. It originates in palynology as
+#' "pollen accumulation rate", but the calculation itself depends only on a
+#' count sum, a spike and a sample quantity, so it applies to any proxy counted
+#' the same way.
 #'
 #' @section Equations:
 #' \deqn{\text{deposition time} = \frac{age_{bottom} - age_{top}}{depth_{bottom} - depth_{top}} \quad [\text{yr/cm}]}
-#' \deqn{\text{concentration} = \frac{\text{pollen sum}}{\text{spike counted}} \times \frac{\text{spike tablets} \times \text{spike density}}{\text{sample quantity}} \quad [\text{grains/cm}^3 \text{ or grains/g}]}
-#' \deqn{\text{PAR} = \frac{\text{concentration}}{\text{deposition time}} \quad [\text{grains/cm}^2/\text{yr}]}
+#' \deqn{\text{concentration} = \frac{\text{count sum}}{\text{spike counted}} \times \frac{\text{spike tablets} \times \text{spike density}}{\text{sample quantity}} \quad [\text{counts/cm}^3 \text{ or counts/g}]}
+#' \deqn{\text{PAR} = \frac{\text{concentration}}{\text{deposition time}} \quad [\text{counts/cm}^2/\text{yr}]}
 #'
 #' Per-taxon concentrations and influx are computed the same way using each
-#' taxon's weighted grain count in place of the total pollen sum.
+#' taxon's weighted count in place of the total count sum.
 #'
 #' @section Required inputs:
 #' All of the following must be set (non-NA, positive where applicable) for
@@ -32,12 +36,12 @@
 #'   \describe{
 #'     \item{`data`}{Data frame with one row per sample:
 #'       `sample`, `depth_top`, `depth_bottom`, `age_top`, `age_bottom`,
-#'       `deposition_time` (yr/cm), `concentration` (grains per sample-unit),
-#'       `influx` (grains/cm\eqn{^2}/yr).}
+#'       `deposition_time` (yr/cm), `concentration` (counts per sample-unit),
+#'       `influx` (counts/cm\eqn{^2}/yr).}
 #'     \item{`taxon_concentration`}{Numeric matrix (samples x taxa):
 #'       per-taxon concentration for all non-special taxa.}
 #'     \item{`taxon_influx`}{Numeric matrix (samples x taxa):
-#'       per-taxon PAR (grains/cm\eqn{^2}/yr).}
+#'       per-taxon PAR (counts/cm\eqn{^2}/yr).}
 #'   }
 #' @seealso [count_metrics()], [site_matrix()]
 #' @export
@@ -84,7 +88,7 @@ accum_rate <- function(site) {
     count_metrics(s)$concentration
   }, NA_real_)
 
-  total_par <- conc / dep_time   # grains/cm^2/yr
+  total_par <- conc / dep_time   # counts/cm^2/yr
 
   # Summary data frame -----------------------------------------------------
   data_df <- data.frame(

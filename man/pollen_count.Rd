@@ -31,7 +31,7 @@ pollen_count(
 )
 }
 \arguments{
-\item{grains}{Data frame of per-grain records (see \code{\link[=read_cnt]{read_cnt()}}).}
+\item{grains}{Data frame of per-entry records (see \code{\link[=read_cnt]{read_cnt()}}).}
 
 \item{spike_n}{Number of tracer microspheres counted.}
 
@@ -50,7 +50,9 @@ per unit (per tablet, per ml, or per g depending on \code{spike_units}).}
 
 \item{spike_units}{Units of the spike added: \code{"tablets"}, \code{"ml"}, or \code{"g"}.}
 
-\item{pollen_sum_groups}{Group codes forming the basic pollen sum.}
+\item{pollen_sum_groups}{Group codes forming the basic count sum,
+\eqn{\Sigma P}{Sigma P}. Keeps its historical name for backward
+compatibility.}
 
 \item{depth_top, depth_bottom}{Sample depths (analyst-supplied).}
 
@@ -68,15 +70,16 @@ present = 1950 CE).}
 equation, default), \code{"volumetric"} (counts divided by sample quantity),
 or \code{"none"} (no concentration computed).}
 
-\item{use_pres}{Logical; \code{TRUE} (default) means grains carry preservation
+\item{use_pres}{Logical; \code{TRUE} (default) means entries carry preservation
 codes. \code{FALSE} means no preservation digit was recorded.}
 
 \item{site}{Optional \code{\link[=pollen_site]{pollen_site()}}.}
 }
 \description{
-The core per-sample object. Stores grains in counting order (a data frame),
-the tracer-spike total, traverse labels, remarks, the full ordered event
-list, and sample-level metadata including depth and (optional) age.
+The core per-sample object. Stores count entries in counting order (the
+\code{grains} data frame, which keeps its historical name), the tracer-spike
+total, traverse labels, remarks, the full ordered event list, and
+sample-level metadata including depth and (optional) age.
 }
 \details{
 Depth and age are \emph{not} present in legacy \code{.CNT} files and must be supplied

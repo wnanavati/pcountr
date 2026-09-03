@@ -2,7 +2,7 @@
 % Please edit documentation in R/count_app.R
 \name{count_app}
 \alias{count_app}
-\title{Launch the interactive pollen counting application}
+\title{Launch the interactive counting application}
 \usage{
 count_app(...)
 }
@@ -23,10 +23,10 @@ workflow while saving to the native YAML format.
 Type any of the following in the input field and press Enter:
 \describe{
 \item{\code{B1}, \code{I80}, \code{A1}}{\strong{With preservation codes (default):} taxon code +
-base preservation digit (1–8) + optional modifiers (\code{0} = half-grain,
+base preservation digit (1–8) + optional modifiers (\code{0} = half weight,
 \code{9} = hidden).}
 \item{\code{B}, \code{I}, \code{A}}{\strong{Without preservation codes:} taxon code only (when
-"Use preservation codes?" is set to No on setup). The stream displays grains
+"Use preservation codes?" is set to No on setup). The stream displays entries
 separated by \verb{_}. Preservation columns are suppressed.}
 \item{\code{.}}{One tracer microsphere (spike). Only relevant when concentration
 method is "spike". Pressing \code{.} on an empty input field submits

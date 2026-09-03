@@ -19,13 +19,15 @@ pollen_site(
 \item{dictionary}{A \code{pollen_dictionary} (from \code{\link[=read_dic]{read_dic()}}) or path to a
 \code{.DIC} file.}
 
-\item{pollen_sum}{Character vector of group codes forming the \emph{basic} pollen
-sum (default \code{c("A","B","F")}, i.e. the PCount "ABF" sum).}
+\item{pollen_sum}{Character vector of group codes forming the \emph{basic} count
+sum, \eqn{\Sigma P}{Sigma P} (default \code{c("A","B","F")}, i.e. the PCount
+"ABF" sum).
+The argument keeps its historical name for backward compatibility.}
 
 \item{preservation}{Named character vector mapping codes to labels.}
 
 \item{precedence}{Character vector of codes, highest precedence first, for
-attributing multi-state grains in single-class summaries.}
+attributing multi-state entries in single-class summaries.}
 
 \item{samples}{Named list of \code{pollen_count} objects pre-loaded into the
 site (rarely used directly; \code{\link[=read_site]{read_site()}} populates this).}
@@ -36,5 +38,5 @@ An object of class \code{pollen_site}.
 \description{
 A \emph{site} bundles the configuration shared by all samples counted there: the
 dictionary, the preservation-code scheme, the precedence used for summarising
-multi-state grains, and the pollen-sum group definition.
+multi-state entries, and the \code{pollen_sum} group definition.
 }

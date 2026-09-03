@@ -1,4 +1,4 @@
-#' Launch the interactive pollen counting application
+#' Launch the interactive counting application
 #'
 #' Opens the pcountr Shiny counting app in your default browser. The app
 #' provides a keystroke-driven counting interface that mirrors the PCount DOS
@@ -8,10 +8,10 @@
 #' Type any of the following in the input field and press Enter:
 #' \describe{
 #'   \item{`B1`, `I80`, `A1`}{**With preservation codes (default):** taxon code +
-#'     base preservation digit (1–8) + optional modifiers (`0` = half-grain,
+#'     base preservation digit (1–8) + optional modifiers (`0` = half weight,
 #'     `9` = hidden).}
 #'   \item{`B`, `I`, `A`}{**Without preservation codes:** taxon code only (when
-#'     "Use preservation codes?" is set to No on setup). The stream displays grains
+#'     "Use preservation codes?" is set to No on setup). The stream displays entries
 #'     separated by `_`. Preservation columns are suppressed.}
 #'   \item{`.`}{One tracer microsphere (spike). Only relevant when concentration
 #'     method is "spike". Pressing `.` on an empty input field submits

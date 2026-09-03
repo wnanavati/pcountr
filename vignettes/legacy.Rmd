@@ -108,7 +108,7 @@ count_app()
 
 2. **Counting** — Type grain tokens (`B1`, `I80`, `A1`) followed by Enter. The app parses each token against the loaded dictionary. Type `.` for a spike grain, `/label/` to mark a traverse, and `[text]` for an inline remark. Unknown or malformed tokens trigger a prominent alert with an audio beep.
 
-3. **Live metrics** — The running ΣP sum, spike count, concentration (grains/g or grains/cm³), and PAR update after every entry. `NA` appears until all required inputs are present.
+3. **Live metrics** — The running ΣP sum, spike count, concentration (counts/g or counts/cm³), and PAR update after every entry. `NA` appears until all required inputs are present.
 
 4. **Mid-count editing** — All metadata fields are editable on the *Sample Info* tab while counting. The save path is locked once counting starts.
 

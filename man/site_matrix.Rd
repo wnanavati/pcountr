@@ -2,7 +2,7 @@
 % Please edit documentation in R/site_matrix.R
 \name{site_matrix}
 \alias{site_matrix}
-\title{Convert a loaded pollen site to a wide taxa matrix}
+\title{Convert a loaded site to a wide taxa matrix}
 \usage{
 site_matrix(
   site,
@@ -34,9 +34,9 @@ sample, ordered shallowest first):
 \item{\code{AgeTop}}{Top-of-interval age (years BP); \code{NA} where not recorded.}
 \item{\code{AgeBot}}{Bottom-of-interval age (years BP); \code{NA} where not recorded.}
 \item{\code{SampleSize}}{Sample quantity (ml or g).}
-\item{\code{SpikeCount}}{Number of spike grains counted.}
+\item{\code{SpikeCount}}{Number of spike markers counted.}
 \item{\code{SpikeAdded}}{Spike tablets or volume added to the sample.}
-\item{\code{SpikeConc}}{Concentration of the spike (grains per tablet or per ml).}
+\item{\code{SpikeConc}}{Concentration of the spike (markers per tablet or per ml).}
 \item{\code{TaxaCount}}{Raw weighted counts matrix (samples x taxa).}
 \item{\code{TaxaPerc}}{Percentage matrix (samples x taxa).}
 \item{\code{TaxaConc}}{Concentration matrix (samples x taxa); \code{NA} cells
@@ -55,7 +55,7 @@ present in at least \code{min_present} samples are included.
 Percentages (\code{TaxaPerc}) are computed as:
 \deqn{p_{ij} = 100 \times w_{ij} / D_i}
 where \eqn{w_{ij}} is the weighted count of taxon \eqn{j} in sample
-\eqn{i} and \eqn{D_i} is the sum of all grain weights in \code{groups}.
+\eqn{i} and \eqn{D_i} is the sum of all entry weights in \code{groups}.
 
 Concentrations (\code{TaxaConc}) use the Stockmarr equation per taxon:
 \deqn{c_{ij} = \frac{w_{ij}}{S_i} \times \frac{A_i \times \rho_i}{V_i}}

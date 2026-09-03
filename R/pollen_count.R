@@ -1,14 +1,15 @@
 #' Construct a pollen_count object
 #'
-#' The core per-sample object. Stores grains in counting order (a data frame),
-#' the tracer-spike total, traverse labels, remarks, the full ordered event
-#' list, and sample-level metadata including depth and (optional) age.
+#' The core per-sample object. Stores count entries in counting order (the
+#' `grains` data frame, which keeps its historical name), the tracer-spike
+#' total, traverse labels, remarks, the full ordered event list, and
+#' sample-level metadata including depth and (optional) age.
 #'
 #' Depth and age are *not* present in legacy `.CNT` files and must be supplied
 #' by the analyst (here, or later via direct assignment). Age is only needed for
 #' accumulation-rate arithmetic and may be left `NA`.
 #'
-#' @param grains Data frame of per-grain records (see [read_cnt()]).
+#' @param grains Data frame of per-entry records (see [read_cnt()]).
 #' @param spike_n Number of tracer microspheres counted.
 #' @param traverses Character vector of traverse labels, in order.
 #' @param remarks List of inline remarks.
@@ -18,7 +19,9 @@
 #' @param spike_tablets,spike_density Quantity of spike added and microspheres
 #'   per unit (per tablet, per ml, or per g depending on `spike_units`).
 #' @param spike_units Units of the spike added: `"tablets"`, `"ml"`, or `"g"`.
-#' @param pollen_sum_groups Group codes forming the basic pollen sum.
+#' @param pollen_sum_groups Group codes forming the basic count sum,
+#'   \eqn{\Sigma P}{Sigma P}. Keeps its historical name for backward
+#'   compatibility.
 #' @param depth_top,depth_bottom Sample depths (analyst-supplied).
 #' @param age_top,age_bottom Sample ages in years BP (optional, analyst-supplied;
 #'   present = 1950 CE).
@@ -29,7 +32,7 @@
 #' @param conc_method Concentration calculation method: `"spike"` (tracer
 #'   equation, default), `"volumetric"` (counts divided by sample quantity),
 #'   or `"none"` (no concentration computed).
-#' @param use_pres Logical; `TRUE` (default) means grains carry preservation
+#' @param use_pres Logical; `TRUE` (default) means entries carry preservation
 #'   codes. `FALSE` means no preservation digit was recorded.
 #' @param site Optional [pollen_site()].
 #' @export

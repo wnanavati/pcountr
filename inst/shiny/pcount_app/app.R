@@ -605,10 +605,10 @@ counting_panel <- function() {
             )
           ),
 
-          # ── Grain History tab ──
-          tabPanel("Grain History",
+          # ── Count History tab ──
+          tabPanel("Count History",
             br(),
-            p("Double-click Code, Preservation, or Weight to edit. Preservation uses PCount notation: base digit (1–8) + optional modifiers (0 = half-grain, 9 = hidden).",
+            p("Double-click Code, Preservation, or Weight to edit. Preservation uses PCount notation: base digit (1–8) + optional modifiers (0 = half weight, 9 = hidden).",
               style = "color:#a0a0a0;font-size:12px;"),
             DTOutput("grain_tbl")
           ),
@@ -676,7 +676,7 @@ counting_panel <- function() {
                            selected = "yes", inline = TRUE)
             ),
             div(class = "meta-section",
-              div(class = "meta-section-title", "ΣP — Analyst defined pollen sum"),
+              div(class = "meta-section-title", "ΣP — analyst-defined sum"),
               uiOutput("meta_group_ui")
             ),
             p("Save path is fixed for the current count.",
@@ -721,7 +721,7 @@ counting_panel <- function() {
               div(class = "mid-num", textOutput("stat_conc", inline = TRUE))
             ),
             column(6,
-              div(class = "stat-label", "PAR (grains/cm²/yr)"),
+              div(class = "stat-label", "PAR (counts/cm²/yr)"),
               div(class = "mid-num", textOutput("stat_par",  inline = TRUE))
             )
           ),
@@ -945,7 +945,7 @@ server <- function(input, output, session) {
     dic_msg  <- if (!is.null(rv$dic))
       sprintf(", dictionary: %s", rv$dic_name) else " — load dictionary manually"
     showNotification(
-      sprintf("Loaded: %s (%d grains%s). Review and click Resume.",
+      sprintf("Loaded: %s (%d identifications%s). Review and click Resume.",
               basename(path), n_grains, dic_msg),
       type = "message", duration = 8)
   }, ignoreInit = TRUE)
@@ -1012,7 +1012,7 @@ server <- function(input, output, session) {
     grps <- sort(unique(dic$group[!dic$is_special & nzchar(dic$group)]))
     sel  <- intersect(rv$pollen_sum %||% c("A","B","F"), grps)
     checkboxGroupInput("pollen_sum_groups",
-                       "ΣP — analyst defined pollen sum groups:",
+                       "ΣP — analyst-defined sum groups:",
                        choices = grps, selected = sel, inline = TRUE)
   })
 
@@ -1465,7 +1465,7 @@ server <- function(input, output, session) {
     }
     # "none": conc stays NA
 
-    # PAR: concentration / deposition_time  [grains/cm²/yr]
+    # PAR: concentration / deposition_time  [counts/cm²/yr]
     # deposition_time = (age_bottom - age_top) / (depth_bottom - depth_top)  [yr/cm]
     par <- NA_real_
     if (!is.na(conc) &&
@@ -1479,7 +1479,7 @@ server <- function(input, output, session) {
 
     list(conc  = conc,
          par   = par,
-         units = if (identical(rv$sample_units, "ml")) "grains/cm³" else "grains/g")
+         units = if (identical(rv$sample_units, "ml")) "counts/cm³" else "counts/g")
   })
 
   output$stat_conc_label <- renderText({
@@ -1580,7 +1580,7 @@ server <- function(input, output, session) {
     } else if (col == 2L) {
       wt <- suppressWarnings(as.numeric(val))
       if (is.na(wt) || !wt %in% c(0.5, 1.0)) {
-        showNotification("Weight must be 0.5 (half-grain) or 1.0 (full grain).",
+        showNotification("Weight must be 0.5 (half) or 1.0 (whole).",
                          type = "warning")
         return()
       }
@@ -1631,7 +1631,7 @@ server <- function(input, output, session) {
       ),
       textInput("new_dic_name", "Full name:", placeholder = "e.g. Quercus"),
       checkboxInput("new_dic_special",
-                    "Special marker (non-pollen, e.g. #NPP code)?",
+                    "Special marker, excluded from sums (e.g. #NPP code)?",
                     value = FALSE),
       footer = tagList(
         modalButton("Cancel"),
@@ -1776,7 +1776,7 @@ server <- function(input, output, session) {
                                   font-size:11px;padding:4px 8px;border:1px solid #6b6b6b;")
     if (is.null(tx)||!nrow(tx))
       return(div(class="taxon-strip", tog,
-                 span("No grains counted yet.", style="color:#a0a0a0")))
+                 span("No counts yet.", style="color:#a0a0a0")))
     cells <- lapply(seq_len(nrow(tx)), function(i) {
       val <- if(show) paste0(tx$pct[i],"%") else as.character(tx$count[i])
       div(class="taxon-cell",
@@ -1788,7 +1788,7 @@ server <- function(input, output, session) {
   observeEvent(input$toggle_btn, { rv$show_pct <- !rv$show_pct })
 
   output$grain_tbl <- DT::renderDT({
-    req(input$input_tabs == "Grain History")
+    req(input$input_tabs == "Count History")
     g <- grains_rv()
     empty <- DT::datatable(
       data.frame(Code=character(0), Preservation=character(0),
@@ -1798,7 +1798,7 @@ server <- function(input, output, session) {
 
     notation <- vapply(seq_len(nrow(g)), function(i) {
       # pres is a concatenated digit string (e.g. "1", "19"); append the
-      # half-grain modifier 0 for fragments. NA/empty = no-pres mode.
+      # half-weight modifier 0 for fragments. NA/empty = no-pres mode.
       p <- g$pres[i]
       if (is.na(p) || !nzchar(p)) return("—")
       paste0(p, if (isTRUE(g$weight[i] == 0.5)) "0" else "")

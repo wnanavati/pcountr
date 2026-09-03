@@ -2,7 +2,7 @@
 % Please edit documentation in R/dictionary.R
 \name{default_precedence}
 \alias{default_precedence}
-\title{Default precedence for attributing multi-code grains in summaries}
+\title{Default precedence for attributing multi-code entries in summaries}
 \format{
 A character vector of single-digit codes, highest precedence first.
 }
@@ -10,15 +10,15 @@ A character vector of single-digit codes, highest precedence first.
 default_precedence
 }
 \description{
-When a single grain carries more than one preservation state (e.g. crumpled
-and broken), a summary table that allows only one class per grain must pick
+When a single entry carries more than one preservation state (e.g. crumpled
+and broken), a summary table that allows only one class per entry must pick
 one. This vector defines the precedence, highest first. It is only used for
-presentation; the raw per-grain preservation set is always retained.
+presentation; the raw per-entry preservation set is always retained.
 }
 \details{
 This is a \strong{default, not a rule}. Pass \code{precedence} to \code{\link[=pollen_site]{pollen_site()}} to use
 a different order; collapsing is a presentation choice that discards nothing,
-since the raw per-grain \code{pres} string is always kept. Codes follow the
+since the raw per-entry \code{pres} string is always kept. Codes follow the
 Cushing (1967) scheme defined in \link{default_preservation}, which is likewise
 overridable via \code{pollen_site(preservation = )}.
 }

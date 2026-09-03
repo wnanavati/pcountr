@@ -115,7 +115,7 @@ Fill in what you know and leave the rest. The fields, in the order they appear:
 |---|---|
 | **Open Existing Count (.yaml)** | Only if you are picking up a count you started earlier. The dictionary loads automatically from the saved file |
 | **Dictionary file (.DIC or .csv)** | Browse to your taxon dictionary |
-| **ΣP — analyst defined pollen sum groups** | Tick the groups that make up your pollen sum. The choices come from your dictionary, so this stays empty until one is loaded |
+| **ΣP — analyst-defined sum groups** | Tick the groups that make up your pollen sum. The choices come from your dictionary, so this stays empty until one is loaded |
 | **Calculate concentration?** | **Yes, using spikes** if you added exotic marker tablets, **Yes, volumetrically** if you processed a known volume, **No** if you don't need concentrations |
 | **Sample quantity** | Update for your sample |
 | **Sample units** | Update for your sample — `ml` or `g` |

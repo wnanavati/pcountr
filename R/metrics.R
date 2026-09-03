@@ -1,15 +1,16 @@
 #' Compute PCount-equivalent metrics for a sample
 #'
-#' Reproduces the quantities in a PCount `.RPT` report: per-group pollen sums,
-#' the basic and total pollen sums, tracer-spike count, sum/spike ratio, grain
-#' concentration, traverse count and mean grains per traverse.
+#' Reproduces the quantities in a PCount `.RPT` report: per-group sums, the
+#' basic and total count sums, tracer-spike count, sum/spike ratio,
+#' concentration, traverse count and the mean per traverse (returned as
+#' `mean_grains_per_traverse`, which keeps its historical name).
 #'
 #' Concentration follows the tracer (Stockmarr) equation:
-#' \deqn{C = \frac{\sum pollen}{\sum spike} \times \frac{tablets \times density}{quantity}}
+#' \deqn{C = \frac{\Sigma P}{\Sigma spike} \times \frac{tablets \times density}{quantity}}
 #'
-#' The concentration *unit* depends on the sample's recorded units: grains per
-#' cm^3 when the sample quantity is a volume (ml), or grains per gram when it is
-#' a mass (g).
+#' The concentration *unit* depends on the sample's recorded units: `counts/cm3`
+#' when the sample quantity is a volume (ml), or `counts/g` when it is a mass
+#' (g). Samples with no recorded units get `counts/unit`.
 #'
 #' @param x A `pollen_count`.
 #' @param dictionary Optional `pollen_dictionary`; defaults to `x$site`'s
@@ -24,11 +25,11 @@ count_metrics <- function(x, dictionary = NULL) {
   }
 
   g <- x$grains
-  # Exclude non-pollen specials (codes beginning '#') from the sum entirely.
+  # Exclude specials (codes beginning '#') from the sum entirely.
   is_special <- grepl("^#", g$code)
   grp <- dictionary$group[match(g$code, dictionary$code)]
 
-  # Per-group weighted sums (terrestrial pollen groups only).
+  # Per-group weighted sums (sum groups only).
   group_sums <- tapply(g$weight[!is_special], grp[!is_special], sum)
   group_sums[is.na(group_sums)] <- 0
   gs <- function(k) if (k %in% names(group_sums)) as.numeric(group_sums[k]) else 0
@@ -56,9 +57,9 @@ count_metrics <- function(x, dictionary = NULL) {
     NA_real_
   )
   conc_unit <- switch(x$meta$units %||% "",
-                      "ml" = "grains/cm3",
-                      "g"  = "grains/g",
-                      "grains/unit")
+                      "ml" = "counts/cm3",
+                      "g"  = "counts/g",
+                      "counts/unit")
 
   n_trav <- length(x$traverses)
   mean_per_trav <- if (n_trav > 0) total_sum / n_trav else NA_real_
@@ -79,18 +80,18 @@ count_metrics <- function(x, dictionary = NULL) {
 
 #' Tabulate counts by taxon and preservation state
 #'
-#' Produces a taxon x preservation-class table. Half-grain fragments (code `0`)
+#' Produces a taxon x preservation-class table. Half-weight fragments (code `0`)
 #' contribute their 0.5 weight; the `0` itself is reported as a pseudo-class so
-#' that, for example, a class-8 half-grain appears under both `8` accounting and
+#' that, for example, a class-8 fragment appears under both `8` accounting and
 #' a `80` fragment column, mirroring PCount's report layout.
 #'
-#' When `collapse_multistate = TRUE`, grains carrying more than one preservation
-#' state are attributed to a single class using the site precedence (see
-#' [default_precedence]); otherwise each distinct preservation string is its own
-#' column.
+#' When `collapse_multistate = TRUE`, entries carrying more than one
+#' preservation state are attributed to a single class using the site precedence
+#' (see [default_precedence]); otherwise each distinct preservation string is
+#' its own column.
 #'
 #' @param x A `pollen_count`.
-#' @param collapse_multistate Logical; attribute multi-state grains to one class.
+#' @param collapse_multistate Logical; attribute multi-state entries to one class.
 #' @return A matrix of weighted counts (taxa in rows, preservation in columns).
 #' @export
 preservation_table <- function(x, collapse_multistate = FALSE) {
@@ -99,7 +100,7 @@ preservation_table <- function(x, collapse_multistate = FALSE) {
   if (!nrow(g)) return(matrix(numeric(0), 0, 0))
 
   # Reconstruct the raw preservation label as PCount wrote it: base digit plus
-  # a trailing 0 for fragments (e.g. "8" -> "80" when half). Grains entered as a
+  # a trailing 0 for fragments (e.g. "8" -> "80" when half). Entries made as a
   # modifier alone (e.g. hidden with no base state) have no base digit, so fall
   # back to the pres string.
   lbl <- ifelse(is.na(g$base) | !nzchar(g$base), g$pres, g$base)

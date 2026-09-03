@@ -2,6 +2,91 @@
 
 ## pcountr 0.8.0.9000 (development version)
 
+### Changed — the counting app no longer assumes pollen
+
+pcountr has always worked for diatoms, charcoal morphotypes and other proxies,
+but its interface said otherwise. The labels an analyst actually reads are now
+neutral:
+
+| Was | Now |
+|---|---|
+| "Grain History" tab | "Count History" |
+| `Conc (grains/cm³)`, `PAR (grains/cm²/yr)` | `counts/cm³`, `counts/cm²/yr` |
+| "ΣP — Analyst defined pollen sum" | "ΣP — analyst-defined sum" |
+| `0 = half-grain` | `0 = half weight` |
+| "Special marker (non-pollen, e.g. #NPP code)?" | "Special marker, excluded from sums (e.g. #NPP code)?" |
+| "No grains counted yet." | "No counts yet." |
+| "Loaded: … (N grains)" | "Loaded: … (N identifications)" |
+
+`count_app()`'s help page and the README lead with the general case rather than
+naming pollen first.
+
+Relabelling the app's concentration display exposed a second source for the same
+string: `count_metrics()` builds its own `concentration_unit` from the sample's
+units flag, so the app would have read `counts/cm³` while the function returned
+`grains/cm3`. `count_metrics()` now returns `counts/cm3`, `counts/g` and
+`counts/unit`, and `accumulation_rate()`'s documented units follow. The
+descriptions that quote those labels back to the reader — the live-metrics lists
+in the `counting` and `legacy` vignettes, the `ΣP` row of the QUICKSTART setup
+table, and the format and concentration sections of `DESIGN.md` — were corrected
+to match. These are accuracy fixes rather than part of the labelling pass: they
+document what the app displays, so leaving them would have made the docs wrong.
+
+The pass then extended to the roxygen for every function that operates on live
+counts — `accumulation_rate()`, `count_metrics()`, `preservation_table()`,
+`pollen_site()`, `pollen_count()`, `remarks()`, `site_matrix()`, `write_tlx()`
+and `write_count_yaml()`. "Grain" becomes "entry" or "identification", "pollen
+sum" becomes "count sum" (\eqn{\Sigma P}), and `SpikeCount` / `SpikeConc` are
+described in "markers" rather than "grains", which is also more accurate for
+microsphere tracers.
+
+One change reaches exported **data** rather than documentation:
+`default_preservation["0"]` was the label `"half-grain"` and is now
+`"half weight"`, matching the app legend. No test asserted the old value and no
+print method indexes the vector, but it is a user-visible string and anyone
+matching on it should know.
+
+Two stale claims surfaced while doing this and were corrected: `read_dic()`'s
+column table still described taxon codes as "1–2 characters", which stopped
+being true when codes became unbounded earlier in this version, and
+`accumulation_rate()`'s title promised "pollen influx". `PAR` is retained as the
+conventional acronym, with its palynological origin now stated explicitly rather
+than implied.
+
+Names that stay, because renaming them breaks saved counts or callers' code:
+the `pollen_site` / `pollen_count` / `pollen_dictionary` classes, the `grains`
+data frame and YAML key, the `pollen_sum` and `pollen_sum_groups` arguments,
+`site$pollen_sum`, and `count_metrics()`'s `mean_grains_per_traverse` field.
+Each is now documented as keeping a historical name, so the docs no longer imply
+the package only counts pollen.
+
+**What was deliberately left alone**, and why:
+
+- The `pollen_site`, `pollen_count` and `pollen_dictionary` class names, and the
+  `grains` key in the YAML format. Renaming the key would break every saved
+  count; the classes are largely invisible to users, and renaming them is a
+  breaking API change better made once, deliberately, than folded into a
+  labelling pass.
+- Everything documenting a legacy file format — the `.CNT` and `.DIC` reader,
+  the `.RPT` report whose quantities `count_metrics()` reproduces, and the Tilia
+  lookup (`.TIL`) and alias machinery in `read_tilia_lookup()` and
+  `standardize_dic()`. Those formats came out of PCount and Tilia, which were
+  pollen tools; describing them in neutral language would misrepresent what they
+  are. The `.CNT` header literal `POLLEN SUM =` is PCount's own — changing it
+  would produce files PCount could not read. Note that Tilia lookups are
+  themselves proxy-aware, so `read_tilia_lookup(type = )` already accepts
+  `"diatom"`, `"ostracode"`, `"phytolith"` and the rest.
+- `QUICKSTART.md`, which declares itself a guide for palynologists in its first
+  line. Pollen language there is accurate rather than careless, and a beginner
+  guide reads more clearly with one concrete proxy throughout. A sibling guide
+  for a non-pollen proxy is on the roadmap.
+- `rarefaction()`'s "Grains" column heading. Worth noting that rarefaction is
+  *not* a pollen technique — paleolimnology uses it routinely to standardise
+  diatom richness across unequal counts, and count-adequacy studies exist for
+  testate amoebae, cladocera and chironomids — so the label is narrower than
+  the function. Queued rather than done, since the Michaelis–Menten target
+  scheme itself derives from pollen work.
+
 ### New — entry codes of any length, and suggested codes
 
 **The two-character cap on entry codes is gone.** Codes may now be any number

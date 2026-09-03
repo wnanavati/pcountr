@@ -6,7 +6,7 @@ or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
 Status as of this writing: **v0.8.0.9000** (development; v0.8.0 released). The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 641 test
+and all planned analytical layers have been built on top of it. 716 test
 assertions pass, including reproduction of a real PCount report to the digit.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*
@@ -19,7 +19,7 @@ reliability fixes. New in v0.5.4: `apply_metadata()` round-trip workflow,
 `set_metadata()` gains `title` and `conc_method`, `spike_units` fix in autosave,
 and `read_site()` now stamps full `source_file` path. New in v0.5.5:
 `write_site()` for batch YAML export and CNT migration. New in v0.5.6:
-optional `value` column in `pollen_dictionary` for half-grain codes in no-pres
+optional `value` column in `pollen_dictionary` for half-weight codes in no-pres
 counting mode. New in v0.5.7: bug fix — CNT → YAML round-trip now correctly
 preserves `hidden` flag and `pres` string for `9`- and `0`-modifier grains
 (see NEWS.md). New in v0.5.8: `extract_remarks()`; `pres` standardised to a
@@ -48,14 +48,14 @@ charcoal morphotypes, phytoliths, or any assemblage counted by traversing a
 slide follow the same workflow unchanged. The package:
 
 1. provides a **Shiny counting app** (`count_app()`) to replace the DOS
-   counting loop — keystroke-driven grain entry, live running totals,
+   counting loop — keystroke-driven entry, live running totals,
    concentration and PAR, YAML autosave, resume from any saved count;
 2. **reads** legacy PCount files (`.DIC` dictionaries, `.CNT` counts, `.RPT`
    reports);
 3. **converts** them into a modern, self-contained native format (YAML), adding
    sample depth and optional age;
 4. **reproduces** PCount's report calculations (assemblage sums, tracer-spike
-   ratio, grain concentration, traverse statistics, preservation tabulations);
+   ratio, concentration, traverse statistics, preservation tabulations);
 5. **exports** to downstream tools (`rioja` stratigraphic plots, tidy community
    matrices for statistics, Tilia XML `.tlx` for Neotoma upload).
 
@@ -81,14 +81,15 @@ the seam between the two worlds.
 
 ## 2. The domain, briefly
 
-A palynologist looks down a microscope and, for each grain, types a 1–2 letter
+An analyst looks down a microscope and, for each identification, types a short
 **taxon code** (defined in a dictionary) plus a **preservation digit**. A known
-quantity of **tracer spike** (exotic marker grains — here *Microspheres*, code
-`.`) is added to the sample so that pollen **concentration** can be computed from
-the ratio of pollen counted to spike counted. The counter watches two running
-totals: the **terrestrial pollen sum** and the **spike count**. Counting
-proceeds along **traverses** (passes across the slide), with the analyst noting
-the microscope stage position so they can find their place again.
+quantity of **tracer spike** (exotic marker particles — here *Microspheres*, code
+`.`) is added to the sample so that **concentration** can be computed from the
+ratio of identifications counted to spike counted. The counter watches two
+running totals: the **count sum** (ΣP — traditionally the terrestrial pollen
+sum) and the **spike count**. Counting proceeds along **traverses** (passes
+across the slide), with the analyst noting the microscope stage position so they
+can find their place again.
 
 ---
 
@@ -107,7 +108,7 @@ Line 6+: the count stream, wrapped at ~68 columns (must be de-wrapped/rejoined)
 
 The config line fields are:
 `dictionary, sample_quantity, spike_tablets, spike_density, <zero>, units_code;`
-where `units_code` 1 = ml (→ grains/cm³), 2 = g (→ grains/g).
+where `units_code` 1 = ml (→ counts/cm³), 2 = g (→ counts/g).
 
 The count stream, after de-wrapping, is a sequence of these token types:
 
@@ -123,11 +124,11 @@ The count stream, after de-wrapping, is a sequence of these token types:
 
 - A grain has one **base** preservation digit `1`–`8`.
 - `0` is **not a state** — it is a *weight modifier* meaning the grain is a
-  **half-grain fragment**, counting as **0.5** instead of 1.0. It can ride on top
+  **half-weight fragment**, counting as **0.5** instead of 1.0. It can ride on top
   of any base digit (e.g. `I80` = Picea, broken, half-weight = 0.5 under class 8).
 - `9` (hidden) is also a modifier that can follow another digit.
 - **Known code meanings:** 1 = perfect, 2 = corroded, 6 = crumpled, 8 = broken,
-  9 = hidden, 0 = half-grain.
+  9 = hidden, 0 = half weight.
 - **Codes 3, 4, 5, 7** carry no fixed meaning in `pcountr`. Labels for every
   code come from the `preservation` argument to `pollen_site()`, so the scheme
   is defined per project (see §6).
@@ -139,7 +140,7 @@ The count stream, after de-wrapping, is a sequence of these token types:
   is needed. YAMLs written before v0.5.8 used semicolons; `read_pollen_count()`
   strips them on read.
 - Combination codes like `680` (crumpled + broken + half) parse correctly; how
-  they are attributed in a one-class-per-grain summary is controlled by the
+  they are attributed in a one-class-per-entry summary is controlled by the
   analyst's `precedence` order (see §6).
 
 ---
@@ -205,10 +206,10 @@ Consequences of this decision:
 - **Codes 3, 4, 5, 7 need no canonical meaning.** They are valid states whose
   labels come from the analyst's `preservation` vector. There is nothing to
   look up and no documentation debt.
-- **Multi-state precedence needs no external validation.** When a grain carries
-  more than one state and a summary table allows one class per grain,
+- **Multi-state precedence needs no external validation.** When an entry carries
+  more than one state and a summary table allows one class per entry,
   `preservation_table(collapse_multistate = TRUE)` resolves it via `precedence`.
-  The raw per-grain `pres` string is always retained, so collapsing is a
+  The raw per-entry `pres` string is always retained, so collapsing is a
   presentation choice that discards nothing and is reversible.
 
 This closes what earlier versions of this document tracked as two open
@@ -235,7 +236,7 @@ The dictionary **can differ from site to site**. Within one site it is assumed
 consistent; `read_cnt(site=)` warns if a code doesn't resolve.
 
 ### `pollen_count` (per-sample)
-- `grains` — a data frame, **one row per grain, in counting order**:
+- `grains` — a data frame, **one row per entry, in counting order**:
   `code, base, pres (concatenated digit string, e.g. "19"), weight, hidden, traverse, position`
 - `spike_n` — tracer count
 - `traverses` — ordered vector of labels
@@ -255,7 +256,7 @@ by `read_pollen_count()`. Its only consumer is `count_app()`, which uses it to
 auto-reload the correct dictionary when resuming a past count on the same
 machine. It has no effect on any analytical function.
 
-**Granularity decision:** per-grain in sequence, because counting *order matters*
+**Granularity decision:** per-entry in sequence, because counting *order matters*
 to analysts (re-count audits, "find where I was"). Aggregation is a derived view.
 
 ---
@@ -303,7 +304,7 @@ report, so it cannot substitute for the digit-level verification above.
 concentration = (total_pollen_sum / spike_counted) × (spike_tablets × spike_density) / sample_quantity
 ```
 
-Unit follows the sample's units flag: grains/cm³ (ml) or grains/g (g). Units can
+Unit follows the sample's units flag: counts/cm³ (ml) or counts/g (g). Units can
 vary per sample, so the label is computed per sample, not per site.
 
 ---
@@ -399,9 +400,9 @@ The setup screen asks "Use preservation codes?" (Yes / No), stored as
 `use_pres` in `pollen_count$meta` and the YAML.
 
 When **No**: grain tokens are entered as code only (e.g. `B`, `I`) without a
-trailing digit. The count stream displays grains separated by `_` rather than
+trailing digit. The count stream displays entries separated by `_` rather than
 concatenating code + digit, keeping the stream readable during counting. The
-Grain History table shows `—` in the Preservation column and blocks editing of
+Count History table shows `—` in the Preservation column and blocks editing of
 that column. This mode is designed for proxies (e.g. diatoms, charcoal) where
 preservation state is either not recorded or not meaningful.
 

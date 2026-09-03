@@ -1,4 +1,4 @@
-#' Export a pollen site to Tilia XML format (.tlx)
+#' Export a site to Tilia XML format (.tlx)
 #'
 #' Writes a four-page Tilia XML spreadsheet file from a loaded `pollen_site`.
 #' Pages 0--3 (Data, Percents, Concentrations, Accumulation) all share the
@@ -26,7 +26,7 @@
 #'
 #' @section Percentage denominator:
 #' Percentages are computed over taxa whose dictionary group code is in
-#' `groups`. The denominator uses weighted grain counts for each sample.
+#' `groups`. The denominator uses weighted entry counts for each sample.
 #'
 #' @param site A `pollen_site` with samples loaded (from [read_site()]).
 #' @param file Output file path (e.g. `"MySite_2026.tlx"`). The directory

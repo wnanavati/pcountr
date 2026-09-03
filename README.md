@@ -1,13 +1,14 @@
 # pcountr
 
-An interactive counter and analysis toolkit for pollen counting that can be used for diatoms, charcoal morphotypes, or any stratigraphic assemblage counted by traversing a
-slide. Built around a keystroke-driven Shiny app that mirrors the PCount DOS
-workflow while saving to a modern, self-contained format.
+An interactive counter and analysis toolkit for stratigraphic assemblages counted
+by traversing a slide — pollen, diatoms, charcoal morphotypes, phytoliths, or any
+proxy tallied the same way. Built around a keystroke-driven Shiny app that
+mirrors the PCount DOS workflow while saving to a modern, self-contained format.
 
 ## What it does (v0.8.0)
 
 ### Interactive counting app
-- **`count_app()`** — launch the Shiny counting app in your browser. Type grain
+- **`count_app()`** — launch the Shiny counting app in your browser. Type entry
   tokens (`B1`, `I80`, `A1`) and press Enter. Choose concentration method (spike /
   volumetric / none) and whether to record preservation codes — the app adapts
   accordingly. Live running totals (Σ, ΣP, traverses, spike), running concentration
@@ -38,13 +39,13 @@ workflow while saving to a modern, self-contained format.
 
 ### Calculations
 - **`count_metrics()`** — per-group assemblage sums, basic/total sums, spike
-  count, sum/spike ratio, grain concentration (grains/cm³ or grains/g), and
+  count, sum/spike ratio, concentration (counts/cm³ or counts/g), and
   traverse statistics.
 - **`preservation_table()`** — taxon × preservation-class tabulation, with a
-  configurable precedence rule for multi-state grains.
+  configurable precedence rule for multi-state identifications.
 - **`accum_rate()`** — accumulation rates for a full site, with per-taxon influx
   matrices.
-- **`rarefaction()`** — how many grains to count. Extrapolates each sample's
+- **`rarefaction()`** — how many to count. Extrapolates each sample's
   richness asymptote (`Smax`) with a Michaelis–Menten model and reports the
   counts needed for 70%, 80%, and 90% of it, plus a site-level target. Reports
   rather than judges: adequacy depends on your objective, and the output shows
@@ -78,11 +79,12 @@ workflow while saving to a modern, self-contained format.
 
 ### Native YAML format
 - **`write_pollen_count()` / `read_pollen_count()`** — one self-contained YAML
-  file per sample carrying grains, metadata, and analyst-supplied depth and age.
+  file per sample carrying identifications, metadata, and analyst-supplied depth
+  and age.
 
 ### Reading legacy PCount files
 - **`read_dic()`** — parse a PCount `.DIC` dictionary (taxon code → name + group
-  A/B/F/Q/X, plus non-pollen markers); also reads the modern CSV dictionary format.
+  A/B/F/Q/X, plus markers excluded from sums); also reads the modern CSV dictionary format.
 - **`read_cnt()`** — parse a legacy `.CNT` count file into a per-grain
   `pollen_count` object, preserving counting order, traverse labels, tracer-spike
   marks, and inline `[...]` remarks.
@@ -91,7 +93,7 @@ workflow while saving to a modern, self-contained format.
 
 **Start with [QUICKSTART.md](QUICKSTART.md)** — a step-by-step guide that assumes
 no programming experience. It covers installing R, counting a sample in the app,
-checking whether you counted enough grains, and producing a stratigraphic
+checking whether you counted enough, and producing a stratigraphic
 diagram.
 
 ## Quick start — count, plot, export
@@ -129,9 +131,9 @@ morphotype, or phytolith counts follow the same workflow unchanged.
 
 ## Design boundaries
 
-- Preservation code `0` is a **half-grain modifier** (weight 0.5), not a state.
+- Preservation code `0` is a **half-weight modifier** (weight 0.5), not a state.
   The base digit is optional at entry, so a modifier alone (e.g. `ts9`) is a
-  valid grain.
+  valid entry.
 - The **preservation scheme is yours to define.** `pollen_site()` takes both the
   code→label mapping (`preservation`) and the multi-state precedence order
   (`precedence`). The built-in defaults are `1` well-preserved, `2` corroded,

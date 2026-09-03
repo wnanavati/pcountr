@@ -14,7 +14,7 @@ A data frame of class \code{pollen_dictionary} with columns \code{code},
 \code{alias}, \code{group}, \code{name}, \code{is_special}, \code{value}.
 }
 \description{
-Reads a pollen dictionary into a \code{pollen_dictionary} data frame. The format
+Reads a taxon dictionary into a \code{pollen_dictionary} data frame. The format
 is detected automatically from the file extension:
 }
 \details{

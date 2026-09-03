@@ -27,11 +27,41 @@ the `dev` branch.
   shipped dictionary where a name matches and otherwise deriving them from the
   name. `suggest_codes = FALSE` for the old blank column.
 
+- **Proxy-agnostic pass over the counting app and documentation.** UI labels no
+  longer assume pollen: "Grain History" is now "Count History", concentration
+  and accumulation units read `counts/cm3` and `counts/cm2/yr` rather than
+  `grains/`, the analyst-defined sum is no longer called a "pollen sum",
+  preservation code `0` is described as half *weight* rather than half *grain*,
+  and the special-marker checkbox says "excluded from sums" rather than
+  "non-pollen". README leads with the general case.
+
+  `count_metrics()` builds the same unit string independently of the app, so it
+  now returns `counts/` too — otherwise the two would have disagreed — and
+  `accumulation_rate()`'s documented units, the vignette live-metrics lists, the
+  QUICKSTART `ΣP` field name and the `DESIGN.md` format and concentration
+  sections were corrected to match what the app actually displays.
+
+  Deliberately unchanged: the `pollen_site` / `pollen_count` /
+  `pollen_dictionary` class names and the `grains` key in the YAML format
+  (renaming either breaks saved counts, and the classes are largely invisible
+  to users); the legacy `.CNT` / `.DIC` reader and its documentation, since
+  those formats are pollen artefacts and the `.CNT` header literal
+  `POLLEN SUM =` is PCount's own; and QUICKSTART.md, which declares itself a
+  guide for palynologists in its first line, so pollen language there is
+  accurate rather than careless.
+
 **Still to do**
 
-- Proxy-agnostic pass over the counting app and documentation.
 - Release hygiene: `inst/CITATION`, `CITATION.cff`, `.zenodo.json`,
   `CONTRIBUTING.md`, and a GitHub Actions check workflow.
+- `rarefaction()` prints a column headed "Grains" and a banner "Grains needed
+  for % of Smax". Rarefaction is not a pollen technique -- it is standard in
+  paleolimnology for standardising diatom richness across unequal counts, and
+  count-adequacy literature exists for testate amoebae, cladocera and
+  chironomids -- so those labels are narrower than the function. Left for a
+  later pass because the Michaelis-Menten target scheme itself comes from
+  pollen work, and one test asserts the banner text.
+- A quick-start guide for a non-pollen proxy, as a sibling to QUICKSTART.md.
 
 ## Done — v0.8.0
 

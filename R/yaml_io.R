@@ -1,7 +1,7 @@
 #' Write a pollen_count to the native YAML format
 #'
 #' Serialises a sample to a single self-contained YAML file: scalar metadata
-#' (site, depths, ages, sample quantity and unit, spike) plus the full per-grain
+#' (site, depths, ages, sample quantity and unit, spike) plus the full per-entry
 #' sequence in counting order, with traverse labels and remarks interleaved by
 #' position. This is the modern replacement for the legacy `.CNT` format.
 #'

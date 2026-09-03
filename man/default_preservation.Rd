@@ -12,8 +12,8 @@ default_preservation
 \description{
 The preservation codes used by PCount, following the scheme of Cushing
 (1967, \emph{Review of Palaeobotany and Palynology}). Code \code{0} is special: it is
-a \emph{weight modifier} meaning the grain is a fragment (counts as 0.5 toward
-the pollen sum) rather than a preservation state in its own right. Codes
+a \emph{weight modifier} meaning the entry is a fragment (counts as 0.5 toward
+the count sum) rather than a preservation state in its own right. Codes
 \code{5} and \code{7} are undefined in the source scheme and are retained as
 placeholders that may be relabelled per project.
 }

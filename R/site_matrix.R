@@ -1,4 +1,4 @@
-#' Convert a loaded pollen site to a wide taxa matrix
+#' Convert a loaded site to a wide taxa matrix
 #'
 #' Returns a list of parallel matrices and vectors suitable for downstream
 #' analysis and plotting (e.g. `rioja::strat.plot()`). All non-special taxa
@@ -7,7 +7,7 @@
 #' Percentages (`TaxaPerc`) are computed as:
 #' \deqn{p_{ij} = 100 \times w_{ij} / D_i}
 #' where \eqn{w_{ij}} is the weighted count of taxon \eqn{j} in sample
-#' \eqn{i} and \eqn{D_i} is the sum of all grain weights in `groups`.
+#' \eqn{i} and \eqn{D_i} is the sum of all entry weights in `groups`.
 #'
 #' Concentrations (`TaxaConc`) use the Stockmarr equation per taxon:
 #' \deqn{c_{ij} = \frac{w_{ij}}{S_i} \times \frac{A_i \times \rho_i}{V_i}}
@@ -38,9 +38,9 @@
 #'     \item{`AgeTop`}{Top-of-interval age (years BP); `NA` where not recorded.}
 #'     \item{`AgeBot`}{Bottom-of-interval age (years BP); `NA` where not recorded.}
 #'     \item{`SampleSize`}{Sample quantity (ml or g).}
-#'     \item{`SpikeCount`}{Number of spike grains counted.}
+#'     \item{`SpikeCount`}{Number of spike markers counted.}
 #'     \item{`SpikeAdded`}{Spike tablets or volume added to the sample.}
-#'     \item{`SpikeConc`}{Concentration of the spike (grains per tablet or per ml).}
+#'     \item{`SpikeConc`}{Concentration of the spike (markers per tablet or per ml).}
 #'     \item{`TaxaCount`}{Raw weighted counts matrix (samples x taxa).}
 #'     \item{`TaxaPerc`}{Percentage matrix (samples x taxa).}
 #'     \item{`TaxaConc`}{Concentration matrix (samples x taxa); `NA` cells

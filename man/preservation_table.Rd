@@ -9,20 +9,20 @@ preservation_table(x, collapse_multistate = FALSE)
 \arguments{
 \item{x}{A \code{pollen_count}.}
 
-\item{collapse_multistate}{Logical; attribute multi-state grains to one class.}
+\item{collapse_multistate}{Logical; attribute multi-state entries to one class.}
 }
 \value{
 A matrix of weighted counts (taxa in rows, preservation in columns).
 }
 \description{
-Produces a taxon x preservation-class table. Half-grain fragments (code \code{0})
+Produces a taxon x preservation-class table. Half-weight fragments (code \code{0})
 contribute their 0.5 weight; the \code{0} itself is reported as a pseudo-class so
-that, for example, a class-8 half-grain appears under both \code{8} accounting and
+that, for example, a class-8 fragment appears under both \code{8} accounting and
 a \code{80} fragment column, mirroring PCount's report layout.
 }
 \details{
-When \code{collapse_multistate = TRUE}, grains carrying more than one preservation
-state are attributed to a single class using the site precedence (see
-\link{default_precedence}); otherwise each distinct preservation string is its own
-column.
+When \code{collapse_multistate = TRUE}, entries carrying more than one
+preservation state are attributed to a single class using the site precedence
+(see \link{default_precedence}); otherwise each distinct preservation string is
+its own column.
 }

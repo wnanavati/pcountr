@@ -16,15 +16,16 @@ dictionary if present. Required to map taxon codes to groups for the sum.}
 A list of metrics.
 }
 \description{
-Reproduces the quantities in a PCount \code{.RPT} report: per-group pollen sums,
-the basic and total pollen sums, tracer-spike count, sum/spike ratio, grain
-concentration, traverse count and mean grains per traverse.
+Reproduces the quantities in a PCount \code{.RPT} report: per-group sums, the
+basic and total count sums, tracer-spike count, sum/spike ratio,
+concentration, traverse count and the mean per traverse (returned as
+\code{mean_grains_per_traverse}, which keeps its historical name).
 }
 \details{
 Concentration follows the tracer (Stockmarr) equation:
-\deqn{C = \frac{\sum pollen}{\sum spike} \times \frac{tablets \times density}{quantity}}
+\deqn{C = \frac{\Sigma P}{\Sigma spike} \times \frac{tablets \times density}{quantity}}
 
-The concentration \emph{unit} depends on the sample's recorded units: grains per
-cm^3 when the sample quantity is a volume (ml), or grains per gram when it is
-a mass (g).
+The concentration \emph{unit} depends on the sample's recorded units: \code{counts/cm3}
+when the sample quantity is a volume (ml), or \code{counts/g} when it is a mass
+(g). Samples with no recorded units get \code{counts/unit}.
 }

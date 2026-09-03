@@ -2,8 +2,8 @@
 #'
 #' The preservation codes used by PCount, following the scheme of Cushing
 #' (1967, *Review of Palaeobotany and Palynology*). Code `0` is special: it is
-#' a *weight modifier* meaning the grain is a fragment (counts as 0.5 toward
-#' the pollen sum) rather than a preservation state in its own right. Codes
+#' a *weight modifier* meaning the entry is a fragment (counts as 0.5 toward
+#' the count sum) rather than a preservation state in its own right. Codes
 #' `5` and `7` are undefined in the source scheme and are retained as
 #' placeholders that may be relabelled per project.
 #'
@@ -22,19 +22,19 @@ default_preservation <- c(
   "7" = "undefined",
   "8" = "broken",
   "9" = "hidden",
-  "0" = "half-grain"
+  "0" = "half weight"
 )
 
-#' Default precedence for attributing multi-code grains in summaries
+#' Default precedence for attributing multi-code entries in summaries
 #'
-#' When a single grain carries more than one preservation state (e.g. crumpled
-#' and broken), a summary table that allows only one class per grain must pick
+#' When a single entry carries more than one preservation state (e.g. crumpled
+#' and broken), a summary table that allows only one class per entry must pick
 #' one. This vector defines the precedence, highest first. It is only used for
-#' presentation; the raw per-grain preservation set is always retained.
+#' presentation; the raw per-entry preservation set is always retained.
 #'
 #' This is a **default, not a rule**. Pass `precedence` to [pollen_site()] to use
 #' a different order; collapsing is a presentation choice that discards nothing,
-#' since the raw per-grain `pres` string is always kept. Codes follow the
+#' since the raw per-entry `pres` string is always kept. Codes follow the
 #' Cushing (1967) scheme defined in [default_preservation], which is likewise
 #' overridable via `pollen_site(preservation = )`.
 #'
@@ -44,7 +44,7 @@ default_precedence <- c("8", "6", "2", "9", "1")
 
 #' Read a PCount dictionary file (.DIC or .csv)
 #'
-#' Reads a pollen dictionary into a `pollen_dictionary` data frame. The format
+#' Reads a taxon dictionary into a `pollen_dictionary` data frame. The format
 #' is detected automatically from the file extension:
 #'
 #' * **`.DIC`** — the legacy PCount fixed-column format (original behaviour).
@@ -100,12 +100,12 @@ read_dic <- function(path) {
 #'
 #' | Column | Required | Description |
 #' |--------|----------|-------------|
-#' | `code` | yes | Taxon code (1–2 characters; `#`-prefixed for non-pollen markers; `.` for tracer spike) |
+#' | `code` | yes | Taxon code (letters only, any length, though one or two keeps counting fast; `#`-prefixed for markers excluded from sums; `.` for tracer spike) |
 #' | `name` | yes | Full taxon name |
 #' | `group` | yes | Single-letter group code (e.g. `A`, `B`, `F`, `Q`); leave blank for special markers |
 #' | `alias` | no | Short alternative name or abbreviation |
 #' | `is_special` | no | `TRUE`/`FALSE`; inferred from `code` prefix when absent |
-#' | `value` | no | Grain weight (default `1`). Set to `0.5` for half-grain codes when counting without preservation codes — e.g. a code `HI` for "half *Picea*" with `value = 0.5`. Ignored when preservation codes are in use (weight is then determined by the `0` modifier in the token). |
+#' | `value` | no | Entry weight (default `1`). Set to `0.5` for half-weight codes when counting without preservation codes — e.g. a code `HI` for "half *Picea*" with `value = 0.5`. Ignored when preservation codes are in use (weight is then determined by the `0` modifier in the token). |
 #'
 #' Column names are matched case-insensitively. Rows with blank `code` or
 #' `name` are silently dropped.
@@ -163,7 +163,7 @@ read_dic_csv <- function(path) {
   inferred <- !nzchar(df$group) | grepl("^[#.]", df$code)
   df$is_special <- ifelse(is.na(explicit), inferred, explicit | inferred)
 
-  # value: grain weight; default 1 when absent or NA
+  # value: entry weight; default 1 when absent or NA
   df$value <- suppressWarnings(as.numeric(df$value))
   df$value[is.na(df$value)] <- 1.0
 
@@ -209,16 +209,18 @@ write_dic_csv <- function(dic, path) {
 #'
 #' A *site* bundles the configuration shared by all samples counted there: the
 #' dictionary, the preservation-code scheme, the precedence used for summarising
-#' multi-state grains, and the pollen-sum group definition.
+#' multi-state entries, and the `pollen_sum` group definition.
 #'
 #' @param name Site name.
 #' @param dictionary A `pollen_dictionary` (from [read_dic()]) or path to a
 #'   `.DIC` file.
-#' @param pollen_sum Character vector of group codes forming the *basic* pollen
-#'   sum (default `c("A","B","F")`, i.e. the PCount "ABF" sum).
+#' @param pollen_sum Character vector of group codes forming the *basic* count
+#'   sum, \eqn{\Sigma P}{Sigma P} (default `c("A","B","F")`, i.e. the PCount
+#'   "ABF" sum).
+#'   The argument keeps its historical name for backward compatibility.
 #' @param preservation Named character vector mapping codes to labels.
 #' @param precedence Character vector of codes, highest precedence first, for
-#'   attributing multi-state grains in single-class summaries.
+#'   attributing multi-state entries in single-class summaries.
 #' @param samples Named list of `pollen_count` objects pre-loaded into the
 #'   site (rarely used directly; [read_site()] populates this).
 #' @return An object of class `pollen_site`.

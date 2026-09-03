@@ -2,7 +2,7 @@
 % Please edit documentation in R/accum_rate.R
 \name{accum_rate}
 \alias{accum_rate}
-\title{Compute pollen accumulation rates (PAR / pollen influx) for a site}
+\title{Compute accumulation rates (PAR / influx) for a site}
 \usage{
 accum_rate(site)
 }
@@ -14,27 +14,32 @@ A list with three elements:
 \describe{
 \item{\code{data}}{Data frame with one row per sample:
 \code{sample}, \code{depth_top}, \code{depth_bottom}, \code{age_top}, \code{age_bottom},
-\code{deposition_time} (yr/cm), \code{concentration} (grains per sample-unit),
-\code{influx} (grains/cm\eqn{^2}/yr).}
+\code{deposition_time} (yr/cm), \code{concentration} (counts per sample-unit),
+\code{influx} (counts/cm\eqn{^2}/yr).}
 \item{\code{taxon_concentration}}{Numeric matrix (samples x taxa):
 per-taxon concentration for all non-special taxa.}
 \item{\code{taxon_influx}}{Numeric matrix (samples x taxa):
-per-taxon PAR (grains/cm\eqn{^2}/yr).}
+per-taxon PAR (counts/cm\eqn{^2}/yr).}
 }
 }
 \description{
-Calculates pollen concentration, deposition time, and pollen influx for
-each depth-bearing sample in a loaded site. Both total and per-taxon values
-are returned.
+Calculates concentration, deposition time, and influx for each depth-bearing
+sample in a loaded site. Both total and per-taxon values are returned.
+}
+\details{
+\code{PAR} is kept as the conventional acronym. It originates in palynology as
+"pollen accumulation rate", but the calculation itself depends only on a
+count sum, a spike and a sample quantity, so it applies to any proxy counted
+the same way.
 }
 \section{Equations}{
 
 \deqn{\text{deposition time} = \frac{age_{bottom} - age_{top}}{depth_{bottom} - depth_{top}} \quad [\text{yr/cm}]}
-\deqn{\text{concentration} = \frac{\text{pollen sum}}{\text{spike counted}} \times \frac{\text{spike tablets} \times \text{spike density}}{\text{sample quantity}} \quad [\text{grains/cm}^3 \text{ or grains/g}]}
-\deqn{\text{PAR} = \frac{\text{concentration}}{\text{deposition time}} \quad [\text{grains/cm}^2/\text{yr}]}
+\deqn{\text{concentration} = \frac{\text{count sum}}{\text{spike counted}} \times \frac{\text{spike tablets} \times \text{spike density}}{\text{sample quantity}} \quad [\text{counts/cm}^3 \text{ or counts/g}]}
+\deqn{\text{PAR} = \frac{\text{concentration}}{\text{deposition time}} \quad [\text{counts/cm}^2/\text{yr}]}
 
 Per-taxon concentrations and influx are computed the same way using each
-taxon's weighted grain count in place of the total pollen sum.
+taxon's weighted count in place of the total count sum.
 }
 
 \section{Required inputs}{

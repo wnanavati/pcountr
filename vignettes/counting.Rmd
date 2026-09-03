@@ -77,7 +77,7 @@ The first screen collects instrument and sample metadata before counting begins.
 | **Spike tablets** | Number of tablets added — shown only when method is `spike` |
 | **Spike density** | Microspheres per unit of spike — shown only when method is `spike` |
 | **Spike units** | `tablets`, `ml`, or `g` — shown only when method is `spike` |
-| **Use preservation codes?** | `Yes` (grain tokens require a preservation digit, e.g. `B1`) or `No` (code only, e.g. `B`) |
+| **Use preservation codes?** | `Yes` (entry tokens require a preservation digit, e.g. `B1`) or `No` (code only, e.g. `B`) |
 | **Sample quantity** | Volume or mass of sediment processed |
 | **Sample units** | `ml` or `g` |
 | **Save path** | Full path for this sample's YAML file |
@@ -95,15 +95,15 @@ Type any of the following in the input field and press **Enter** or **Space** to
 | Token | Meaning |
 |---|---|
 | `B1`, `I80`, `A1` | **With preservation codes (default):** taxon code + base preservation digit + optional modifiers |
-| `B10` | Half-grain modifier: code `B`, preservation `1`, modifier `0` (weight 0.5) |
-| `B19` | Hidden grain: code `B`, preservation `1`, modifier `9` |
-| `B9`, `B0` | Modifier alone — a grain recorded as hidden, or as a half-grain, with no base preservation state. The base digit is optional |
+| `B10` | Half-weight modifier: code `B`, preservation `1`, modifier `0` (weight 0.5) |
+| `B19` | Hidden entry: code `B`, preservation `1`, modifier `9` |
+| `B9`, `B0` | Modifier alone — an entry recorded as hidden, or as half weight, with no base preservation state. The base digit is optional |
 | `B`, `I`, `A` | **Without preservation codes:** code only, when "Use preservation codes?" is set to No |
 | `.` | One tracer microsphere (spike) — only when concentration method is `spike`. Pressing `.` on an empty field submits immediately (no Enter needed) |
-| `/label/` | Traverse marker — stored verbatim in the grain sequence |
+| `/label/` | Traverse marker — stored verbatim in the entry sequence |
 | `[text]` | Inline remark — stored verbatim |
 
-Modifiers: `9` = hidden, `0` = half-grain (weight 0.5).
+Modifiers: `9` = hidden, `0` = half weight (0.5).
 
 Digits `1`–`8` are preservation states, and **what they mean is up to you.** The
 built-in defaults are `1` well-preserved, `2` corroded, `6` crumpled, `8` broken
@@ -112,7 +112,7 @@ damage-state taxonomy, pass a named vector to `pollen_site(preservation = )`;
 every summary and label follows from it.
 
 Unknown or malformed tokens trigger a prominent red alert and an audio beep.
-The grain is **not recorded** — correct and re-enter.
+The entry is **not recorded** — correct and re-enter.
 
 Use the **New Slide** button when moving to a new slide; you will be prompted
 for a slide ID, which is stored as a traverse marker.
@@ -123,27 +123,28 @@ for a slide ID, which is stored as a traverse marker.
 
 The header panel updates after every entry:
 
-- **Σ** — total grains counted (all groups)
-- **ΣP** — group-filtered sum (e.g., terrestrial pollen types only)
+- **Σ** — total identifications counted (all groups)
+- **ΣP** — group-filtered sum (e.g., terrestrial types only)
 - **Traverses** — running traverse count
-- **Spike** — total spike grains recorded
-- **Concentration** — grains/g or grains/cm³; method depends on the setup choice
+- **Spike** — total spike markers recorded
+- **Concentration** — counts/g or counts/cm³; method depends on the setup choice
   (spike: Stockmarr equation; volumetric: ΣP / sample quantity; none: always `NA`).
   Shows `NA` until all required inputs are present
-- **PAR** — pollen accumulation rate; shows `NA` until depth and age intervals
+- **PAR** — accumulation rate (the acronym is palynological in origin, the
+  arithmetic is not); shows `NA` until depth and age intervals
   are both present
 
 ---
 
 ## Autosave and resume
 
-The YAML file is written continuously — grain entries save within ~300 ms, and
+The YAML file is written continuously — count entries save within ~300 ms, and
 all other actions (traverses, remarks, undo, metadata changes) save immediately.
 Closing the browser or losing power risks losing at most a handful of the most
 recent rapid keystrokes. The *Done / Save* button is a confirmation step only.
 
 To resume a previous count, click **Open Existing Count** on the setup screen
-and navigate to the YAML file. Grain order, traverses, remarks, spike total, and
+and navigate to the YAML file. Entry order, traverses, remarks, spike total, and
 all metadata are restored exactly as they were.
 
 After finishing a sample, **New Sample** carries over instrument metadata

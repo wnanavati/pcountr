@@ -2,7 +2,7 @@
 % Please edit documentation in R/write_tlx.R
 \name{write_tlx}
 \alias{write_tlx}
-\title{Export a pollen site to Tilia XML format (.tlx)}
+\title{Export a site to Tilia XML format (.tlx)}
 \usage{
 write_tlx(site, file, groups = NULL)
 }
@@ -48,7 +48,7 @@ and Accumulation use non-special codes only (matching \code{\link[=site_matrix]{
 \section{Percentage denominator}{
 
 Percentages are computed over taxa whose dictionary group code is in
-\code{groups}. The denominator uses weighted grain counts for each sample.
+\code{groups}. The denominator uses weighted entry counts for each sample.
 }
 
 \seealso{

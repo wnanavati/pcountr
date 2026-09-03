@@ -1,18 +1,18 @@
-# remarks.R — extract remark table from a pollen_site
+# remarks.R — extract remark table from a pollen_site (any counted proxy)
 
-#' Extract remarks from a pollen site
+#' Extract remarks from a site
 #'
 #' Returns a data frame of every inline remark recorded during counting across
 #' all samples in a \code{pollen_site}, along with the taxon ID of the
-#' immediately adjacent grain.
+#' immediately adjacent entry.
 #'
 #' @param site A \code{pollen_site} object.
-#' @param id   \code{"before"} (default) returns the grain counted immediately
-#'   \emph{before} the remark; \code{"after"} returns the grain counted
+#' @param id   \code{"before"} (default) returns the entry counted immediately
+#'   \emph{before} the remark; \code{"after"} returns the entry counted
 #'   immediately \emph{after} it.  The ID is the taxon code concatenated with
 #'   the preservation string (e.g. \code{"I1"} for Picea, well-preserved), or
 #'   just the code when preservation was not recorded (e.g. \code{"I"}).
-#'   \code{NA} when no adjacent grain exists or when a sample lacks a full
+#'   \code{NA} when no adjacent entry exists or when a sample lacks a full
 #'   event stream (format version 1 YAML).
 #'
 #' @return A data frame with columns:
@@ -24,7 +24,7 @@
 #'       \code{\{...\}} token in a CNT stream (or New Slide in the counting
 #'       app) begins the next slide.}
 #'     \item{traverse}{Traverse label active at the time the remark was made.}
-#'     \item{id}{Taxon ID of the adjacent grain (see \code{id} argument).}
+#'     \item{id}{Taxon ID of the adjacent entry (see \code{id} argument).}
 #'     \item{remark}{Remark text, verbatim.}
 #'   }
 #'   An empty data frame with the same columns is returned when no remarks
