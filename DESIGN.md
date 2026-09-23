@@ -6,8 +6,9 @@ or with a human collaborator) can continue the project without re-deriving the
 reasoning. **Read this first.**
 
 Status as of this writing: **v0.8.0.9000** (development; v0.8.0 released). The verified spine (v0.1.0) is complete
-and all planned analytical layers have been built on top of it. 716 test
-assertions pass, including reproduction of a real PCount report to the digit.
+and all planned analytical layers have been built on top of it. 726 test
+assertions pass, including reproduction of a real PCount report to the digit
+and the unit label beside it.
 The Shiny counting app (`count_app()`) is functional and has been used in the
 field. Two vignettes ship with the package: *Counting at the Microscope*
 (`counting.Rmd`, primary) and *Legacy Workflow: CNT Files to Tilia XML*
@@ -108,7 +109,23 @@ Line 6+: the count stream, wrapped at ~68 columns (must be de-wrapped/rejoined)
 
 The config line fields are:
 `dictionary, sample_quantity, spike_tablets, spike_density, <zero>, units_code;`
-where `units_code` 1 = ml (→ counts/cm³), 2 = g (→ counts/g).
+where `units_code` **2 = ml** (→ counts/cm³) and **1 = g** (→ counts/g).
+
+> **Corrected in v0.9.0 — this mapping was documented backwards.** Earlier
+> versions of this file, and `read_cnt()` itself, had 1 = ml and 2 = g. The
+> evidence against that is direct: `LMSH001.CNT` carries a sixth field of `2`,
+> and `LM23SH00.RPT` — which PCount generated from that very file — reads
+> `Quantity of sample = 1.0  ml`. Every other field in the config line is
+> confirmed by the same report (quantity 1 → "1.0", spike 2 → "2.0
+> tablet(s)", density 9666 → "9666/tablet(s)"), so the field order was never
+> in doubt; only the mapping was. The counting app wrote the same inverted
+> code, so pcountr round-tripped correctly with itself while disagreeing with
+> PCount. Concentration *values* were never affected — the arithmetic uses
+> `sample_quantity`, never the label — which is exactly why the golden test
+> passed for four versions without catching it. A test now asserts the label,
+> not just the numbers. `1 = g` remains an inference: no `.CNT` with a `1` in
+> that field was available, and the analyst reports never having recorded a
+> sample by weight.
 
 The count stream, after de-wrapping, is a sequence of these token types:
 

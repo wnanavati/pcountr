@@ -2,6 +2,78 @@
 
 ## pcountr 0.8.0.9000 (development version)
 
+### Fixed — the `.CNT` units code was inverted
+
+`read_cnt()` mapped the config line's sixth field as 1 = ml, 2 = g. It is the
+other way round. `LMSH001.CNT` ends its config line with `2`, and
+`LM23SH00.RPT` — which PCount generated from that exact file — reads
+`Quantity of sample = 1.0  ml`. Every other field in the line is corroborated
+by the same report, so the field order was never in question; only the
+mapping was.
+
+The counting app wrote the same inverted code when rendering a `.CNT` stream,
+so pcountr round-tripped correctly against itself while disagreeing with
+PCount. Both ends are now corrected: `2 = ml`, `1 = g`.
+
+**Concentration values were never wrong.** The Stockmarr arithmetic uses
+`sample_quantity` and never the label, so only the unit *string* was
+misreported — `counts/g` where it should have said `counts/cm3`. That is also
+why this survived four versions of a test suite that reproduces a PCount
+report to the digit: the golden test asserts the numbers and not the units.
+Two tests now assert the label as well.
+
+In practice the blast radius was small. `read_site()` with a metadata sheet
+takes units from the sheet, so any workflow using `metadata_FL.csv` or an
+equivalent already reported `ml` correctly. A bare `read_cnt()` on a legacy
+file is what showed the wrong unit.
+
+`1 = g` remains an inference: no `.CNT` carrying a `1` in that field was
+available to check, and the analyst reports never having recorded a sample by
+weight. A test pins the inferred behaviour so it is visible if it ever proves
+wrong.
+
+### Fixed — a silent zero when sum groups and dictionary disagree
+
+`pollen_site()` defaults its sum groups to `c("A", "B", "F")`, PCount's "ABF"
+convention. A dictionary drafted by `build_dic_neotoma()` carries Neotoma's
+ecological group codes instead — `TRSH`, `UPHE`, `AQVP` — so the default
+matched nothing, and the analyst-defined sum came out as **0** with no
+indication anything was wrong. A zero that looks like a real answer is worse
+than an error, and this had been the case since `build_dic_neotoma()` was
+added.
+
+`pollen_site()` now warns when no group in `pollen_sum` occurs in the
+dictionary, and names the groups that *are* present so the fix is obvious:
+
+```
+None of the sum groups (A, B, F) occur in the dictionary, so the
+analyst-defined sum will be 0. Groups present: TRSH, UPHE. Set
+`pollen_sum` to the groups you want summed.
+```
+
+Only an *empty* intersection warns — a dictionary legitimately missing one
+group does not nag. `read_site()` builds a `pollen_site` twice, so the second
+call passes the new `warn_sum = FALSE` argument and one `read_site()` emits at
+most one warning.
+
+Two related notes. `site_matrix()` already warned on a zero percentage
+denominator and returned `NA` rather than `NaN`, so that path was never
+silent; the new warning catches the cause earlier and explains it.
+And `count_metrics()` takes its groups from each sample's own
+`pollen_sum_groups` — the `POLLEN SUM =` header of a `.CNT`, or the value
+stored in a `.YAML` — not from `site$pollen_sum`, which is documented on
+`build_dic_neotoma()` now that the distinction matters.
+
+### Fixed — `group` was documented as single-letter
+
+`read_dic_csv()`'s column table described `group` as a "Single-letter group
+code". Nothing in the code enforces that: the CSV reader only trims the value,
+group matching is a string comparison, and the counting app builds its ΣP
+choices from whatever groups the dictionary contains. `build_dic_neotoma()`
+writes four-letter Neotoma codes, so the package's own recommended workflow
+contradicted its documentation. The single-character limit belongs to the
+legacy `.DIC` format, which stores the group in one fixed column.
+
 ### New — release and contribution metadata
 
 Groundwork for a citable release:

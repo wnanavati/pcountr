@@ -118,9 +118,14 @@ read_cnt <- function(path, site = NULL, quiet = FALSE) {
   parts <- trimws(strsplit(line, ",")[[1]])
   # parts: dict, sample_qty, spike_tablets, spike_density, n0, units
   units_code <- suppressWarnings(as.integer(parts[6]))
+  # 2 = ml, 1 = g -- not the other way round. LMSH001.CNT carries a 6th field
+  # of 2, and the .RPT PCount generated from it reads "Quantity of sample =
+  # 1.0  ml". pcountr had this inverted before v0.9.0, mislabelling the unit
+  # on every legacy read; concentration values were unaffected, since the
+  # arithmetic never touches the label.
   units_label <- switch(as.character(units_code),
-                        "1" = "ml",
-                        "2" = "g",
+                        "1" = "g",
+                        "2" = "ml",
                         NA_character_)
   list(
     dictionary = parts[1],

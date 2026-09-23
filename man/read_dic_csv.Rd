@@ -20,7 +20,7 @@ Reads a CSV dictionary with the following columns:
    Column \tab Required \tab Description \cr
    \code{code} \tab yes \tab Taxon code (letters only, any length, though one or two keeps counting fast; \verb{#}-prefixed for markers excluded from sums; \code{.} for tracer spike) \cr
    \code{name} \tab yes \tab Full taxon name \cr
-   \code{group} \tab yes \tab Single-letter group code (e.g. \code{A}, \code{B}, \code{F}, \code{Q}); leave blank for special markers \cr
+   \code{group} \tab yes \tab Group code assigning the taxon to a sum group. Any string: single letters (\code{A}, \code{B}, \code{F}, \code{Q}, \code{X}) follow PCount convention, while dictionaries drafted by \code{\link[=build_dic_neotoma]{build_dic_neotoma()}} carry Neotoma's ecological group codes (\code{TRSH}, \code{UPHE}, \code{AQVP}). Leave blank for special markers \cr
    \code{alias} \tab no \tab Short alternative name or abbreviation \cr
    \code{is_special} \tab no \tab \code{TRUE}/\code{FALSE}; inferred from \code{code} prefix when absent \cr
    \code{value} \tab no \tab Entry weight (default \code{1}). Set to \code{0.5} for half-weight codes when counting without preservation codes — e.g. a code \code{HI} for "half \emph{Picea}" with \code{value = 0.5}. Ignored when preservation codes are in use (weight is then determined by the \code{0} modifier in the token). \cr

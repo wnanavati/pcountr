@@ -116,11 +116,14 @@ read_site <- function(folder,
   samples <- .order_samples(samples)
 
   # 7. Return pollen_site with samples ------------------------------------
+  # warn_sum = FALSE: base_site above already checked this dictionary against
+  # these sum groups, and warning twice for one read_site() call is noise.
   pollen_site(name, dic,
               pollen_sum   = base_site$pollen_sum,
               preservation = base_site$preservation,
               precedence   = base_site$precedence,
-              samples      = samples)
+              samples      = samples,
+              warn_sum     = FALSE)
 }
 
 

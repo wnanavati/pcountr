@@ -291,6 +291,19 @@
 #' they encode your sum decisions, so edit them freely. Check the finished
 #' dictionary with [standardize_dic()].
 #'
+#' Note that Neotoma's group codes (`TRSH`, `UPHE`, `AQVP`, ...) are not
+#' PCount's (`A`, `B`, `F`, ...), so the default sum groups of
+#' `c("A", "B", "F")` match nothing in a dictionary left as drafted, and
+#' percentages would come out empty. The simplest course is to recode the
+#' `group` column to your own convention while you are editing the draft.
+#' To keep Neotoma's codes instead, set the sum groups on the site --
+#' `site$pollen_sum <- c("TRSH", "UPHE")` -- which governs [site_matrix()]
+#' and [write_tlx()]. [pollen_site()] warns when no sum group occurs in the
+#' dictionary. Note that [count_metrics()] reads its groups from each
+#' sample's own `pollen_sum_groups` (the `POLLEN SUM =` header for a `.CNT`,
+#' or the value stored in a `.YAML`), not from `site$pollen_sum`; when
+#' counting in [count_app()] the groups you tick are saved with the sample.
+#'
 #' @section Cost:
 #' One slow spatial query, then one download per dataset among the
 #' `max_sites` nearest sites. Expect the whole call to take **a few

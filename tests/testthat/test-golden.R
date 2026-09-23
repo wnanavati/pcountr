@@ -114,3 +114,34 @@ test_that("half-grain (code 0) yields weight 0.5", {
   expect_true(nrow(halves) > 0)
   expect_true(all(grepl("0$", paste0(halves$base, "0"))))
 })
+
+test_that("LMSH001 units parse as ml, matching the .RPT", {
+  # LM23SH00.RPT reads "Quantity of sample = 1.0  ml" while LMSH001.CNT's
+  # config line ends in 2, so units_code 2 means ml. pcountr had this
+  # inverted before v0.9.0. The golden test above asserts values only, and
+  # the arithmetic never uses the label, so nothing caught it. This does.
+  dic  <- read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
+  site <- pollen_site("Little Mosquito Lake", dic)
+  cnt  <- read_cnt(system.file("extdata", "LMSH001.CNT", package = "pcountr"),
+                   site = site, quiet = TRUE)
+
+  expect_equal(cnt$meta$units, "ml")
+  expect_equal(count_metrics(cnt)$concentration_unit, "counts/cm3")
+})
+
+test_that("a units_code of 1 parses as g", {
+  # Inferred rather than observed: no .CNT with a 1 in that field was
+  # available. Pinned here so the inference is visible if it ever proves wrong.
+  src <- readLines(system.file("extdata", "LMSH001.CNT", package = "pcountr"),
+                   warn = FALSE)
+  src[3] <- sub("2;", "1;", src[3], fixed = TRUE)
+  tmp <- tempfile(fileext = ".CNT")
+  writeLines(src, tmp)
+
+  dic  <- read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
+  site <- pollen_site("Little Mosquito Lake", dic)
+  cnt  <- read_cnt(tmp, site = site, quiet = TRUE)
+
+  expect_equal(cnt$meta$units, "g")
+  expect_equal(count_metrics(cnt)$concentration_unit, "counts/g")
+})

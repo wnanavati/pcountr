@@ -2,10 +2,11 @@ extdata <- function(...) system.file("extdata", ..., package = "pcountr")
 
 # LMSH001 known values (from golden test):
 #   total_sum = 338.5, spike_n = 72
-#   spike_tablets = 2, spike_density = 9666, sample_quantity = 1, units = "g"
+#   spike_tablets = 2, spike_density = 9666, sample_quantity = 1, units = "ml"
 #   spike_factor = (2 * 9666) / (72 * 1) = 268.5
-#   concentration = 338.5 * 268.5 = 90887.25 grains/g
-#   B (Betula) weight = 139.0 -> B_conc = 139.0 * 268.5 = 37321.5 grains/g
+#   concentration = 338.5 * 268.5 = 90887.25 counts/cm3
+#   B (Betula) weight = 139.0 -> B_conc = 139.0 * 268.5 = 37321.5 counts/cm3
+#   (units label only; the arithmetic above is unchanged by it)
 
 # Helper: build a one-sample site from LMSH001 with full inputs
 make_one_sample_site <- function(depth_top    = 0.0,

@@ -62,3 +62,58 @@ test_that("dictionary parses all 232 taxa with expected group sizes", {
   expect_equal(as.integer(tb["B"]), 103L)
   expect_equal(as.integer(tb["F"]), 26L)
 })
+
+# --- sum-group / dictionary mismatch --------------------------------------
+# A dictionary drafted by build_dic_neotoma() carries Neotoma's ecological
+# group codes, which the default pollen_sum of c("A","B","F") cannot match.
+# Before this check the result was a silent sum of 0.
+
+.neotoma_style_dic <- function() {
+  path <- tempfile(fileext = ".csv")
+  utils::write.csv(
+    data.frame(
+      code  = c("AL", "PI", "CY"),
+      name  = c("Alnus undiff.", "Pinus undiff.", "Cyperaceae undiff."),
+      group = c("TRSH", "TRSH", "UPHE"),
+      stringsAsFactors = FALSE
+    ),
+    path, row.names = FALSE
+  )
+  read_dic_csv(path)
+}
+
+.fake_lake_dic <- function() {
+  read_dic(system.file("extdata", "fake_lake", "ECG.DIC", package = "pcountr"))
+}
+
+test_that("pollen_site warns when no sum group occurs in the dictionary", {
+  expect_warning(pollen_site("N", .neotoma_style_dic()),
+                 "None of the sum groups")
+})
+
+test_that("the mismatch warning names the groups that are present", {
+  # Naming them is what makes the warning actionable.
+  expect_warning(pollen_site("N", .neotoma_style_dic()), "TRSH, UPHE")
+})
+
+test_that("no warning when the dictionary uses the default sum groups", {
+  expect_no_warning(pollen_site("Fake Lake", .fake_lake_dic()))
+})
+
+test_that("a partial sum-group match does not warn", {
+  # A dictionary may legitimately lack one group; only an empty
+  # intersection is worth reporting.
+  expect_no_warning(
+    pollen_site("Fake Lake", .fake_lake_dic(), pollen_sum = c("A", "ZZZ"))
+  )
+})
+
+test_that("warn_sum = FALSE suppresses the mismatch warning", {
+  expect_no_warning(pollen_site("N", .neotoma_style_dic(), warn_sum = FALSE))
+})
+
+test_that("passing the dictionary's own groups resolves the mismatch", {
+  expect_no_warning(
+    pollen_site("N", .neotoma_style_dic(), pollen_sum = c("TRSH", "UPHE"))
+  )
+})

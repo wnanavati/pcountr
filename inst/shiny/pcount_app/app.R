@@ -26,7 +26,9 @@ wrap_tokens <- function(tokens, width = 68) {
 render_stream <- function(events, dic_name, sample_qty, spike_qty,
                           spike_density, sample_units, pollen_sum,
                           title, created, use_pres = TRUE) {
-  units_code <- switch(sample_units, ml = "1", g = "2", "2")
+  # PCount's convention is 2 = ml, 1 = g (see .parse_config in read_cnt.R).
+  # Default to ml, which is what pcountr's own counting workflow assumes.
+  units_code <- switch(sample_units, ml = "2", g = "1", "2")
   header <- c(
     paste("File created", format(created, "%d %b %Y  %H:%M")),
     sprintf("%s.DIC, %s, %s, %s, 0, %s;",

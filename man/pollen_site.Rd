@@ -10,7 +10,8 @@ pollen_site(
   pollen_sum = c("A", "B", "F"),
   preservation = default_preservation,
   precedence = default_precedence,
-  samples = NULL
+  samples = NULL,
+  warn_sum = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,11 @@ attributing multi-state entries in single-class summaries.}
 
 \item{samples}{Named list of \code{pollen_count} objects pre-loaded into the
 site (rarely used directly; \code{\link[=read_site]{read_site()}} populates this).}
+
+\item{warn_sum}{Logical; warn when no group in \code{pollen_sum} occurs in the
+dictionary, which would make the analyst-defined sum 0. \code{FALSE} is used
+internally by \code{\link[=read_site]{read_site()}} to avoid repeating the warning when the same
+dictionary is wrapped a second time.}
 }
 \value{
 An object of class \code{pollen_site}.

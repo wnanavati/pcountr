@@ -76,6 +76,19 @@ fill the \code{code} column, since \code{\link[=read_dic_csv]{read_dic_csv()}} d
 Groups are imported from Neotoma's \code{ecologicalgroup} as a starting value;
 they encode your sum decisions, so edit them freely. Check the finished
 dictionary with \code{\link[=standardize_dic]{standardize_dic()}}.
+
+Note that Neotoma's group codes (\code{TRSH}, \code{UPHE}, \code{AQVP}, ...) are not
+PCount's (\code{A}, \code{B}, \code{F}, ...), so the default sum groups of
+\code{c("A", "B", "F")} match nothing in a dictionary left as drafted, and
+percentages would come out empty. The simplest course is to recode the
+\code{group} column to your own convention while you are editing the draft.
+To keep Neotoma's codes instead, set the sum groups on the site --
+\code{site$pollen_sum <- c("TRSH", "UPHE")} -- which governs \code{\link[=site_matrix]{site_matrix()}}
+and \code{\link[=write_tlx]{write_tlx()}}. \code{\link[=pollen_site]{pollen_site()}} warns when no sum group occurs in the
+dictionary. Note that \code{\link[=count_metrics]{count_metrics()}} reads its groups from each
+sample's own \code{pollen_sum_groups} (the \verb{POLLEN SUM =} header for a \code{.CNT},
+or the value stored in a \code{.YAML}), not from \code{site$pollen_sum}; when
+counting in \code{\link[=count_app]{count_app()}} the groups you tick are saved with the sample.
 }
 
 \section{Cost}{

@@ -63,7 +63,31 @@ the `dev` branch.
   `vignettes/legacy_files`, which the build has been producing since the
   vignette was renamed while the ignore rule still said `workflow_files`.
 
+- **The `.CNT` units code was inverted** — `2` is ml and `1` is g, not the
+  reverse. Proven by `LM23SH00.RPT`, which PCount wrote from `LMSH001.CNT`
+  and which reads "Quantity of sample = 1.0  ml" for a file whose config line
+  ends in `2`. The reader and the counting app's `.CNT` writer both had it
+  backwards, so pcountr agreed with itself and disagreed with PCount. Values
+  were never affected; only the unit label. Found by reading the `.RPT`
+  header while investigating an apparent Fake Lake inconsistency that turned
+  out not to exist.
+
+- **Sum groups that cannot match the dictionary now warn.** `pollen_site()`
+  defaults to `c("A","B","F")`; a `build_dic_neotoma()` draft carries `TRSH`,
+  `UPHE`, `AQVP`, so the sum silently evaluated to 0. The warning names the
+  groups actually present. Also corrected the `group` column documentation,
+  which claimed single letters although nothing enforces that and the Neotoma
+  builder emits four-letter codes.
+
 **Still to do**
+
+- **Consider a `pollen_sum` argument for `read_site()`.** There is currently no
+  way to set sum groups at load time: `read_site()` does not accept them, so a
+  console user must assign `site$pollen_sum` afterwards. That governs
+  `site_matrix()` and `write_tlx()` but *not* `count_metrics()`, which reads
+  each sample's own `pollen_sum_groups`. The split is defensible — a `.CNT`
+  header records the sum the original analyst used — but it is a sharp edge,
+  and worth revisiting before 1.0.
 
 - **Settle the package title.** `DESCRIPTION` still reads "Interactive
   Stratigraphic **Grain** Counter with PCount Legacy Support" — a pollen-framed

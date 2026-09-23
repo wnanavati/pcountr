@@ -102,7 +102,7 @@ read_dic <- function(path) {
 #' |--------|----------|-------------|
 #' | `code` | yes | Taxon code (letters only, any length, though one or two keeps counting fast; `#`-prefixed for markers excluded from sums; `.` for tracer spike) |
 #' | `name` | yes | Full taxon name |
-#' | `group` | yes | Single-letter group code (e.g. `A`, `B`, `F`, `Q`); leave blank for special markers |
+#' | `group` | yes | Group code assigning the taxon to a sum group. Any string: single letters (`A`, `B`, `F`, `Q`, `X`) follow PCount convention, while dictionaries drafted by [build_dic_neotoma()] carry Neotoma's ecological group codes (`TRSH`, `UPHE`, `AQVP`). Leave blank for special markers |
 #' | `alias` | no | Short alternative name or abbreviation |
 #' | `is_special` | no | `TRUE`/`FALSE`; inferred from `code` prefix when absent |
 #' | `value` | no | Entry weight (default `1`). Set to `0.5` for half-weight codes when counting without preservation codes — e.g. a code `HI` for "half *Picea*" with `value = 0.5`. Ignored when preservation codes are in use (weight is then determined by the `0` modifier in the token). |
@@ -223,6 +223,10 @@ write_dic_csv <- function(dic, path) {
 #'   attributing multi-state entries in single-class summaries.
 #' @param samples Named list of `pollen_count` objects pre-loaded into the
 #'   site (rarely used directly; [read_site()] populates this).
+#' @param warn_sum Logical; warn when no group in `pollen_sum` occurs in the
+#'   dictionary, which would make the analyst-defined sum 0. `FALSE` is used
+#'   internally by [read_site()] to avoid repeating the warning when the same
+#'   dictionary is wrapped a second time.
 #' @return An object of class `pollen_site`.
 #' @export
 pollen_site <- function(name,
@@ -230,13 +234,31 @@ pollen_site <- function(name,
                         pollen_sum = c("A", "B", "F"),
                         preservation = default_preservation,
                         precedence = default_precedence,
-                        samples = NULL) {
+                        samples = NULL,
+                        warn_sum = TRUE) {
   if (is.character(dictionary) && length(dictionary) == 1L) {
     dictionary <- read_dic(dictionary)
   }
   if (!inherits(dictionary, "pollen_dictionary")) {
     stop("`dictionary` must be a pollen_dictionary or a path to a .DIC file.")
   }
+
+  # The default sum groups follow PCount's "ABF" convention, but a dictionary
+  # drafted by build_dic_neotoma() carries Neotoma's ecological group codes
+  # (TRSH, UPHE, ...). Nothing errors in that case -- the sum simply comes out
+  # as 0 -- so say so here rather than let a silent zero propagate.
+  if (isTRUE(warn_sum)) {
+    avail <- unique(dictionary$group[!dictionary$is_special &
+                                       nzchar(dictionary$group)])
+    if (length(avail) && !any(pollen_sum %in% avail)) {
+      warning("None of the sum groups (", paste(pollen_sum, collapse = ", "),
+              ") occur in the dictionary, so the analyst-defined sum will ",
+              "be 0. Groups present: ", paste(sort(avail), collapse = ", "),
+              ". Set `pollen_sum` to the groups you want summed.",
+              call. = FALSE)
+    }
+  }
+
   structure(
     list(
       name = name,
