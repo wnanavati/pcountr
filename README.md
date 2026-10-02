@@ -10,7 +10,7 @@ by traversing a slide — pollen, diatoms, charcoal morphotypes, phytoliths, or 
 proxy tallied the same way. Built around a keystroke-driven Shiny app that
 mirrors the PCount DOS workflow while saving to a modern, self-contained format.
 
-## What it does (v0.8.0)
+## What it does
 
 ### Interactive counting app
 - **`count_app()`** — launch the Shiny counting app in your browser. Type entry
