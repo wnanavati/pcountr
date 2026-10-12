@@ -26,7 +26,7 @@ disk (\code{.CNT} files are read-only; \code{apply_metadata()} only writes to YA
 }
 \details{
 After writing, each sample's \code{meta$source_file} is updated in the returned
-site to the full normalised path of its new YAML, so the result can be
+site to the full normalized path of its new YAML, so the result can be
 passed directly to \code{\link[=extract_metadata]{extract_metadata()}} or \code{\link[=apply_metadata]{apply_metadata()}} without
 reloading from disk.
 }

@@ -43,6 +43,6 @@ An object of class \code{pollen_site}.
 }
 \description{
 A \emph{site} bundles the configuration shared by all samples counted there: the
-dictionary, the preservation-code scheme, the precedence used for summarising
+dictionary, the preservation-code scheme, the precedence used for summarizing
 multi-state entries, and the \code{pollen_sum} group definition.
 }

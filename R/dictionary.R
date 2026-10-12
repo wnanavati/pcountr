@@ -47,7 +47,7 @@ default_precedence <- c("8", "6", "2", "9", "1")
 #' Reads a taxon dictionary into a `pollen_dictionary` data frame. The format
 #' is detected automatically from the file extension:
 #'
-#' * **`.DIC`** — the legacy PCount fixed-column format (original behaviour).
+#' * **`.DIC`** — the legacy PCount fixed-column format (original behavior).
 #' * **`.csv`** — the modern pcountr CSV format; see [read_dic_csv()] for column
 #'   requirements and [write_dic_csv()] to create one from an existing `.DIC`.
 #'
@@ -208,7 +208,7 @@ write_dic_csv <- function(dic, path) {
 #' Construct a pollen_site object
 #'
 #' A *site* bundles the configuration shared by all samples counted there: the
-#' dictionary, the preservation-code scheme, the precedence used for summarising
+#' dictionary, the preservation-code scheme, the precedence used for summarizing
 #' multi-state entries, and the `pollen_sum` group definition.
 #'
 #' @param name Site name.

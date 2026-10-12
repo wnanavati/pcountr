@@ -16,7 +16,7 @@
 #' effort. Versions of `pcountr` before 0.6.0 made this error.
 #'
 #' The asymptote must instead be **extrapolated beyond the observed count**.
-#' Following Lesven et al. (2026), richness is modelled as
+#' Following Lesven et al. (2026), richness is modeled as
 #'
 #' \deqn{R(n) = \frac{S_{max} \cdot n}{K + n}}{R(n) = Smax * n / (K + n)}
 #'
@@ -114,10 +114,10 @@
 #'   returned curves. Does not affect `Smax`, `K`, or any target. Default
 #'   `100L`; set to `0L` to skip.
 #' @param depth_range Numeric vector `c(min, max)` of `depth_top` values
-#'   (inclusive) to restrict which samples are analysed. `NULL` uses all
+#'   (inclusive) to restrict which samples are analyzed. `NULL` uses all
 #'   samples.
 #' @param age_range Numeric vector `c(min, max)` of `age_top` values
-#'   (inclusive) to restrict which samples are analysed. `NULL` uses all
+#'   (inclusive) to restrict which samples are analyzed. `NULL` uses all
 #'   samples. Applied after `depth_range`.
 #'
 #' @return An object of class `pollen_rarefaction`, a named list:

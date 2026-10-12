@@ -301,7 +301,7 @@ test_that("site_target is NA when no fit succeeds", {
 
 # ── Filters and validation ──────────────────────────────────────────────────
 
-test_that("depth_range restricts which samples are analysed", {
+test_that("depth_range restricts which samples are analyzed", {
   r <- rarefaction(site_rf, depth_range = c(0, 10), n_sim = 0L)
   expect_equal(nrow(r$summary), 1L)
   expect_equal(r$summary$depth_top[1], 5)

@@ -96,7 +96,7 @@ and forgetting has caused a real bug before.
 
 ## Conventions worth knowing
 
-- **Tests are the specification.** Every behavioural change needs a test that
+- **Tests are the specification.** Every behavioral change needs a test that
   fails before it and passes after. Assertions currently number in the
   hundreds; please add rather than reshape existing ones.
 - **Historical names stay.** The `pollen_site` / `pollen_count` /
@@ -113,14 +113,14 @@ and forgetting has caused a real bug before.
   reproducible from shipped data or a cited source. If you add an example
   output, generate it and paste the real result.
 - **Chronology is out of scope.** pcountr does arithmetic on analyst-supplied
-  ages and does not build age–depth models. Age modelling belongs to `rbacon`,
+  ages and does not build age–depth models. Age modeling belongs to `rbacon`,
   `clam` and `neotoma2`.
 - **Style** — base R, 2-space indent, roughly 80 columns, `<-` for assignment.
   No new hard dependencies without discussion; `Imports` is deliberately small.
 
 ---
 
-## Licence
+## License
 
 pcountr is MIT licensed. By contributing you agree your contribution may be
 distributed under those terms.

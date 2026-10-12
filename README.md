@@ -146,7 +146,7 @@ morphotype, or phytolith counts follow the same workflow unchanged.
   can substitute its own damage-state taxonomy and every downstream function
   follows.
 - Chronology construction is **out of scope** — `pcountr` performs
-  accumulation-rate arithmetic from ages you supply, but age–depth modelling is
+  accumulation-rate arithmetic from ages you supply, but age–depth modeling is
   delegated to tools such as `rbacon`, `clam`, or `neotoma2`.
 
 ## Project documentation

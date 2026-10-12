@@ -79,7 +79,7 @@ test_that("rioja::strat.plot() accepts TaxaPerc + DepTop without error", {
   tmp_pdf <- tempfile(fileext = ".pdf")
   pdf(tmp_pdf)
   on.exit({ dev.off(); unlink(tmp_pdf) }, add = TRUE)
-  # expect_no_warning, not expect_no_error: an unrecognised argument passed
+  # expect_no_warning, not expect_no_error: an unrecognized argument passed
   # through `...` to base graphics only warns, so expect_no_error would let it by.
   expect_no_warning(
     rioja::strat.plot(

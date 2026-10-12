@@ -237,7 +237,7 @@ print.tilia_lookup <- function(x, ...) {
 }
 
 
-# Orthographic normalisation for matching. Deliberately narrow: it folds
+# Orthographic normalization for matching. Deliberately narrow: it folds
 # diacritics, punctuation and abbreviation variants, and nothing else.
 #
 # It must NOT strip "-type", "cf." or "aff.". Those encode how precise a
@@ -264,7 +264,7 @@ print.tilia_lookup <- function(x, ...) {
   trimws(s)
 }
 
-# Normalised Levenshtein similarity in [0, 1]
+# Normalized Levenshtein similarity in [0, 1]
 .taxon_sim <- function(x, pool) {
   d <- utils::adist(x, pool)[1, ]
   1 - d / pmax(nchar(x), nchar(pool))
@@ -322,7 +322,7 @@ print.tilia_lookup <- function(x, ...) {
 #'
 #' This is on the reasoning that an ecological group is in practice a "sum by"
 #' list, and that the baggage around ecological affinity makes a single
-#' standardised list impractical to hold centrally. Cyperaceae, for instance, is
+#' standardized list impractical to hold centrally. Cyperaceae, for instance, is
 #' `UPHE` in the lookup but is legitimately aquatic in some settings, and the
 #' analyst who saw the landscape is better placed to judge than an authority
 #' file. `pcountr` already treats this as local configuration: `pollen_sum` is
@@ -493,7 +493,7 @@ standardize_dic <- function(dic,
       status[i] <- "variant"; target[i] <- nacc_map[[nnm[i]]]; next
     }
 
-    # Neotoma synonymy, normalised name. Abbreviation differences such as
+    # Neotoma synonymy, normalized name. Abbreviation differences such as
     # "subgen." for "subg." otherwise hide authoritative answers here.
     if (nnm[i] %in% names(nsyn_map)) {
       tgt <- unname(id2name[ nsyn_map[[nnm[i]]] ])   # [ not [[; see above
@@ -610,7 +610,7 @@ standardize_dic <- function(dic,
 #' @export
 print.standardized_dic <- function(x, ...) {
   r <- attr(x, "report")
-  cat("Dictionary standardisation report\n")
+  cat("Dictionary standardization report\n")
   cat("  dictionary :", nrow(r), "taxa\n")
   cat("  lookup     :", attr(x, "lookup_title") %||% "?", "-",
       format(attr(x, "n_pool") %||% NA), "taxa matched against\n\n")

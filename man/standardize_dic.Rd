@@ -107,7 +107,7 @@ own \code{group} is made}, and \code{group_differs} is \code{NA} unless you supp
 
 This is on the reasoning that an ecological group is in practice a "sum by"
 list, and that the baggage around ecological affinity makes a single
-standardised list impractical to hold centrally. Cyperaceae, for instance, is
+standardized list impractical to hold centrally. Cyperaceae, for instance, is
 \code{UPHE} in the lookup but is legitimately aquatic in some settings, and the
 analyst who saw the landscape is better placed to judge than an authority
 file. \code{pcountr} already treats this as local configuration: \code{pollen_sum} is

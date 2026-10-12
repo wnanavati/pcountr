@@ -105,7 +105,7 @@ read_site <- function(folder,
                                          ignore_depth_conflicts)
     }
 
-    # Always stamp the full normalised path so apply_metadata() can write back.
+    # Always stamp the full normalized path so apply_metadata() can write back.
     cnt$meta$source_file <- normalizePath(f, winslash = "/", mustWork = FALSE)
     samples[[i]] <- cnt
   }
@@ -136,7 +136,7 @@ read_site <- function(folder,
 #' disk (`.CNT` files are read-only; `apply_metadata()` only writes to YAML).
 #'
 #' After writing, each sample's `meta$source_file` is updated in the returned
-#' site to the full normalised path of its new YAML, so the result can be
+#' site to the full normalized path of its new YAML, so the result can be
 #' passed directly to [extract_metadata()] or [apply_metadata()] without
 #' reloading from disk.
 #'
@@ -307,7 +307,7 @@ set_metadata <- function(site, sample,
   read_dic(dics[1L])
 }
 
-# Read and normalise a CSV metadata sheet.
+# Read and normalize a CSV metadata sheet.
 .read_metadata_sheet <- function(path, col_map) {
   df <- tryCatch(
     if (tolower(tools::file_ext(path)) == "csv") {
@@ -332,7 +332,7 @@ set_metadata <- function(site, sample,
   if (!is.null(col_map)) {
     bad <- setdiff(names(col_map), names(std))
     if (length(bad))
-      warning("col_map names not recognised (ignored): ",
+      warning("col_map names not recognized (ignored): ",
               paste(bad, collapse = ", "), call. = FALSE)
     std[intersect(names(col_map), names(std))] <-
       col_map[intersect(names(col_map), names(std))]
@@ -371,7 +371,7 @@ set_metadata <- function(site, sample,
       ), call. = FALSE)
   }
 
-  # Normalise the file-matching key: lowercase, no extension
+  # Normalize the file-matching key: lowercase, no extension
   df$.key <- tolower(tools::file_path_sans_ext(as.character(df[[resolved["file"]]])))
   df
 }
@@ -392,7 +392,7 @@ set_metadata <- function(site, sample,
             paste(no_file, collapse = ", "), call. = FALSE)
 }
 
-# Look up a sheet row by normalised file key.
+# Look up a sheet row by normalized file key.
 .sheet_row <- function(key, sheet) {
   if (is.null(sheet)) return(NULL)
   hit <- which(sheet$.key == tolower(key))

@@ -37,7 +37,7 @@ group  (required)
 
 alias  (optional)
   Short alternative label or abbreviation, e.g. "Fun", "Alg".
-  Used as column headers in plots when "alias" taxon labelling is selected.
+  Used as column headers in plots when "alias" taxon labeling is selected.
   Leave blank to fall back to the code.
 
 is_special  (optional)

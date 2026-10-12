@@ -87,7 +87,7 @@ test_that("the draft has the columns read_dic_csv() expects", {
   expect_named(d, c("code", "alias", "group", "name", "is_special", "value"))
   expect_true(all(d$value == 1))
   # Codes are suggested by default and filled for every row; the blank-code
-  # behaviour of suggest_codes = FALSE is asserted separately below.
+  # behavior of suggest_codes = FALSE is asserted separately below.
   expect_true(all(nzchar(d$code)))
 })
 
@@ -140,7 +140,7 @@ test_that("the draft survives a write/read round trip, diacritics included", {
   expect_equal(nrow(back), nrow(d))
   expect_true(iso %in% back$name)
   expect_equal(back$group[back$name == iso], "AQVP")
-  # The spike must still be recognised as special via its "." code.
+  # The spike must still be recognized as special via its "." code.
   expect_true(back$is_special[back$code == "."])
 })
 
@@ -244,7 +244,7 @@ test_that("codes are unique and avoid what is already taken", {
 
 test_that("Asteroideae undiff. gets the curated code V", {
   # ECG.csv's entry for code V was named "Asteraceae subfam. Asteroideae
-  # undiff.", which Neotoma does not recognise -- so it reconciled as
+  # undiff.", which Neotoma does not recognize -- so it reconciled as
   # `unmatched` and a Neotoma-built dictionary derived a code for
   # "Asteroideae undiff." rather than reusing V. Renaming the ECG entry to
   # Neotoma's spelling fixes both at once. Pinned because a future edit to

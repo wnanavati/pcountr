@@ -136,7 +136,7 @@ rebuild_events_from_count <- function(cnt) {
        base_spike_n = as.integer(cnt$spike_n %||% 0L))
 }
 
-# ── Colour palette (WCAG 2.1 AA compliant) ----------------------------------
+# ── Color palette (WCAG 2.1 AA compliant) ----------------------------------
 # bg0 #1e1e1e  bg1 #252526  bg2 #2d2d30  bg3 #3e3e42
 # fg0 #d4d4d4 (11.2:1)  fg1 #a0a0a0 (5.0:1)
 # acc #4ec9b0 (7.0:1)   blu #9cdcfe (9.3:1)
@@ -361,7 +361,7 @@ function submitEntry(forced) {
                       { priority: 'event' });
   if (el) el.value = '';
 }
-// Audible alert for unrecognised codes (Web Audio API).
+// Audible alert for unrecognized codes (Web Audio API).
 function playBeep() {
   try {
     var ctx  = new (window.AudioContext || window.webkitAudioContext)();
@@ -406,7 +406,7 @@ code_alert_modal <- function(submission, message_text) {
   modalDialog(
     size  = "l",
     title = tags$span(style = "font-size:1.3em; color:#f44747;",
-                      "⚠️  Entry not recognised"),
+                      "⚠️  Entry not recognized"),
     div(class = "unknown-banner",
         tags$span(class = "unk-code", sprintf("\"%s\"", submission)),
         tags$span(class = "unk-msg",  message_text)
@@ -1248,7 +1248,7 @@ server <- function(input, output, session) {
       }
       session$sendCustomMessage("beep", list())
       showModal(code_alert_modal(s,
-        "This does not match any recognised token. Valid entries: code+digit (e.g. I8), /traverse/, [remark], or . (spike). Codes are letters only."))
+        "This does not match any recognized token. Valid entries: code+digit (e.g. I8), /traverse/, [remark], or . (spike). Codes are letters only."))
       return(FALSE)
     } else {
       # No-preservation mode: code only (e.g. I, B, A)
@@ -1274,7 +1274,7 @@ server <- function(input, output, session) {
       }
       session$sendCustomMessage("beep", list())
       showModal(code_alert_modal(s,
-        "This does not match any recognised token. Valid entries: taxon code only (e.g. I), /traverse/, [remark], or . (spike)."))
+        "This does not match any recognized token. Valid entries: taxon code only (e.g. I), /traverse/, [remark], or . (spike)."))
       return(FALSE)
     }
   }

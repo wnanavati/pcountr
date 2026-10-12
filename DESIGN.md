@@ -23,7 +23,7 @@ and `read_site()` now stamps full `source_file` path. New in v0.5.5:
 optional `value` column in `pollen_dictionary` for half-weight codes in no-pres
 counting mode. New in v0.5.7: bug fix — CNT → YAML round-trip now correctly
 preserves `hidden` flag and `pres` string for `9`- and `0`-modifier grains
-(see NEWS.md). New in v0.5.8: `extract_remarks()`; `pres` standardised to a
+(see NEWS.md). New in v0.5.8: `extract_remarks()`; `pres` standardized to a
 concatenated digit string (`"19"`, not `"1;9"`); modifier-only preservation
 entries (e.g. `ts9`) now accepted; multi-slide `.CNT` files no longer discard
 slide boundaries after the first (see NEWS.md). New in v0.6.0: `rarefaction()`
@@ -182,7 +182,7 @@ Legacy `.CNT` files accumulated over decades contain genuine data-entry
 mistakes — typically a doubled or stray preservation digit. The parser imports
 the valid grains, records each anomaly with its stream position and reason, and
 warns; it never guesses at the analyst's intent. Regression tests pin the
-anomaly count for the validation corpus so the behaviour cannot change silently.
+anomaly count for the validation corpus so the behavior cannot change silently.
 The validation corpus is unpublished site data held locally and is not
 distributed with the package (see §9).
 
@@ -232,7 +232,7 @@ Consequences of this decision:
 This closes what earlier versions of this document tracked as two open
 validation debts (confirming 3/4/5/7 against original PCount documentation, and
 checking combination-code attribution against a `.CNT`/`.RPT` pair). Neither is
-a gap in the package; both were artefacts of treating a configurable default as
+a gap in the package; both were artifacts of treating a configurable default as
 a fact needing verification.
 
 ---
@@ -470,7 +470,7 @@ extrapolation model anyway.
 
 ### The method used
 
-Following **Lesven et al. (2026)**, richness is modelled with a
+Following **Lesven et al. (2026)**, richness is modeled with a
 Michaelis–Menten function:
 
 ```
@@ -510,7 +510,7 @@ curves tested this matched a dense grid search, but that is not guaranteed.
 `100 * N / (K + N)`. It is deliberately *not* `n_taxa / s_max`.
 
 This distinction caused a real defect in v0.6.0, worth recording. `pct_smax` was
-defined as observed richness over the modelled asymptote while the tier columns
+defined as observed richness over the modeled asymptote while the tier columns
 came purely from the model. Because Michaelis–Menten approximates the whole curve
 rather than interpolating its endpoint, the fit sits slightly *below* observed
 richness at `n = N` — so the observed ratio was systematically more optimistic
@@ -527,7 +527,7 @@ so `pct_smax >= 80` holds exactly when `N >= n80`. It also matches the sense in
 which Lesven et al. state that 250 grains recovers >70% of richness — a model
 quantity, not an observed one.
 
-The general lesson: an observed quantity and a modelled one should not be placed
+The general lesson: an observed quantity and a modeled one should not be placed
 in the same row inviting comparison unless they are commensurable. The observed
 share remains available by comparing `n_taxa` against `s_max` directly.
 
@@ -590,7 +590,7 @@ Two reasons, both structural:
   restricted to palynomorph `TaxaGroup`s by default, which also stops a pollen
   taxon matching a beetle.
 
-So the dictionary stays the analyst's, and the lookup supplies standardised names
+So the dictionary stays the analyst's, and the lookup supplies standardized names
 and ecological groups on request. The payoff is chiefly Neotoma submission via
 `write_tlx()`.
 
@@ -610,7 +610,7 @@ These do **not** map one-to-one onto PCount's `A`/`B`/`F`/`Q`/`X`. Checking a
 `NA`, and `ecol_group` is reported purely as reference for a Neotoma upload.
 
 The reasoning: an ecological group is in practice a "sum by" list, and the
-baggage around ecological affinity makes a standardised list impractical to hold
+baggage around ecological affinity makes a standardized list impractical to hold
 centrally. Cyperaceae is `UPHE` in the lookup but legitimately aquatic in some
 settings, and the analyst who saw the landscape is better placed to judge than an
 authority file. Flagging such a row as a disagreement would present the lookup's
@@ -653,13 +653,13 @@ once — *Lycopodium annotinum*, which is the correct answer, plus *Tripolium
 pannonicum* (an aster) and *Trifolium pannonicum* (a clover). `Pre-Quaternary
 undiff.` scores 0.59 against four families simultaneously (*Arecaceae*,
 *Primulaceae*, *Proteaceae*, *Pteridaceae* undiff.). `which.max` returns whichever
-appears first in the pool, so on tied rows the displayed candidate is an artefact
+appears first in the pool, so on tied rows the displayed candidate is an artifact
 of pool order rather than a property of the data.
 
 Hence `status = "suggestion"` is advisory only: reachable by individual code or
 name, never as a class, and with no `"all"` shorthand.
 
-### Normalisation folds spelling, not meaning
+### Normalization folds spelling, not meaning
 
 `.norm_taxon()` folds diacritics, punctuation and abbreviation variants
 (`c.f.`/`cf.`, `subgen.`/`subg.`, `subfam.`/`subf.`) and nothing else.
@@ -670,7 +670,7 @@ early draft stripped `-type` and classified `Tidestromia lanuginosa-type` as a
 mechanical variant of *Tidestromia lanuginosa*, which would have promoted a
 morphotype to a species identification without comment.
 
-Extending normalisation to the **synonym** table as well as the accepted-name
+Extending normalization to the **synonym** table as well as the accepted-name
 table matters more than it sounds. A dictionary written with `subgen.` where
 Neotoma writes `subg.` hides authoritative answers behind an abbreviation: doing
 so resolved `Pinus subgen. Diploxylon` to *Pinus* subg. *Pinus* and
@@ -683,7 +683,7 @@ Diacritic folding uses explicit `\u` escapes rather than
 
 ### No alias table ships with the package
 
-Once normalised synonym matching is in place, what remains unresolved is not
+Once normalized synonym matching is in place, what remains unresolved is not
 universal fact but local convention: whether `Monolete spore undiff.` is
 Neotoma's `Filicopsida (monolete) undiff.`, how reworked pre-Quaternary grains
 are recorded, whether a regional morphotype has an authority equivalent at all.

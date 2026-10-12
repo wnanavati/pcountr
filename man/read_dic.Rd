@@ -19,7 +19,7 @@ is detected automatically from the file extension:
 }
 \details{
 \itemize{
-\item \strong{\code{.DIC}} — the legacy PCount fixed-column format (original behaviour).
+\item \strong{\code{.DIC}} — the legacy PCount fixed-column format (original behavior).
 \item \strong{\code{.csv}} — the modern pcountr CSV format; see \code{\link[=read_dic_csv]{read_dic_csv()}} for column
 requirements and \code{\link[=write_dic_csv]{write_dic_csv()}} to create one from an existing \code{.DIC}.
 }

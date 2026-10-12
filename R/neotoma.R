@@ -26,7 +26,7 @@
 # the analyst on every call:
 #
 #   1. "no non-missing arguments to max; returning -Inf" -- the chronology
-#      precedence ranking found no default with a recognised age type.
+#      precedence ranking found no default with a recognized age type.
 #   2. A warning with an EMPTY message. samples() builds its text with
 #      sprintf("...%s...", ids$datasetid[1]), and ids$datasetid is always
 #      NULL because getids.collunit() passes a list to data.frame() and so

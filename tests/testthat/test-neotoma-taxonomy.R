@@ -243,7 +243,7 @@ test_that("standardize_dic() reports clearly when no taxonomy can be had", {
 
 test_that("the cache directory option is honoured", {
   dir <- local_offline_api()
-  # Compare normalised paths: tempfile() yields backslashes on Windows while
+  # Compare normalized paths: tempfile() yields backslashes on Windows while
   # file.path()/dirname() yield forward slashes, so a literal comparison fails
   # on Windows for reasons that have nothing to do with the option working.
   norm <- function(p) normalizePath(p, winslash = "/", mustWork = FALSE)

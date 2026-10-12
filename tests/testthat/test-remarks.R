@@ -200,7 +200,7 @@ test_that("read_pollen_count strips semicolons from legacy pres strings", {
 
   cnt2 <- read_pollen_count(tmp)
   expect_equal(cnt2$grains$pres[1], "19",
-               info = "legacy '1;9' should normalise to '19' on read")
+               info = "legacy '1;9' should normalize to '19' on read")
 })
 
 test_that("preservation_table collapses multi-state grains after the pres change", {

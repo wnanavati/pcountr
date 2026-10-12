@@ -45,7 +45,7 @@ the `dev` branch.
   `pollen_dictionary` class names and the `grains` key in the YAML format
   (renaming either breaks saved counts, and the classes are largely invisible
   to users); the legacy `.CNT` / `.DIC` reader and its documentation, since
-  those formats are pollen artefacts and the `.CNT` header literal
+  those formats are pollen artifacts and the `.CNT` header literal
   `POLLEN SUM =` is PCount's own; and QUICKSTART.md, which declares itself a
   guide for palynologists in its first line, so pollen language there is
   accurate rather than careless.
@@ -81,6 +81,36 @@ the `dev` branch.
 
 **Still to do**
 
+- **Correct a wrong claim in NEWS.md.** The v0.9.0 entry for the inverted
+  `.CNT` units code states that "`read_site()` with a metadata sheet takes
+  units from the sheet, so any workflow using `metadata_FL.csv` or an
+  equivalent already reported `ml` correctly." That is false.
+  `.attach_sheet_depth()` applies only `depth_top`, `depth_bottom`, `age_top`
+  and `age_bottom`; the sheet's `sample_units` is never read. Units always came
+  from the `.CNT` config line, so the bug's blast radius was *larger* than the
+  entry claims — every legacy read reported the wrong label, sheet or no sheet.
+  The fix and its tests are correct; only the account of the scope is wrong.
+  Already committed and pushed, so this needs an amending note rather than a
+  silent edit.
+
+- **`read_site()` silently ignores six metadata-sheet columns.** It recognizes
+  only `file`, `depth_top`, `depth_bottom`, `age_top`, `age_bottom`. A sheet
+  produced by `extract_metadata()` also carries `sample_name`,
+  `sample_quantity`, `units`, `spike_tablets`, `spike_density`, `spike_units`,
+  `conc_method` and `title` — all read and then discarded, with no warning. A
+  user who edits those columns and re-runs `read_site()` sees no effect and no
+  explanation; the round trip only works through `apply_metadata()`. At minimum
+  `read_site()` should warn when a sheet contains recognized-but-unapplied
+  columns. Extending it to apply them would be better, but changes behavior.
+
+- **`read_cnt()` does not populate `sample_name`.** It parses `.CNT` header
+  line 5 into `title` only, so every `.CNT`-derived sample has
+  `meta$sample_name = NA` and the `sample_name` column of
+  `extract_metadata()` comes back empty for a legacy site. The label the
+  analyst actually typed lives in that header line, so deriving `sample_name`
+  from it — or at least documenting that `title` is the populated identifier —
+  would avoid the surprise.
+
 - **Consider a `pollen_sum` argument for `read_site()`.** There is currently no
   way to set sum groups at load time: `read_site()` does not accept them, so a
   console user must assign `site$pollen_sum` afterwards. That governs
@@ -104,7 +134,7 @@ the `dev` branch.
   `README.md`, and drop the explanatory comments left in the first two.
 - `rarefaction()` prints a column headed "Grains" and a banner "Grains needed
   for % of Smax". Rarefaction is not a pollen technique -- it is standard in
-  paleolimnology for standardising diatom richness across unequal counts, and
+  paleolimnology for standardizing diatom richness across unequal counts, and
   count-adequacy literature exists for testate amoebae, cladocera and
   chironomids -- so those labels are narrower than the function. Left for a
   later pass because the Michaelis-Menten target scheme itself comes from
@@ -153,7 +183,7 @@ the `dev` branch.
   49,188 taxa, which also prevents matching a pollen taxon against a beetle.
 - **Ecological groups are not compared by default** — `group_map = NULL`, on the
   reasoning that an ecological group is a local "sum by" choice rather than a
-  fact to harmonise (Cyperaceae is `UPHE` in the lookup but aquatic in some
+  fact to harmonize (Cyperaceae is `UPHE` in the lookup but aquatic in some
   settings). `ecol_group` is still reported for upload reference; the audit is
   opt-in via `group_map`.
 - **Bundled dictionary updated to Tilia 3.2 nomenclature** —
@@ -197,7 +227,7 @@ the `dev` branch.
 ## Done — v0.6.1
 
 - **Bug fix: `pct_smax` contradicted the tier columns.** It was defined as
-  observed richness over the modelled asymptote (`n_taxa / s_max`) while
+  observed richness over the modeled asymptote (`n_taxa / s_max`) while
   `n70`/`n80`/`n90` came from the fitted model, so a sample could report reaching
   90% of `Smax` on 347 grains while its own `n90` asked for 531. The
   least-squares fit sits slightly below observed richness at `n = N`, making the
@@ -244,7 +274,7 @@ the `dev` branch.
   diagram). Vignette now uses the single `yvar` axis; the test that asserted the
   opposite was corrected, and both `strat.plot()` smoke tests now use
   `expect_no_warning()`.
-- **`pres` standardised to a concatenated digit string** (`"19"`, not `"1;9"`).
+- **`pres` standardized to a concatenated digit string** (`"19"`, not `"1;9"`).
   Fixed `preservation_table(collapse_multistate = TRUE)`, which had silently
   stopped collapsing multi-state grains, and the app's Grain History
   preservation column. `read_pollen_count()` strips semicolons for backward
@@ -332,7 +362,7 @@ the `dev` branch.
 
 ## Done — v0.5.0
 
-- **`site_matrix()`** replaces `as_rioja()`. Identical behaviour; name change reflects
+- **`site_matrix()`** replaces `as_rioja()`. Identical behavior; name change reflects
   that the output is general-purpose, not rioja-specific. `as_rioja()` is retained as a
   deprecated wrapper with a one-time warning.
 - **`write_tlx()`** — exports a `pollen_site` to Tilia XML (`.tlx`) with four sheets:

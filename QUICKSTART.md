@@ -162,7 +162,7 @@ codes, if you use them: `1` well-preserved, `2` corroded, `6` crumpled,
 `8` broken, `9` hidden, `0` half-grain. Add `0` or `9` after the digit, e.g.
 `B10` is a half *Betula* grain.
 
-If you type something the app doesn't recognise you get a large red box and a
+If you type something the app doesn't recognize you get a large red box and a
 beep. The grain is **not** recorded — correct it and type again.
 
 ### Counting the next sample
@@ -286,7 +286,7 @@ that backslashes became forward slashes, and that no stray quotes remain.
 RStudio hasn't been closed, and look for a "Stop" symbol in the Console meaning
 the app is still live.
 
-**The red "Entry not recognised" box** — the taxon code isn't in your dictionary,
+**The red "Entry not recognized" box** — the taxon code isn't in your dictionary,
 or the token is malformed. Either retype it, or click **Edit Dictionary** to add
 the taxon.
 

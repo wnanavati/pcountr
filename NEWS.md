@@ -29,7 +29,7 @@ file is what showed the wrong unit.
 
 `1 = g` remains an inference: no `.CNT` carrying a `1` in that field was
 available to check, and the analyst reports never having recorded a sample by
-weight. A test pins the inferred behaviour so it is visible if it ever proves
+weight. A test pins the inferred behavior so it is visible if it ever proves
 wrong.
 
 ### Fixed — a silent zero when sum groups and dictionary disagree
@@ -139,7 +139,7 @@ units flag, so the app would have read `counts/cm³` while the function returned
 descriptions that quote those labels back to the reader — the live-metrics lists
 in the `counting` and `legacy` vignettes, the `ΣP` row of the QUICKSTART setup
 table, and the format and concentration sections of `DESIGN.md` — were corrected
-to match. These are accuracy fixes rather than part of the labelling pass: they
+to match. These are accuracy fixes rather than part of the labeling pass: they
 document what the app displays, so leaving them would have made the docs wrong.
 
 The pass then extended to the roxygen for every function that operates on live
@@ -176,7 +176,7 @@ the package only counts pollen.
   `grains` key in the YAML format. Renaming the key would break every saved
   count; the classes are largely invisible to users, and renaming them is a
   breaking API change better made once, deliberately, than folded into a
-  labelling pass.
+  labeling pass.
 - Everything documenting a legacy file format — the `.CNT` and `.DIC` reader,
   the `.RPT` report whose quantities `count_metrics()` reproduces, and the Tilia
   lookup (`.TIL`) and alias machinery in `read_tilia_lookup()` and
@@ -191,7 +191,7 @@ the package only counts pollen.
   guide reads more clearly with one concrete proxy throughout. A sibling guide
   for a non-pollen proxy is on the roadmap.
 - `rarefaction()`'s "Grains" column heading. Worth noting that rarefaction is
-  *not* a pollen technique — paleolimnology uses it routinely to standardise
+  *not* a pollen technique — paleolimnology uses it routinely to standardize
   diatom richness across unequal counts, and count-adequacy studies exist for
   testate amoebae, cladocera and chironomids — so the label is narrower than
   the function. Queued rather than done, since the Michaelis–Menten target
@@ -238,7 +238,7 @@ is the spike, so sanitising it would produce collisions and keystroke-hostile
 codes.
 
 **One shipped-dictionary name updated.** The entry for code `V` was
-`Asteraceae subfam. Asteroideae undiff.`, which Neotoma does not recognise, so
+`Asteraceae subfam. Asteroideae undiff.`, which Neotoma does not recognize, so
 it reconciled as `unmatched` *and* a Neotoma-built dictionary derived a fresh
 code for `Asteroideae undiff.` instead of reusing `V`. Renaming it to Neotoma's
 spelling fixes both: reconciliation of the shipped dictionary is now 211 `exact`
@@ -247,7 +247,7 @@ pins that so a future edit cannot silently undo it.
 
 `ECG.DIC` is deliberately left alone. It spells the same taxon
 `Asteraceae subfam. Tubuliflorae undiff.`, older still, and its job is to be
-the legacy PCount artefact that `read_dic()` parses — it happens to illustrate
+the legacy PCount artifact that `read_dic()` parses — it happens to illustrate
 exactly the nomenclature drift `standardize_dic()` exists to catch.
 
 ### New — the Neotoma taxonomy without Tilia
@@ -385,7 +385,7 @@ warning.
 
 **Ranked by presence, not abundance.** Taxa are ordered by the number of
 distinct sites they occur in. Abundance ranking would return little beyond
-*Pinus*, *Artemisia* and Poaceae, and sample-count ranking would favour a taxon
+*Pinus*, *Artemisia* and Poaceae, and sample-count ranking would favor a taxon
 abundant at one site over one present across the region. The tally counts
 distinct site-taxon pairs from `samples()`; `taxa()` is not used, because it
 aggregates by units and element type and its site counts cannot be
@@ -510,7 +510,7 @@ individually. Any element matching neither a class nor a row is an **error**, no
 a silent no-op, and every change is echoed old → new. The call itself becomes a
 record of exactly what was adopted.
 
-### Orthographic normalisation is deliberately narrow
+### Orthographic normalization is deliberately narrow
 
 It folds diacritics, punctuation and abbreviation variants — nothing else. In
 particular it does **not** strip `-type`, `cf.` or `aff.`, which encode how
@@ -530,7 +530,7 @@ you supply a mapping. `ecol_group` is still reported, for reference when
 preparing an upload.
 
 This is on the reasoning that an ecological group is in practice a "sum by"
-list, and that the baggage around ecological affinity makes a single standardised
+list, and that the baggage around ecological affinity makes a single standardized
 list impractical to hold centrally. Cyperaceae is `UPHE` in the lookup but
 legitimately aquatic in some settings, and the analyst who saw the landscape is
 better placed to judge than an authority file. Flagging such a row as a
@@ -572,7 +572,7 @@ you to fill in once.
 
 ### Note on fuzzy scores
 
-Similarity is normalised Levenshtein distance via `utils::adist`, so scores are
+Similarity is normalized Levenshtein distance via `utils::adist`, so scores are
 not comparable to those from other string-distance measures. It is stricter than
 a longest-common-subsequence ratio, and usefully so: on a real 231-taxon
 dictionary, five of six locally-defined reworked pre-Quaternary categories fall
@@ -681,7 +681,7 @@ outside the scope of this check.
 ### Bug fix — `pct_smax` contradicted the tier columns
 
 In 0.6.0, `pct_smax` was `100 * n_taxa / s_max` — an **observed** richness over a
-**modelled** asymptote — while `n70`/`n80`/`n90` came purely from the fitted
+**modeled** asymptote — while `n70`/`n80`/`n90` came purely from the fitted
 model. Mixing the two made rows self-contradictory. A sample could report having
 reached 90% of `Smax` on 347 grains while its own `n90` column asked for 531:
 
@@ -739,7 +739,7 @@ richness. Consequences:
   assemblage.
 
 **The fix.** The asymptote is now *extrapolated beyond* the observed count,
-following Lesven et al. (2026). Richness is modelled as
+following Lesven et al. (2026). Richness is modeled as
 
 ```
 R(n) = Smax * n / (K + n)
@@ -857,7 +857,7 @@ stream, so their remarks report `id = NA` and a single slide; convert them with
 ### Bug fix — preservation code `9` rejected on entry
 
 Entering a grain as a taxon code plus a bare modifier (e.g. `ts9` — hidden,
-with no base preservation state) was rejected with "Entry not recognised". The
+with no base preservation state) was rejected with "Entry not recognized". The
 entry regex in `count_app()` required a base digit `1`–`8`, so `9` and `0` alone
 could never match. Both the grain entry parser and the Grain History
 preservation-cell editor now treat the base digit as optional, requiring only
@@ -890,7 +890,7 @@ resolved:
   vector, so there is nothing to source.
 - A `.CNT`/`.RPT` pair with combination codes (e.g. `680`) to check multi-state
   attribution against original PCount output — attribution follows the analyst's
-  `precedence` order, a reversible presentation choice, not a PCount behaviour
+  `precedence` order, a reversible presentation choice, not a PCount behavior
   to reproduce.
 
 `DESIGN.md` §6 was rewritten from "Provisional / unverified decisions" to state
@@ -915,7 +915,7 @@ depth or age passed as `yvar`, and leaves axis styling to rioja.
 The accompanying test asserted the same untruth — it was named "accepts AgeTop as
 secondary y axis" and passed because `expect_no_error()` cannot see a warning. It
 now verifies that AgeTop works as *the* y-axis variable, and both `strat.plot()`
-smoke tests use `expect_no_warning()` so an unrecognised argument fails loudly
+smoke tests use `expect_no_warning()` so an unrecognized argument fails loudly
 instead of passing quietly.
 
 ### `pres` is now a concatenated digit string
@@ -981,7 +981,7 @@ codes** (`use_pres = FALSE`) but still need to record half-grains. Instead of
 the standard `0` preservation modifier, they can define a dedicated code in the
 CSV dictionary — for example `HI` ("half *Picea*") with `value = 0.5`.
 
-Behaviour:
+Behavior:
 
 - `.DIC` files: `value` is set to `1` for every row (the fixed-column format
   has no weight column).
@@ -1085,7 +1085,7 @@ resolves the write target to the correct folder rather than R's working director
   clear (synchronous, immediate) is sufficient.
 
 - **Undo refocuses the grain input.** After clicking Undo the grain input box
-  is now reactivated automatically, consistent with the behaviour after every
+  is now reactivated automatically, consistent with the behavior after every
   other counting action. Previously the Undo button retained focus, so pressing
   Enter immediately after an undo would trigger another undo.
 
@@ -1142,7 +1142,7 @@ sites (some spike, some volumetric) produce correct results.
 The setup screen now asks **"Use preservation codes?"** (Yes / No), stored in
 the new `use_pres` field on `pollen_count` and YAML:
 
-- **Yes** (default) — existing behaviour: each grain token requires a base
+- **Yes** (default) — existing behavior: each grain token requires a base
   preservation digit (e.g. `B1`, `I80`).
 - **No** — grains are entered as code only (e.g. `B`, `I`). No digit expected
   or accepted. In the count stream display, grains are separated by `_`
@@ -1230,7 +1230,7 @@ accumulation-rate calculations:
   the analyst's `sample_name` label (e.g. `"KF24sh#001"`).
 - **CONC group** is assigned only to spike, sample-quantity, and tablet rows;
   depth and deposition-time rows intentionally have no group, matching Tilia's
-  behaviour.
+  behavior.
 - **Stratigraphic ordering** uses `depth_top` first, then the trailing number
   in `sample_name`, then `age_top`.
 
@@ -1304,7 +1304,7 @@ assertions pass.
 ### `as_rioja()` → `site_matrix()`
 
 - **`site_matrix()`** replaces `as_rioja()`. The function is identical in
-  behaviour; only the name has changed to reflect that the output matrix is
+  behavior; only the name has changed to reflect that the output matrix is
   not rioja-specific — it is used for plotting, export, and any downstream
   analysis.
 - **`as_rioja()` was retained as a deprecated wrapper** in this release and
@@ -1458,7 +1458,7 @@ modern CSV dictionary format on top of the verified v0.1.0 spine.
     suggests an incremented save path.
   - Open Existing Count: resume a past YAML (grains, traverses, remarks, and
     spike total restored; individual spike positions are not stored in YAML).
-  - WCAG 2.1 AA compliant dark colour scheme throughout.
+  - WCAG 2.1 AA compliant dark color scheme throughout.
   - Requires: `shiny`, `DT`, `shinyFiles`.
 
 ### Dictionary

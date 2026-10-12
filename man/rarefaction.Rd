@@ -23,11 +23,11 @@ returned curves. Does not affect \code{Smax}, \code{K}, or any target. Default
 \code{100L}; set to \code{0L} to skip.}
 
 \item{depth_range}{Numeric vector \code{c(min, max)} of \code{depth_top} values
-(inclusive) to restrict which samples are analysed. \code{NULL} uses all
+(inclusive) to restrict which samples are analyzed. \code{NULL} uses all
 samples.}
 
 \item{age_range}{Numeric vector \code{c(min, max)} of \code{age_top} values
-(inclusive) to restrict which samples are analysed. \code{NULL} uses all
+(inclusive) to restrict which samples are analyzed. \code{NULL} uses all
 samples. Applied after \code{depth_range}.}
 }
 \value{
@@ -66,7 +66,7 @@ analyst happened to make, and the count it recommends simply scales with
 effort. Versions of \code{pcountr} before 0.6.0 made this error.
 
 The asymptote must instead be \strong{extrapolated beyond the observed count}.
-Following Lesven et al. (2026), richness is modelled as
+Following Lesven et al. (2026), richness is modeled as
 
 \deqn{R(n) = \frac{S_{max} \cdot n}{K + n}}{R(n) = Smax * n / (K + n)}
 

@@ -13,7 +13,7 @@ skip_if_no_xml2 <- function() skip_if_not_installed("xml2")
 #   cf. Gymnocarpium         -> orthographic variant of "c.f. Gymnocarpium"
 #   Alnus incana             -> accepted; "Alnus rugosa" is its synonym
 #   Pinus subg. Pinus        -> accepted; "Pinus subg. Diploxylon" its synonym,
-#                               reachable only after subgen./subg. normalising
+#                               reachable only after subgen./subg. normalizing
 #   Tidestromia lanuginosa   -> near "Tidestromia lanuginosa-type" but NOT a
 #                               variant, because "-type" changes meaning
 #   Nitzschia oregona        -> a diatom (TaxaGroup DIA), must be excluded
@@ -133,12 +133,12 @@ test_that("statuses are assigned as documented", {
   expect_equal(ac[["GY"]], "cf. Gymnocarpium")
 })
 
-test_that("normalised synonym matching resolves subgen./subg.", {
+test_that("normalized synonym matching resolves subgen./subg.", {
   skip_if_no_xml2()
   # "Pinus subgen. Diploxylon" reaches the synonym "Pinus subg. Diploxylon"
-  # only after abbreviation normalising. Without that branch an authoritative
+  # only after abbreviation normalizing. Without that branch an authoritative
   # answer would be downgraded to an advisory fuzzy suggestion, which against the
-  # real lookup does not favour the right target.
+  # real lookup does not favor the right target.
   lk <- read_tilia_lookup(make_lookup_xml())
   r  <- attr(standardize_dic(test_dic(), lk), "report")
   row <- r[r$code == "E", ]
@@ -308,7 +308,7 @@ test_that("'suggestion' and 'all' are refused as classes", {
                "no \"all\" shorthand")
 })
 
-test_that("an unrecognised apply element is an error, not a silent no-op", {
+test_that("an unrecognized apply element is an error, not a silent no-op", {
   skip_if_no_xml2()
   lk <- read_tilia_lookup(make_lookup_xml())
   expect_error(standardize_dic(test_dic(), lk,
@@ -388,7 +388,7 @@ test_that("print shows the report and the status tallies", {
   skip_if_no_xml2()
   lk  <- read_tilia_lookup(make_lookup_xml())
   out <- capture.output(print(standardize_dic(test_dic(), lk)))
-  expect_true(any(grepl("standardisation report", out)))
+  expect_true(any(grepl("standardization report", out)))
   expect_true(any(grepl("VARIANT", out)))
   expect_true(any(grepl("ADVISORY ONLY", out)))
   expect_true(any(grepl("Nothing changed", out)))
