@@ -278,6 +278,35 @@ if (requireNamespace("xml2", quietly = TRUE)) {
 - Add radiocarbon dates on the *Chronology* tab and run Bchron or Bacon within Tilia to build the age model.
 - CONISS is not computed by pcountr — run it from the *Analysis* menu in Tilia or via `rioja::chclust()` before upload.
 
+`write_pangaea()` is the equivalent for PANGAEA, writing one TAB-delimited table per call with depth in metres as the third geocode. Neotoma remains the first choice for pollen; PANGAEA suits the multi-proxy and marine cases.
+
+---
+
+## Part 5: What the counting sequence preserves
+
+A `.CNT` file is not a table of totals. It is the sequence in which identifications were made, with the traverse labels the analyst typed interleaved among them — so a legacy count records *where on the slide* each identification happened, whether or not anyone intended it to.
+
+`extract_traverses()` returns that structure:
+
+```{r traverses}
+tv <- extract_traverses(site)
+
+cat("Traverses:", nrow(tv), "across", length(unique(tv$sample)), "samples\n")
+utils::head(tv[, c("sample", "traverse", "ordinal", "position",
+                   "n_ident", "n_marker", "richness")])
+```
+
+Where a traverse label begins with a number, that number becomes `position`; `dist_start` measures from the sample's first traverse, which travels better between slides than a raw stage coordinate. Labels that are not numeric yield `NA` and the row is still returned, because traverse labels are free text and always have been.
+
+`taxa = TRUE` returns one row per sample, traverse and taxon, which is what composition-against-position work needs:
+
+```{r traverses-taxa}
+lg <- extract_traverses(site, taxa = TRUE)
+utils::head(lg)
+```
+
+This is the practical argument for archiving counts rather than count summaries. A record counted in PCount decades ago can be asked questions its analyst never posed — whether assemblage composition varies across a coverslip, or whether the same counting effort spread differently would have given a different answer. Summed counts cannot answer either at any level of effort; the sequence is simply gone.
+
 ---
 
 ## Summary of the workflow

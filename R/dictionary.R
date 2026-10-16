@@ -223,6 +223,22 @@ write_dic_csv <- function(dic, path) {
 #'   attributing multi-state entries in single-class summaries.
 #' @param samples Named list of `pollen_count` objects pre-loaded into the
 #'   site (rarely used directly; [read_site()] populates this).
+#' @param latitude,longitude Site position in decimal degrees on WGS84,
+#'   positive north and east. Optional: every georeferencing field below may
+#'   be left unset, in which case it is recorded as `NA` and written as a
+#'   blank column by [write_pangaea()] for completion before submission.
+#'   Nothing in counting or analysis requires them.
+#' @param elevation Site elevation in metres above sea level; negative below.
+#'   This is the site's position, not a sample depth.
+#' @param collection_date Date the core or surface sample was collected, as a
+#'   `Date` or an ISO `"YYYY-MM-DD"` string.
+#' @param device Sampling device or method, e.g. `"Livingstone piston corer"`.
+#' @param event_label Short label for the sampling station, in PANGAEA's
+#'   sense of an *event*: one coring location, one station on a cruise, one
+#'   point on a transect. Typically the core identifier (`"LM23-1"`) rather
+#'   than the site name, because a single dataset may span several events,
+#'   each with its own position. [write_pangaea()] puts it in the first
+#'   column and falls back to `name` when it is unset.
 #' @param warn_sum Logical; warn when no group in `pollen_sum` occurs in the
 #'   dictionary, which would make the analyst-defined sum 0. `FALSE` is used
 #'   internally by [read_site()] to avoid repeating the warning when the same
@@ -235,6 +251,12 @@ pollen_site <- function(name,
                         preservation = default_preservation,
                         precedence = default_precedence,
                         samples = NULL,
+                        latitude = NA_real_,
+                        longitude = NA_real_,
+                        elevation = NA_real_,
+                        collection_date = NA,
+                        device = NA_character_,
+                        event_label = NA_character_,
                         warn_sum = TRUE) {
   if (is.character(dictionary) && length(dictionary) == 1L) {
     dictionary <- read_dic(dictionary)
@@ -259,6 +281,28 @@ pollen_site <- function(name,
     }
   }
 
+  # Georeferencing is validated but never required: a site is perfectly usable
+  # for counting and analysis without it. The check exists because a silently
+  # transposed lat/long produces a plausible-looking site in the wrong
+  # hemisphere, which no downstream step would catch.
+  latitude  <- .site_num(latitude,  "latitude")
+  longitude <- .site_num(longitude, "longitude")
+  elevation <- .site_num(elevation, "elevation")
+  if (!is.na(latitude) && abs(latitude) > 90)
+    stop("`latitude` must be between -90 and 90 (got ", latitude, ").",
+         call. = FALSE)
+  if (!is.na(longitude) && abs(longitude) > 180)
+    stop("`longitude` must be between -180 and 180 (got ", longitude, ").",
+         call. = FALSE)
+  if (!is.na(collection_date)) {
+    collection_date <- tryCatch(as.Date(collection_date),
+      error = function(e)
+        stop("`collection_date` must be a Date or an ISO \"YYYY-MM-DD\" ",
+             "string.", call. = FALSE))
+  } else {
+    collection_date <- as.Date(NA)
+  }
+
   structure(
     list(
       name = name,
@@ -266,10 +310,28 @@ pollen_site <- function(name,
       pollen_sum = pollen_sum,
       preservation = preservation,
       precedence = precedence,
-      samples = samples
+      samples = samples,
+      latitude = latitude,
+      longitude = longitude,
+      elevation = elevation,
+      collection_date = collection_date,
+      device = if (is.na(device)) NA_character_ else as.character(device),
+      event_label = if (is.na(event_label)) NA_character_
+                    else as.character(event_label)
     ),
     class = "pollen_site"
   )
+}
+
+# Coerce a scalar site coordinate, erroring on anything that is not one number.
+.site_num <- function(x, what) {
+  if (is.null(x) || (length(x) == 1L && is.na(x))) return(NA_real_)
+  if (length(x) != 1L)
+    stop("`", what, "` must be a single value.", call. = FALSE)
+  v <- suppressWarnings(as.numeric(x))
+  if (is.na(v))
+    stop("`", what, "` must be numeric (got \"", x, "\").", call. = FALSE)
+  v
 }
 
 #' @export
@@ -279,7 +341,20 @@ print.pollen_site <- function(x, ...) {
       sprintf("(%s)", paste(names(table(x$dictionary$group)),
                             table(x$dictionary$group), sep = "=",
                             collapse = ", ")), "\n")
-  cat("  pollen sum (basic):", paste(x$pollen_sum, collapse = "+"), "\n")
+  cat("  sum groups (\u03a3P):", paste(x$pollen_sum, collapse = "+"), "\n")
+  # Provenance is per sample, so a folder may hold one core at one position or
+  # many surface samples at many. Report whichever it is: a single position
+  # when the samples agree, a count when they do not.
+  nd <- attr(x, "n_distinct")
+  n_pos <- if (!is.null(nd)) max(nd[["latitude"]], nd[["longitude"]]) else 0L
+  if (n_pos > 1L) {
+    cat(sprintf("  positions: %d distinct (per sample)\n", n_pos))
+  } else if (!is.null(x$latitude) && !is.na(x$latitude) &&
+             !is.null(x$longitude) && !is.na(x$longitude)) {
+    elev <- if (!is.null(x$elevation) && !is.na(x$elevation))
+      sprintf(", %.0f m a.s.l.", x$elevation) else ""
+    cat(sprintf("  position: %.5f, %.5f%s\n", x$latitude, x$longitude, elev))
+  }
   if (!is.null(x$samples) && length(x$samples) > 0L) {
     tops <- vapply(x$samples, function(s) {
       v <- s$meta$depth_top

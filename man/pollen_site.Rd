@@ -11,6 +11,12 @@ pollen_site(
   preservation = default_preservation,
   precedence = default_precedence,
   samples = NULL,
+  latitude = NA_real_,
+  longitude = NA_real_,
+  elevation = NA_real_,
+  collection_date = NA,
+  device = NA_character_,
+  event_label = NA_character_,
   warn_sum = TRUE
 )
 }
@@ -32,6 +38,27 @@ attributing multi-state entries in single-class summaries.}
 
 \item{samples}{Named list of \code{pollen_count} objects pre-loaded into the
 site (rarely used directly; \code{\link[=read_site]{read_site()}} populates this).}
+
+\item{latitude, longitude}{Site position in decimal degrees on WGS84,
+positive north and east. Optional: every georeferencing field below may
+be left unset, in which case it is recorded as \code{NA} and written as a
+blank column by \code{\link[=write_pangaea]{write_pangaea()}} for completion before submission.
+Nothing in counting or analysis requires them.}
+
+\item{elevation}{Site elevation in metres above sea level; negative below.
+This is the site's position, not a sample depth.}
+
+\item{collection_date}{Date the core or surface sample was collected, as a
+\code{Date} or an ISO \code{"YYYY-MM-DD"} string.}
+
+\item{device}{Sampling device or method, e.g. \code{"Livingstone piston corer"}.}
+
+\item{event_label}{Short label for the sampling station, in PANGAEA's
+sense of an \emph{event}: one coring location, one station on a cruise, one
+point on a transect. Typically the core identifier (\code{"LM23-1"}) rather
+than the site name, because a single dataset may span several events,
+each with its own position. \code{\link[=write_pangaea]{write_pangaea()}} puts it in the first
+column and falls back to \code{name} when it is unset.}
 
 \item{warn_sum}{Logical; warn when no group in \code{pollen_sum} occurs in the
 dictionary, which would make the analyst-defined sum 0. \code{FALSE} is used

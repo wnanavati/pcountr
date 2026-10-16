@@ -199,6 +199,23 @@ The Shiny counting app (`count_app()`) also accepts any free-text traverse
 label typed inline as `/label/`, and provides a Traverse button for
 mouse-driven entry.
 
+**`extract_traverses()` (v0.9.0) reads position out of those labels without
+constraining them.** Where a label begins with a number, that number becomes
+`position` and a trailing compass letter becomes `direction`, so an analyst
+recording stage coordinates in millimetres gets a distance axis. Everything
+else yields `NA` and the row is still returned.
+
+This is deliberately a *parser*, not a schema. Requiring a structured label
+would have been easier to consume and would have broken every existing `.CNT`
+and made the field one more thing to get wrong at the microscope. The value
+of the labels is that they were cheap to type, which is why they exist at all
+in twenty-year-old counts. A parser that tolerates failure can read those; a
+schema could only read counts made after it was imposed.
+
+The parser requires a leading digit before honouring a trailing compass
+letter. Without that, a label like `"edge"` parses as East — which a test now
+pins.
+
 ---
 
 ## 6. Preservation scheme — analyst-defined by design
@@ -939,4 +956,71 @@ api.neotomadb.org, and a spatial query there takes tens of seconds. The tally,
 the filtering, the fixed entries, the geometry and the distance arithmetic are
 all tested against a fixture shaped like real `samples()` output -- the same
 approach as the synthetic Tilia lookup in section 13.
+
+---
+
+## 15. Provenance lives on the sample, not on the site (v0.9.0)
+
+`latitude`, `longitude`, `elevation`, `collection_date`, `device` and
+`event_label` are stored on each sample and written into every `.YAML`. The
+site-level values are derived, not authoritative.
+
+The obvious design is the opposite: one position per site, since a core is one
+hole in the ground. It was rejected because a folder is not always a core. A
+surface-sample transect is twenty positions in one folder, and the data model
+has to represent that without the analyst splitting the work into twenty
+folders to satisfy a schema.
+
+`read_site()` therefore summarises upward. Where samples agree, `site$latitude`
+is the common value; where they differ it is `NA`, and `print()` reports
+`positions: 50 distinct` from an `n_distinct` attribute. The sample's own value
+always wins over a site-level default passed to `read_site(latitude = )`.
+
+**There is deliberately no warning on disagreement.** A warning that fires on
+every correct transect teaches analysts to ignore warnings, and would be
+loudest exactly where the data is right.
+
+`.stamp_site_meta()` gap-fills a sample from the site at write time and never
+overwrites. This was added after georeferencing appeared not to persist: the
+samples carried a `base_site` built before the coordinates were resolved, so
+three fields came back `NA` from a site that plainly had them.
+
+`build_dic_neotoma()` does **not** read the site's coordinates, though it takes
+a coordinate argument and the temptation is obvious. Drafting a dictionary
+happens before the first count, so there is no site to read from.
+
+---
+
+## 16. `write_pangaea()` writes a draft, not a submission (v0.9.0)
+
+The export leaves blanks. Event, position, elevation and date are written as
+columns whether or not anything fills them, and unset fields are listed after
+writing.
+
+The first implementation refused to run without coordinates, on the reasoning
+that PANGAEA requires them. That is true of a *submission* and false of a
+*file*. The working model is `write_tlx()`, whose output is finished in Tilia
+before a steward sees it — the analyst is expected to check their work, and a
+blank column is a visible prompt to fill in, whereas a hard stop just means
+the export cannot be produced at all. It also answers "what if I don't know
+this yet?" without a special case.
+
+Depth is the single exception, and for a structural reason rather than a
+policy one: it is PANGAEA's third geocode, `site_matrix()` drops samples
+without `depth_top`, and a site with none would write a file with no rows.
+`write_pangaea()` stops there and names PANGAEA's requirement, rather than
+letting `site_matrix()`'s error surface for a function the user did not call.
+
+The completeness report counts blanks **per sample**, skipping fields the site
+supplies. Checking the site instead would tell a correctly filled transect
+that its latitude was missing, since `site$latitude` is `NA` by design
+whenever samples legitimately differ (section 15).
+
+Taxon names are written as the dictionary has them. Mapping them onto
+PANGAEA's controlled parameter vocabulary was considered and declined:
+Neotoma stays the single reconciliation target for dictionaries, and a PANGAEA
+data editor harmonizes names during curation. The export is aimed at the
+multi-proxy and marine cases where PANGAEA is the natural home — PANGAEA's own
+author guide asks submitters to prefer a community repository where one
+exists, which for pollen is Neotoma.
 

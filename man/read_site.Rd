@@ -11,6 +11,12 @@ read_site(
   metadata = NULL,
   col_map = NULL,
   ignore_depth_conflicts = FALSE,
+  latitude = NA_real_,
+  longitude = NA_real_,
+  elevation = NA_real_,
+  collection_date = NA,
+  device = NA_character_,
+  event_label = NA_character_,
   quiet = FALSE
 )
 }
@@ -38,6 +44,11 @@ sheet's actual column names. Standard names: \code{file}, \code{depth_top},
 
 \item{ignore_depth_conflicts}{If \code{TRUE}, warn instead of error when a
 YAML-embedded depth disagrees with the sheet; the YAML value is kept.}
+
+\item{latitude, longitude, elevation, collection_date, device, event_label}{Optional site-level georeferencing and provenance. Used as a default
+for samples that carry none of their own; a sample's stored value always
+wins, so a folder of surface samples from different places keeps each
+position intact. Not required for counting or analysis.}
 
 \item{quiet}{If \code{TRUE}, suppress per-file anomaly warnings.}
 }

@@ -27,6 +27,12 @@ pollen_count(
   source_file = NA_character_,
   conc_method = "spike",
   use_pres = TRUE,
+  latitude = NA_real_,
+  longitude = NA_real_,
+  elevation = NA_real_,
+  collection_date = NA_character_,
+  device = NA_character_,
+  event_label = NA_character_,
   site = NULL
 )
 }
@@ -72,6 +78,11 @@ or \code{"none"} (no concentration computed).}
 
 \item{use_pres}{Logical; \code{TRUE} (default) means entries carry preservation
 codes. \code{FALSE} means no preservation digit was recorded.}
+
+\item{latitude, longitude, elevation, collection_date, device, event_label}{Georeferencing and provenance for this sample (see \code{\link[=pollen_site]{pollen_site()}}).
+Recorded per sample rather than per site: a folder may hold one core at
+a single position, or surface samples collected across a region.
+\code{\link[=read_site]{read_site()}} summarizes them onto the site.}
 
 \item{site}{Optional \code{\link[=pollen_site]{pollen_site()}}.}
 }

@@ -72,6 +72,13 @@ write_pollen_count <- function(x, path) {
     spike_units       = .na_null(x$meta$spike_units),
     spike_counted     = x$spike_n,
     conc_method       = .na_null(x$meta$conc_method),
+    latitude          = .na_null(x$meta$latitude        %||% x$site$latitude),
+    longitude         = .na_null(x$meta$longitude       %||% x$site$longitude),
+    elevation         = .na_null(x$meta$elevation       %||% x$site$elevation),
+    collection_date   = .na_null(.as_iso(x$meta$collection_date %||%
+                                         x$site$collection_date)),
+    device            = .na_null(x$meta$device          %||% x$site$device),
+    event_label       = .na_null(x$meta$event_label     %||% x$site$event_label),
     use_pres          = if (isFALSE(x$meta$use_pres)) FALSE else NULL,
     pollen_sum_groups = x$meta$pollen_sum_groups,
     traverses         = x$traverses,
@@ -227,9 +234,22 @@ read_pollen_count <- function(path, site = NULL) {
     title             = doc$title             %||% NA_character_,
     source_file       = doc$source_file       %||% basename(path),
     conc_method       = doc$conc_method       %||% "spike",
+    latitude          = doc$latitude          %||% NA_real_,
+    longitude         = doc$longitude         %||% NA_real_,
+    elevation         = doc$elevation         %||% NA_real_,
+    collection_date   = doc$collection_date   %||% NA_character_,
+    device            = doc$device            %||% NA_character_,
+    event_label       = doc$event_label       %||% NA_character_,
     use_pres          = if (isFALSE(doc$use_pres)) FALSE else TRUE,
     site              = site
   )
 }
 
 .na_null <- function(v) if (length(v) == 0L || (length(v) == 1L && is.na(v))) NULL else v
+
+# Dates go into YAML as ISO strings; anything else passes through unchanged.
+.as_iso <- function(x) {
+  if (is.null(x) || (length(x) == 1L && is.na(x))) return(NA_character_)
+  if (inherits(x, "Date")) return(format(x, "%Y-%m-%d"))
+  as.character(x)
+}

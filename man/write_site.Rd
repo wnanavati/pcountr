@@ -24,6 +24,15 @@ migrating a folder of legacy \code{.CNT} files to the modern YAML format, and th
 necessary first step before \code{\link[=apply_metadata]{apply_metadata()}} can write metadata back to
 disk (\code{.CNT} files are read-only; \code{apply_metadata()} only writes to YAML).
 }
+\section{Provenance is gap-filled, never overwritten}{
+Where a sample has no \code{latitude}, \code{longitude}, \code{elevation},
+\code{collection_date}, \code{device} or \code{event_label} of its own, the site's value
+is written into its YAML. A sample that carries its own value keeps it, so
+writing a transect does not flatten it to a single position. This is what
+makes \code{read_site(latitude = )} persist: without it, a site georeferenced at
+load time would write YAMLs with the field still blank.
+}
+
 \details{
 After writing, each sample's \code{meta$source_file} is updated in the returned
 site to the full normalized path of its new YAML, so the result can be

@@ -221,7 +221,7 @@ rarefaction <- function(site,
     g_sub <- g[!is.na(grp) & grp %in% groups, , drop = FALSE]
 
     if (nrow(g_sub) == 0L) {
-      message("Skipping ", nm, ": no grains in the specified groups.")
+      message("Skipping ", nm, ": no identifications in the specified groups.")
       return(NULL)
     }
 

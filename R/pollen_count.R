@@ -32,6 +32,11 @@
 #' @param conc_method Concentration calculation method: `"spike"` (tracer
 #'   equation, default), `"volumetric"` (counts divided by sample quantity),
 #'   or `"none"` (no concentration computed).
+#' @param latitude,longitude,elevation,collection_date,device,event_label
+#'   Georeferencing and provenance for this sample (see [pollen_site()]).
+#'   Recorded per sample rather than per site: a folder may hold one core at
+#'   a single position, or surface samples collected across a region.
+#'   [read_site()] summarizes them onto the site.
 #' @param use_pres Logical; `TRUE` (default) means entries carry preservation
 #'   codes. `FALSE` means no preservation digit was recorded.
 #' @param site Optional [pollen_site()].
@@ -58,6 +63,12 @@ pollen_count <- function(grains,
                          source_file = NA_character_,
                          conc_method = "spike",
                          use_pres = TRUE,
+                         latitude = NA_real_,
+                         longitude = NA_real_,
+                         elevation = NA_real_,
+                         collection_date = NA_character_,
+                         device = NA_character_,
+                         event_label = NA_character_,
                          site = NULL) {
   structure(
     list(
@@ -83,7 +94,17 @@ pollen_count <- function(grains,
         title = title,
         source_file = source_file,
         conc_method = conc_method,
-        use_pres = use_pres
+        use_pres = use_pres,
+        # Site-level provenance. Stored per sample because the YAML format is
+        # one file per sample and has no site-level block; read_site()
+        # summarizes it onto the site: the common value where samples agree,
+        # NA plus a distinct count where they legitimately differ.
+        latitude = latitude,
+        longitude = longitude,
+        elevation = elevation,
+        collection_date = collection_date,
+        device = device,
+        event_label = event_label
       ),
       site = site
     ),
@@ -94,7 +115,7 @@ pollen_count <- function(grains,
 #' @export
 print.pollen_count <- function(x, ...) {
   cat("<pollen_count>", x$meta$title %||% x$meta$source_file %||% "(untitled)", "\n")
-  cat("  grains:", nrow(x$grains), " spike:", x$spike_n,
+  cat("  entries:", nrow(x$grains), " spike:", x$spike_n,
       " traverses:", length(x$traverses), "\n")
   cat("  sample:", x$meta$sample_quantity, x$meta$units,
       "| spike:", x$meta$spike_tablets, "tablets x",

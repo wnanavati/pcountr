@@ -16,14 +16,19 @@ the data frame is returned but not written.}
 A data frame with columns: \code{sample_name}, \code{depth_top},
 \code{depth_bottom}, \code{age_top}, \code{age_bottom}, \code{sample_quantity}, \code{units},
 \code{spike_tablets}, \code{spike_density}, \code{spike_units}, \code{conc_method},
-\code{title}, \code{source_file}.
+\code{title}, the per-sample \code{latitude}, \code{longitude}, \code{elevation},
+\code{collection_date}, \code{device} and \code{event_label}, and \code{source_file}.
 }
 \description{
 Creates a data frame with one row per sample, containing all metadata
-fields found in the loaded samples. The output matches the CSV format
-accepted by the \code{metadata} argument of \code{\link{read_site}()}, making this the
-reverse of \code{\link{set_metadata}()}: use it to bootstrap a metadata file from
-counts that were saved without one.
+fields found in the loaded samples. This is the reverse of
+\code{\link{set_metadata}()}: use it to bootstrap a metadata file from counts that
+were saved without one.
+
+Edits made to this sheet are written back with \code{\link{apply_metadata}()}, not by
+passing it to \code{\link{read_site}()}. The two read different column sets:
+\code{read_site(metadata = )} applies only \code{depth_top}, \code{depth_bottom},
+\code{age_top} and \code{age_bottom}, and silently ignores the rest.
 
 Fields absent from a sample are left \code{NA}.
 }

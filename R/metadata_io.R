@@ -1,10 +1,14 @@
 #' Extract sample metadata from a site or folder of YAML files
 #'
 #' Creates a data frame with one row per sample, containing all metadata
-#' fields found in the loaded samples. The output matches the CSV format
-#' accepted by the `metadata` argument of [read_site()], making this the
-#' reverse of [set_metadata()]: use it to bootstrap a metadata file from
-#' counts that were saved without one.
+#' fields found in the loaded samples. This is the reverse of
+#' [set_metadata()]: use it to bootstrap a metadata file from counts that
+#' were saved without one.
+#'
+#' Edits made to this sheet are written back with [apply_metadata()], not by
+#' passing it to [read_site()]. The two read different column sets:
+#' `read_site(metadata = )` applies only `depth_top`, `depth_bottom`,
+#' `age_top` and `age_bottom`, and silently ignores the rest.
 #'
 #' Fields absent from a sample are left `NA`.
 #'
@@ -16,8 +20,10 @@
 #' @return A data frame with columns: `sample_name`, `depth_top`,
 #'   `depth_bottom`, `age_top`, `age_bottom`, `sample_quantity`, `units`,
 #'   `spike_tablets`, `spike_density`, `spike_units`, `conc_method`,
-#'   `title`, `source_file`.
-#' @seealso [set_metadata()], [read_site()]
+#'   `title`, the per-sample `latitude`, `longitude`, `elevation`,
+#'   `collection_date`, `device` and `event_label`, and `source_file`.
+#' @seealso [apply_metadata()] to write edits back, [set_metadata()],
+#'   [read_site()]
 #' @export
 extract_metadata <- function(x, file = NULL) {
   if (is.character(x)) {
@@ -43,6 +49,12 @@ extract_metadata <- function(x, file = NULL) {
       spike_units     = character(0),
       conc_method     = character(0),
       title           = character(0),
+      latitude        = numeric(0),
+      longitude       = numeric(0),
+      elevation       = numeric(0),
+      collection_date = character(0),
+      device          = character(0),
+      event_label     = character(0),
       source_file     = character(0),
       stringsAsFactors = FALSE
     ))
@@ -68,6 +80,12 @@ extract_metadata <- function(x, file = NULL) {
       spike_units     = .pull(m, "spike_units",     NA_character_),
       conc_method     = .pull(m, "conc_method",     NA_character_),
       title           = .pull(m, "title",           NA_character_),
+      latitude        = suppressWarnings(as.numeric(.pull(m, "latitude",  NA_real_))),
+      longitude       = suppressWarnings(as.numeric(.pull(m, "longitude", NA_real_))),
+      elevation       = suppressWarnings(as.numeric(.pull(m, "elevation", NA_real_))),
+      collection_date = as.character(.pull(m, "collection_date", NA_character_)),
+      device          = .pull(m, "device",          NA_character_),
+      event_label     = .pull(m, "event_label",     NA_character_),
       source_file     = .pull(m, "source_file",     NA_character_),
       stringsAsFactors = FALSE
     )
@@ -105,8 +123,17 @@ extract_metadata <- function(x, file = NULL) {
 #' All editable columns present in the CSV are applied when non-NA:
 #' `depth_top`, `depth_bottom`, `age_top`, `age_bottom`, `sample_name`,
 #' `sample_quantity`, `units`, `spike_tablets`, `spike_density`,
-#' `spike_units`, `conc_method`, `title`. The `source_file` column is used
-#' for matching only and is never written back.
+#' `spike_units`, `conc_method`, `title`, and the per-sample `latitude`,
+#' `longitude`, `elevation`, `collection_date`, `device` and `event_label`.
+#' The `source_file` column is used for matching only and is never written
+#' back.
+#'
+#' The six provenance columns carry one value per row, because provenance is
+#' recorded per sample. Editing them here is the supported way to add
+#' positions to a site counted before they were known: for a single core, set
+#' the same value in every row and [read_site()] will report it on the site;
+#' for a transect, give each row its own, and the site reports how many
+#' distinct positions it holds rather than a single one.
 #'
 #' @param site A `pollen_site` with samples loaded.
 #' @param csv Path to a CSV file (as produced by [extract_metadata()]), or a
@@ -190,6 +217,12 @@ apply_metadata <- function(site, csv, write = TRUE) {
     .add_chr("spike_units")
     .add_chr("conc_method")
     .add_chr("title")
+    .add_num("latitude")
+    .add_num("longitude")
+    .add_num("elevation")
+    .add_chr("collection_date")
+    .add_chr("device")
+    .add_chr("event_label")
 
     site     <- do.call(set_metadata, args)
     modified <- c(modified, key)
@@ -216,6 +249,12 @@ apply_metadata <- function(site, csv, write = TRUE) {
       message("Saved: ", src)
     }
   }
+
+  # Site-level columns are edited per row in the CSV, so the samples are
+  # authoritative here -- the reverse of write_site(). Lift them back onto the
+  # site so the returned object agrees with what was just written to disk.
+  geo <- .lift_site_meta(site$samples)
+  for (f in names(geo)) site[[f]] <- geo[[f]]
 
   invisible(site)
 }

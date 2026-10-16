@@ -53,6 +53,11 @@
 #'   depth_bottom = "Bot_cm")`. Column matching is case-insensitive.
 #' @param ignore_depth_conflicts If `TRUE`, warn instead of error when a
 #'   YAML-embedded depth disagrees with the sheet; the YAML value is kept.
+#' @param latitude,longitude,elevation,collection_date,device,event_label
+#'   Optional site-level georeferencing and provenance. Used as a default
+#'   for samples that carry none of their own; a sample's stored value always
+#'   wins, so a folder of surface samples from different places keeps each
+#'   position intact. Not required for counting or analysis.
 #' @param quiet If `TRUE`, suppress per-file anomaly warnings.
 #' @return A `pollen_site` with a `samples` list ordered by depth.
 #' @export
@@ -62,6 +67,12 @@ read_site <- function(folder,
                       metadata = NULL,
                       col_map = NULL,
                       ignore_depth_conflicts = FALSE,
+                      latitude = NA_real_,
+                      longitude = NA_real_,
+                      elevation = NA_real_,
+                      collection_date = NA,
+                      device = NA_character_,
+                      event_label = NA_character_,
                       quiet = FALSE) {
 
   # 1. Resolve dictionary -------------------------------------------------
@@ -118,12 +129,30 @@ read_site <- function(folder,
   # 7. Return pollen_site with samples ------------------------------------
   # warn_sum = FALSE: base_site above already checked this dictionary against
   # these sum groups, and warning twice for one read_site() call is noise.
-  pollen_site(name, dic,
-              pollen_sum   = base_site$pollen_sum,
-              preservation = base_site$preservation,
-              precedence   = base_site$precedence,
-              samples      = samples,
-              warn_sum     = FALSE)
+  # Site-level provenance is stored per sample (the YAML format has no
+  # site-level block), so lift it back onto the site here. An explicit
+  # argument always wins; otherwise the samples' own value is used.
+  geo <- .lift_site_meta(samples)
+  n_distinct <- attr(geo, "n_distinct")
+
+  out <- pollen_site(name, dic,
+              pollen_sum      = base_site$pollen_sum,
+              preservation    = base_site$preservation,
+              precedence      = base_site$precedence,
+              samples         = samples,
+              latitude        = if (is.na(latitude))  geo$latitude  else latitude,
+              longitude       = if (is.na(longitude)) geo$longitude else longitude,
+              elevation       = if (is.na(elevation)) geo$elevation else elevation,
+              collection_date = if (is.na(collection_date))
+                                  geo$collection_date else collection_date,
+              device          = if (is.na(device))      geo$device      else device,
+              event_label     = if (is.na(event_label)) geo$event_label else event_label,
+              warn_sum        = FALSE)
+
+  # Record how many distinct values the samples hold, so print.pollen_site()
+  # can report "positions: 50 distinct" rather than implying one position.
+  attr(out, "n_distinct") <- n_distinct
+  out
 }
 
 
@@ -139,6 +168,14 @@ read_site <- function(folder,
 #' site to the full normalized path of its new YAML, so the result can be
 #' passed directly to [extract_metadata()] or [apply_metadata()] without
 #' reloading from disk.
+#'
+#' @section Provenance is gap-filled, never overwritten:
+#' Where a sample has no `latitude`, `longitude`, `elevation`,
+#' `collection_date`, `device` or `event_label` of its own, the site's value
+#' is written into its YAML. A sample that carries its own value keeps it, so
+#' writing a transect does not flatten it to a single position. This is what
+#' makes `read_site(latitude = )` persist: without it, a site georeferenced at
+#' load time would write YAMLs with the field still blank.
 #'
 #' @section CNT migration workflow:
 #' ```r
@@ -183,7 +220,7 @@ write_site <- function(site, folder, overwrite = FALSE) {
               "  - use overwrite = TRUE to replace.")
       next
     }
-    write_pollen_count(site$samples[[k]], path)
+    write_pollen_count(.stamp_site_meta(site$samples[[k]], site), path)
     site$samples[[k]]$meta$source_file <- path
     message("Written: ", path)
   }
@@ -224,6 +261,12 @@ write_site <- function(site, folder, overwrite = FALSE) {
 #' @param conc_method Concentration method: `"spike"`, `"volumetric"`, or
 #'   `"none"`.
 #' @param title Free-text sample title shown in the counting app.
+#' @param latitude,longitude,elevation,collection_date,device,event_label
+#'   Site-level provenance (see [pollen_site()]). Recorded per sample: a
+#'   folder may hold one core at a single position, or surface samples from
+#'   many. Where every sample agrees, [read_site()] reports the common value
+#'   on the site; where they differ, the site field is `NA` and `print()`
+#'   shows how many distinct values exist.
 #' @return The updated `pollen_site` (invisibly).
 #' @seealso [read_site()] for bulk depth/age assignment via a metadata sheet,
 #'   [apply_metadata()] to push a full edited metadata CSV back to a site.
@@ -240,7 +283,13 @@ set_metadata <- function(site, sample,
                          spike_density   = NULL,
                          spike_units     = NULL,
                          conc_method     = NULL,
-                         title           = NULL) {
+                         title           = NULL,
+                         latitude        = NULL,
+                         longitude       = NULL,
+                         elevation       = NULL,
+                         collection_date = NULL,
+                         device          = NULL,
+                         event_label     = NULL) {
   stopifnot(inherits(site, "pollen_site"))
   if (is.null(site$samples) || !length(site$samples))
     stop("`site` has no samples loaded. Run read_site() first.")
@@ -279,6 +328,12 @@ set_metadata <- function(site, sample,
   if (!is.null(spike_units))     m$spike_units      <- spike_units
   if (!is.null(conc_method))     m$conc_method      <- conc_method
   if (!is.null(title))           m$title            <- title
+  if (!is.null(latitude))        m$latitude         <- latitude
+  if (!is.null(longitude))       m$longitude        <- longitude
+  if (!is.null(elevation))       m$elevation        <- elevation
+  if (!is.null(collection_date)) m$collection_date  <- collection_date
+  if (!is.null(device))          m$device           <- device
+  if (!is.null(event_label))     m$event_label      <- event_label
   site$samples[[idx]]$meta <- m
 
   site$samples <- .order_samples(site$samples)
@@ -456,3 +511,52 @@ set_metadata <- function(site, sample,
 }
 
 .as_num <- function(x) suppressWarnings(as.numeric(x))
+
+# Summarize site-level provenance across the samples that carry it.
+#
+# Provenance is per sample: a folder may hold one core (every sample at the
+# same position) or a set of surface samples from different places. Both are
+# legitimate, so disagreement is reported rather than warned about -- a
+# warning that fires on every correct transect would be ignored by the time
+# it mattered. Where samples agree the common value is returned; where they
+# differ the field is NA and `n_distinct` records how many values exist, for
+# print.pollen_site() to show.
+.lift_site_meta <- function(samples) {
+  fields <- c("latitude", "longitude", "elevation",
+              "collection_date", "device", "event_label")
+  out <- stats::setNames(vector("list", length(fields)), fields)
+  n_distinct <- stats::setNames(integer(length(fields)), fields)
+
+  for (f in fields) {
+    vals <- lapply(samples, function(s) s$meta[[f]])
+    vals <- unlist(vals[!vapply(vals, function(v)
+      is.null(v) || (length(v) == 1L && is.na(v)), logical(1))],
+      use.names = FALSE)
+    uniq <- unique(vals)
+    n_distinct[[f]] <- length(uniq)
+
+    out[[f]] <- if (length(uniq) == 1L) uniq[[1L]]
+                else if (f %in% c("latitude", "longitude", "elevation"))
+                  NA_real_ else NA_character_
+  }
+  attr(out, "n_distinct") <- n_distinct
+  out
+}
+
+# Site-level provenance lives on the site but is stored per sample, because
+# the YAML format has no site-level block. Samples built by read_site() hold
+# a reference to the bare site created before georeferencing was resolved,
+# and a user may set site$latitude after loading -- so the site handed to the
+# writer supplies values for samples that carry none. A sample's own value
+# always wins: provenance is per sample, so a folder of surface samples from
+# different places keeps each one's position intact.
+.stamp_site_meta <- function(cnt, site) {
+  for (f in c("latitude", "longitude", "elevation",
+              "collection_date", "device", "event_label")) {
+    own <- cnt$meta[[f]]
+    if (!is.null(own) && !(length(own) == 1L && is.na(own))) next  # sample wins
+    v <- site[[f]]
+    if (!is.null(v) && !(length(v) == 1L && is.na(v))) cnt$meta[[f]] <- v
+  }
+  cnt
+}

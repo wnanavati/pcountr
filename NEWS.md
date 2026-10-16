@@ -2,6 +2,131 @@
 
 ## pcountr 0.8.0.9000 (development version)
 
+### Fixed — the counting screen no longer overflows a laptop window
+
+The right-hand column had grown past the fold, forcing a scroll to reach
+**Done / Save**. Two changes, together worth roughly 120 px:
+
+- The `autosaving → sample.yaml` line above the save buttons is gone, with
+  the `hr()` and `br()` that bracketed it. The save path is still shown on the
+  setup screen, and autosave behaviour is unchanged — only the reminder went.
+- `hr` now uses 10 px margins instead of Bootstrap's 20 px. Three rules stack
+  in that column, so the default cost about 120 px on its own.
+
+No font size was reduced: the smallest text in the interface is already 11 px,
+and shrinking it further would fail the WCAG 2.1 AA contrast and legibility
+standard the package holds itself to. The saving comes from spacing instead.
+
+Worth noting for the record that this was not a regression I could locate. The
+right column is structurally unchanged since August — 28 elements then and
+now, with the only edit being `grains` to `counts` in a label of identical
+length. The overflow looks to be long-standing and dependent on window height
+rather than something a recent release introduced.
+
+### Changed — console output the proxy-agnostic pass missed
+
+Three printed strings still assumed pollen. `print.pollen_site()` labelled the
+sum groups "pollen sum (basic)" and now says "sum groups (ΣP)";
+`print.pollen_count()` reported "grains:" and now reports "entries:"; and
+`rarefaction()`'s skip message said "no grains in the specified groups".
+These are console output rather than app labels, which is why the v0.9.0 pass
+over `count_app()` and the documentation did not catch them.
+
+`rarefaction()`'s "Grains needed for % of Smax" banner is deliberately
+unchanged, as before.
+
+### New — site georeferencing and a PANGAEA export
+
+A site can now record where it is. `pollen_site()` and `read_site()` gain
+`latitude`, `longitude`, `elevation`, `collection_date`, `device` and
+`event_label`. All are optional and default to `NA`: counting, analysis and
+the Tilia export work exactly as before without them. Coordinates are
+validated on construction — a latitude outside ±90 or a longitude outside
+±180 is an error rather than a site quietly placed in the wrong hemisphere,
+which is the failure mode a transposed pair produces.
+
+**Provenance is recorded per sample, not per site.** A folder may hold one
+core — twenty depths at a single position — or surface samples collected
+across a region, each at its own. Both are legitimate, so the six fields live
+on each sample and are written into every `.YAML`. `read_site()` then
+summarises: where samples agree, `site$latitude` gives the common value; where
+they differ it is `NA`, and `print()` reports `positions: 50 distinct`. There
+is deliberately no warning — one firing on every correct transect would be
+ignored by the time it mattered.
+
+`read_site(latitude = )` and `pollen_site(latitude = )` remain, as a default
+for samples carrying nothing of their own. A sample's stored value always
+wins.
+
+`write_pangaea()` writes Event, latitude, longitude, elevation and date **per
+row**, so a multi-location folder exports as one PANGAEA submission with many
+events — which is what their Event column is for. Its completeness report
+counts blanks per sample rather than checking the site, since a correctly
+filled transect has no single site value to check.
+
+The counting app now captures all six. A **Site location & provenance** panel
+on the setup screen, collapsed by default so it costs one line when unused,
+and the same fields on the **Sample Info** tab with live editing. Values carry
+over to the next sample like the dictionary and spike settings — and when they
+do, the panel opens, so an analyst moving to a new location sees what was
+inherited rather than silently keeping it.
+
+They also join the existing metadata round trip: `extract_metadata()` emits
+the six columns, `apply_metadata()` applies them and lifts the result back
+onto the site, and `set_metadata()` accepts them per sample.
+
+This closed a real gap. The package previously held no geographic metadata at
+all, which is why `write_tlx()` writes none: site position is entered in Tilia
+afterwards. Repositories other than Neotoma are not so forgiving.
+
+**`write_pangaea()`** exports a site as a PANGAEA-ready table: TAB-delimited
+UTF-8, event label first, depth converted from centimetres to metres as the
+third geocode, then age, then one column per taxon with its unit in square
+brackets (`[#]`, `[%]`, `[#/cm**3]`, `[#/cm**2/a]`). PANGAEA requires tables
+of differing structure to be submitted separately, so `what` selects one table
+per call.
+
+Event, position, elevation and date are written as columns whether or not the
+site carries them. The output is a draft to be finished before submission, in
+the same way a `.tlx` is completed in Tilia before a steward sees it, so a
+blank column is a prompt rather than an error. Anything still unset is listed
+after writing.
+
+Two things it deliberately does not do. It does not map taxon names onto
+PANGAEA's controlled parameter vocabulary — names are written as the
+dictionary has them and a data editor harmonizes during curation; Neotoma
+remains the reconciliation target for dictionaries. And it does not displace
+`write_tlx()`: PANGAEA's own author guide asks submitters to prefer a
+community repository where one exists, which for pollen is Neotoma. The export
+is aimed at multi-proxy and marine datasets where PANGAEA is the natural home.
+
+### New — `extract_traverses()`, counts at traverse resolution
+
+Reducing a count to per-sample totals discards the position of every
+identification. pcountr preserves the counting sequence and the traverse
+labels interleaved with it, so that structure survives — `extract_traverses()`
+exposes it as a tidy table.
+
+One row per sample and traverse: identification, marker and special counts,
+richness, summed weight, the traverse's counting order, and `position` and
+`direction` parsed from the label. Analysts who record stage coordinates in
+millimetres get a usable distance axis; `dist_start` measures from the
+sample's first traverse, which is the more portable of the two when the stage
+datum differs between slides. `taxa = TRUE` returns the same table per taxon,
+for composition-against-position work.
+
+Marker counts come from the event stream rather than from `cnt$grains`, since
+spikes are not grains and are held only as events. Position parsing is
+deliberately forgiving: a label that does not begin with a number yields `NA`
+and the row is still returned, because traverse labels are free text and
+always have been.
+
+What this makes possible is the point. A record counted in PCount years ago
+can be asked whether assemblage composition varies across a coverslip, and
+whether a given counting effort spread over more of the slide changes the
+answer — questions the original count was never designed to address, and that
+no summed count can recover.
+
 ### Fixed — the `.CNT` units code was inverted
 
 `read_cnt()` mapped the config line's sixth field as 1 = ml, 2 = g. It is the
@@ -22,10 +147,16 @@ why this survived four versions of a test suite that reproduces a PCount
 report to the digit: the golden test asserts the numbers and not the units.
 Two tests now assert the label as well.
 
-In practice the blast radius was small. `read_site()` with a metadata sheet
-takes units from the sheet, so any workflow using `metadata_FL.csv` or an
-equivalent already reported `ml` correctly. A bare `read_cnt()` on a legacy
-file is what showed the wrong unit.
+The blast radius is every legacy read. An earlier draft of this entry claimed
+that `read_site()` with a metadata sheet took units from the sheet, so that
+workflows using `metadata_FL.csv` were already correct. That is wrong, and the
+claim is withdrawn: `.attach_sheet_depth()` applies only `depth_top`,
+`depth_bottom`, `age_top` and `age_bottom`, and the sheet's `sample_units`
+column is never read. Units came from the `.CNT` config line and nowhere else,
+so every legacy read reported the wrong label, sheet or no sheet.
+
+Counts saved as YAML were unaffected, because their unit string comes from the
+app rather than from the parser.
 
 `1 = g` remains an inference: no `.CNT` carrying a `1` in that field was
 available to check, and the analyst reports never having recorded a sample by

@@ -269,6 +269,20 @@ write_tlx(site, file = "C:/Users/you/Documents/my_site.tlx")
 
 Opens in Tilia, for onward submission to Neotoma.
 
+### Export to PANGAEA
+
+If your data is headed for PANGAEA instead — usually a multi-proxy or marine
+dataset, since PANGAEA itself asks you to prefer Neotoma for pollen:
+
+```r
+write_pangaea(site, file = "C:/Users/you/Documents/my_site.txt")
+```
+
+One call writes one table; `what = "percent"` or `"concentration"` writes the
+others. Fields you haven't filled in are left blank and listed afterwards, so
+you can finish the file before submitting — the same way a `.tlx` is finished
+in Tilia. Depth is the one thing it cannot do without.
+
 ---
 
 ## 6. If something goes wrong

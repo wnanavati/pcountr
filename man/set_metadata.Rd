@@ -16,7 +16,13 @@ set_metadata(
   spike_density = NULL,
   spike_units = NULL,
   conc_method = NULL,
-  title = NULL
+  title = NULL,
+  latitude = NULL,
+  longitude = NULL,
+  elevation = NULL,
+  collection_date = NULL,
+  device = NULL,
+  event_label = NULL
 )
 }
 \arguments{
@@ -48,6 +54,15 @@ or per g).}
 \code{"none"}.}
 
 \item{title}{Free-text sample title shown in the counting app.}
+
+\item{latitude, longitude, elevation, collection_date, device, event_label}{Provenance
+for this sample (see \code{\link[=pollen_site]{pollen_site()}}). Recorded per sample rather than per
+site, because a folder may hold one core at a single position or surface
+samples collected across a region. \code{\link[=read_site]{read_site()}} summarises upward: where every
+sample agrees the site carries the common value, and where they differ the
+site value is \code{NA} with the distinct count reported by \code{print()}. Samples
+disagreeing is a legitimate transect rather than an error, so no warning is
+issued.}
 }
 \value{
 The updated \code{pollen_site} (invisibly).

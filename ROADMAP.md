@@ -79,19 +79,57 @@ the `dev` branch.
   which claimed single letters although nothing enforces that and the Neotoma
   builder emits four-letter codes.
 
+- **Site georeferencing and `write_pangaea()`.** `pollen_site()` and
+  `read_site()` now take `latitude`, `longitude`, `elevation`,
+  `collection_date`, `device` and `event_label`, all optional and validated.
+  `write_pangaea()` writes a TAB-delimited UTF-8 table in PANGAEA's layout.
+  Taxon-name mapping onto PANGAEA's parameter vocabulary was considered
+  and declined: Neotoma stays the single reconciliation target for
+  dictionaries, and a PANGAEA editor harmonizes names during curation.
+
+  An earlier draft refused to write without coordinates. That was reversed:
+  the output is a draft to be finished before submission, in the same way a
+  `.tlx` is completed in Tilia, so missing fields are written as blanks and
+  listed afterwards rather than blocking the export. Depth is the one
+  exception — it is PANGAEA's third geocode, and without it `site_matrix()`
+  drops every sample and the file would have no rows.
+
+- **Site provenance is per sample, and the counting app captures it.** The
+  six fields are recorded on each sample rather than on the site, because a
+  folder may hold one core or surface samples from many places. `read_site()`
+  summarises rather than warns: common value where samples agree, `NA` plus a
+  distinct count where they differ. `write_pangaea()` writes Event and
+  position per row, so a multi-location folder is one submission with many
+  events. The app gained a collapsed-by-default **Site location &
+  provenance** panel on the setup screen and matching fields on **Sample
+  Info**, carried over on New Sample.
+
+- **`extract_traverses()` exposes counts at traverse resolution.** One row per
+  sample and traverse — identification, marker and special counts, richness,
+  summed weight — plus `position` and `direction` parsed from the traverse
+  label and `dist_start`, the distance from the sample's first traverse.
+  `taxa = TRUE` returns the same thing per taxon. Marker counts come from the
+  event stream rather than `cnt$grains`, because spikes are not grains.
+
+  This exists because the counting sequence is preserved, so identifications
+  stay addressable by where on the slide they were made — information no
+  summed count can recover. Position parsing is deliberately forgiving:
+  labels that do not begin with a number yield `NA` and the row is still
+  returned.
+
+- **Corrected a wrong claim in NEWS.md** about `read_site()` taking units from
+  a metadata sheet. It does not; the sheet supplies only depth and age. The
+  entry now withdraws the claim explicitly rather than editing it away, since
+  the original was already pushed.
+
 **Still to do**
 
-- **Correct a wrong claim in NEWS.md.** The v0.9.0 entry for the inverted
-  `.CNT` units code states that "`read_site()` with a metadata sheet takes
-  units from the sheet, so any workflow using `metadata_FL.csv` or an
-  equivalent already reported `ml` correctly." That is false.
-  `.attach_sheet_depth()` applies only `depth_top`, `depth_bottom`, `age_top`
-  and `age_bottom`; the sheet's `sample_units` is never read. Units always came
-  from the `.CNT` config line, so the bug's blast radius was *larger* than the
-  entry claims — every legacy read reported the wrong label, sheet or no sheet.
-  The fix and its tests are correct; only the account of the scope is wrong.
-  Already committed and pushed, so this needs an amending note rather than a
-  silent edit.
+- **Decide whether `write_tlx()` should emit site coordinates.** Now that a
+  site can carry them, the Tilia export could populate site and
+  collection-unit position rather than leaving it to be typed into Tilia by
+  hand. Not done here because the `.tlx` layout for those fields has not been
+  verified against a Tilia-written file, and guessing would risk producing
+  something a steward has to repair.
 
 - **`read_site()` silently ignores six metadata-sheet columns.** It recognizes
   only `file`, `depth_top`, `depth_bottom`, `age_top`, `age_bottom`. A sheet

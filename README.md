@@ -22,7 +22,9 @@ mirrors the PCount DOS workflow while saving to a modern, self-contained format.
 
 ### Site-level analysis
 - **`read_site()`** — load a folder of `.yaml` and/or legacy `.CNT` files as a
-  `pollen_site`, with optional depth/age metadata sheet (CSV/TSV).
+  `pollen_site`, with optional depth/age metadata sheet (CSV/TSV). Accepts
+  `latitude`, `longitude`, `elevation`, `collection_date`, `device` and
+  `event_label` as defaults for samples carrying none of their own.
 - **`write_site()`** — export every sample to a YAML file; the primary route
   for migrating a legacy `.CNT` folder to the modern YAML format. Returns the
   updated site with `source_file` stamped, ready for `apply_metadata()`.
@@ -36,11 +38,22 @@ mirrors the PCount DOS workflow while saving to a modern, self-contained format.
 - **`extract_remarks()`** — table of every inline remark across a site, with the
   sample, slide, traverse, and the taxon ID counted next to it, so you can find
   your way back to a flagged spot on a slide.
+- **`extract_traverses()`** — counts at traverse resolution: one row per sample
+  and traverse, with identification and marker counts, richness, and the
+  traverse's position on the slide where the label records one. Because the
+  counting sequence is preserved, identifications stay addressable by where on
+  the slide they were made.
 - **`site_matrix()`** — wide samples × taxa matrix (percentages, concentrations,
   accumulation rates) for plotting and export.
 - **`write_tlx()`** — export a `pollen_site` to Tilia XML format (`.tlx`) for
   Neotoma upload, with Data, Percents, Concentrations, and Accumulation sheets,
   including full sample metadata rows matching Tilia's native format.
+- **`write_pangaea()`** — export a site as a PANGAEA-ready TAB-delimited table:
+  event label first, depth in metres as the third geocode, then one column per
+  taxon with its unit in square brackets. Event and position are written per
+  row, so a folder of surface samples from many places exports as one dataset
+  with many events. Neotoma remains the first choice for pollen; this is for
+  the multi-proxy and marine cases where PANGAEA is the natural home.
 
 ### Calculations
 - **`count_metrics()`** — per-group assemblage sums, basic/total sums, spike

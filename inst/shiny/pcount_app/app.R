@@ -8,6 +8,8 @@ library(pcountr)
 
 # ── Helpers ------------------------------------------------------------------
 
+# A blank text input means "not entered", which is NA rather than "".
+.blank_na <- function(x) { x <- trimws(x %||% ""); if (nzchar(x)) x else NA_character_ }
 `%||%` <- function(a, b) if (is.null(a) || length(a) == 0L) b else a
 
 wrap_tokens <- function(tokens, width = 68) {
@@ -327,7 +329,10 @@ table.dataTable tbody td.sorting_1 { background: transparent !important; }
   border: 1px solid #3e3e42 !important; }
 
 /* ── Misc ── */
-hr { border-color: #3e3e42 !important; }
+/* Bootstrap gives hr 20px top and bottom. The counting screen stacks three
+   of them in the right-hand column, which costs ~120px of vertical space on
+   a laptop. Halved so the whole interface fits without scrolling. */
+hr { border-color: #3e3e42 !important; margin: 10px 0 !important; }
 .carried-dic { color: #4ec9b0; font-size: 13px; margin-bottom: 8px; }
 .meta-section { background: #1e1e1e; border-radius: 6px;
                 padding: 12px 14px; margin-bottom: 8px;
@@ -467,6 +472,14 @@ setup_panel <- function(is_resume = FALSE, meta = NULL) {
   def_atop   <- m$age_top
   def_abot   <- m$age_bottom
   def_title  <- m$title         %||% ""
+  # Site-level provenance. Held per sample, but normally identical across a
+  # core, so these carry over on New Sample like the spike settings do.
+  def_lat    <- m$latitude        %||% NA
+  def_lon    <- m$longitude       %||% NA
+  def_elev   <- m$elevation       %||% NA
+  def_cdate  <- m$collection_date %||% ""
+  def_device <- m$device          %||% ""
+  def_evlab  <- m$event_label     %||% ""
   def_path   <- m$save_path     %||% ""
 
   div(class = "setup-wrap",
@@ -522,8 +535,45 @@ setup_panel <- function(is_resume = FALSE, meta = NULL) {
                  selected = def_use_pres, inline = TRUE),
     hr(),
 
-    # ── Sample location & age ──
-    p("Sample location & age — optional",
+    # ── Site location & provenance (collapsed by default) ──
+    # conditionalPanel rather than Bootstrap collapse markup: the data-toggle
+    # attribute differs between Bootstrap 3 and 5, this works on either.
+    checkboxInput("show_site_loc",
+                  "Site location & provenance \u2014 optional", value = FALSE),
+    conditionalPanel(
+      condition = "input.show_site_loc",
+      p("Where the sample was collected. Carried over to the next sample.",
+        style = "color:#a0a0a0;font-size:11px;margin:-4px 0 6px 0;"),
+      fluidRow(
+        column(6, numericInput("site_lat",  "Latitude (decimal)",
+                               value = def_lat,  step = 0.0001)),
+        column(6, numericInput("site_lon",  "Longitude (decimal)",
+                               value = def_lon,  step = 0.0001))
+      ),
+      p("Positive north and east, WGS84. Leave blank if unknown.",
+        style = "color:#a0a0a0;font-size:11px;margin-top:-6px;"),
+      fluidRow(
+        column(6, numericInput("site_elev", "Elevation (m a.s.l.)",
+                               value = def_elev, step = 1)),
+        column(6, textInput("site_cdate",   "Collection date (YYYY-MM-DD)",
+                            value = def_cdate, placeholder = "2026-05-13"))
+      ),
+      fluidRow(
+        column(6, textInput("site_device",  "Device / method",
+                            value = def_device,
+                            placeholder = "e.g. Livingstone corer")),
+        column(6, textInput("site_evlab",   "Event label",
+                            value = def_evlab, placeholder = "e.g. LM23-1"))
+      ),
+      p("Event label: Short name for where this sample was collected ",
+        "(e.g. core ID). Different locations take different labels. ",
+        "Blank uses the site/folder name.",
+        style = "color:#a0a0a0;font-size:11px;margin-top:-6px;")
+    ),
+    hr(),
+
+    # ── Sample depth & age ──
+    p("Sample depth & age \u2014 optional",
       style = "color:#a0a0a0;font-size:12px;margin-bottom:6px;"),
     textInput("sample_name", "Sample name",
               placeholder = "e.g. FL24#001", value = def_sname),
@@ -642,6 +692,27 @@ counting_panel <- function() {
                                        value = NA, min = 0, step = 1))
               ),
               p("BP = years before present; present = 1950 CE.",
+                style = "color:#a0a0a0;font-size:11px;margin-top:-4px;")
+            ),
+            div(class = "meta-section",
+              div(class = "meta-section-title", "Site Location & Provenance"),
+              fluidRow(
+                column(6, numericInput("meta_lat",  "Latitude (decimal)",
+                                       value = NA, step = 0.0001)),
+                column(6, numericInput("meta_lon",  "Longitude (decimal)",
+                                       value = NA, step = 0.0001))
+              ),
+              fluidRow(
+                column(6, numericInput("meta_elev", "Elevation (m a.s.l.)",
+                                       value = NA, step = 1)),
+                column(6, textInput("meta_cdate",   "Collection date",
+                                    value = "", placeholder = "YYYY-MM-DD"))
+              ),
+              fluidRow(
+                column(6, textInput("meta_device",  "Device / method", value = "")),
+                column(6, textInput("meta_evlab",   "Event label",     value = ""))
+              ),
+              p("Recorded per sample. Positive north and east, WGS84.",
                 style = "color:#a0a0a0;font-size:11px;margin-top:-4px;")
             ),
             div(class = "meta-section",
@@ -767,8 +838,6 @@ counting_panel <- function() {
                                                            FALSE))) "Yes" else "No",
                            inline   = TRUE)),
           hr(),
-          div(class = "stat-label", textOutput("save_msg", inline = FALSE)),
-          br(),
           actionButton("done_btn",   "✓  Done / Save",
                        class = "btn-success btn-full"),
           tags$button("⊕  New Sample",
@@ -1043,6 +1112,16 @@ server <- function(input, output, session) {
     updateRadioButtons(session,  "conc_method",   selected = ps$conc_method %||% "spike")
     updateRadioButtons(session,  "use_pres",
                        selected = if (isFALSE(ps$use_pres)) "no" else "yes")
+    updateNumericInput(session,  "site_lat",    value = ps$latitude)
+    updateNumericInput(session,  "site_lon",    value = ps$longitude)
+    updateNumericInput(session,  "site_elev",   value = ps$elevation)
+    updateTextInput(session,     "site_cdate",  value = ps$collection_date %||% "")
+    updateTextInput(session,     "site_device", value = ps$device %||% "")
+    updateTextInput(session,     "site_evlab",  value = ps$event_label %||% "")
+    # Open the panel when values carried over, so an analyst moving to a new
+    # location sees what was inherited rather than silently keeping it.
+    if (!is.na(ps$latitude %||% NA) || nzchar(ps$device %||% ""))
+      updateCheckboxInput(session, "show_site_loc", value = TRUE)
     updateTextInput(session,     "save_path",     value    = ps$next_path)
     rv$prefill <- FALSE
   })
@@ -1072,6 +1151,12 @@ server <- function(input, output, session) {
     rv$depth_bottom  <- suppressWarnings(as.numeric(input$depth_bottom))
     rv$age_top       <- suppressWarnings(as.numeric(input$age_top))
     rv$age_bottom    <- suppressWarnings(as.numeric(input$age_bottom))
+    rv$latitude        <- suppressWarnings(as.numeric(input$site_lat))
+    rv$longitude       <- suppressWarnings(as.numeric(input$site_lon))
+    rv$elevation       <- suppressWarnings(as.numeric(input$site_elev))
+    rv$collection_date <- .blank_na(input$site_cdate)
+    rv$device          <- .blank_na(input$site_device)
+    rv$event_label     <- .blank_na(input$site_evlab)
     rv$save_path     <- sp
     rv$created       <- Sys.time()
 
@@ -1115,6 +1200,24 @@ server <- function(input, output, session) {
 
   observeEvent(input$meta_title, {
     rv$title <- input$meta_title; do_autosave()
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
+  observeEvent(input$meta_lat, {
+    rv$latitude <- suppressWarnings(as.numeric(input$meta_lat)); do_autosave()
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
+  observeEvent(input$meta_lon, {
+    rv$longitude <- suppressWarnings(as.numeric(input$meta_lon)); do_autosave()
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
+  observeEvent(input$meta_elev, {
+    rv$elevation <- suppressWarnings(as.numeric(input$meta_elev)); do_autosave()
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
+  observeEvent(input$meta_cdate, {
+    rv$collection_date <- .blank_na(input$meta_cdate); do_autosave()
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
+  observeEvent(input$meta_device, {
+    rv$device <- .blank_na(input$meta_device); do_autosave()
+  }, ignoreInit = TRUE, ignoreNULL = FALSE)
+  observeEvent(input$meta_evlab, {
+    rv$event_label <- .blank_na(input$meta_evlab); do_autosave()
   }, ignoreInit = TRUE, ignoreNULL = FALSE)
 
   observeEvent(input$meta_sample_name, {
@@ -1178,6 +1281,12 @@ server <- function(input, output, session) {
     updateNumericInput(session, "meta_depth_bottom",  value    = isolate(rv$depth_bottom))
     updateNumericInput(session, "meta_age_top",       value    = isolate(rv$age_top))
     updateNumericInput(session, "meta_age_bottom",    value    = isolate(rv$age_bottom))
+    updateNumericInput(session, "meta_lat",           value    = isolate(rv$latitude))
+    updateNumericInput(session, "meta_lon",           value    = isolate(rv$longitude))
+    updateNumericInput(session, "meta_elev",          value    = isolate(rv$elevation))
+    updateTextInput(session,    "meta_cdate",         value    = isolate(rv$collection_date) %||% "")
+    updateTextInput(session,    "meta_device",        value    = isolate(rv$device) %||% "")
+    updateTextInput(session,    "meta_evlab",         value    = isolate(rv$event_label) %||% "")
     updateNumericInput(session, "meta_sample_qty",    value    = isolate(rv$sample_qty))
     updateRadioButtons(session, "meta_sample_units",  selected = isolate(rv$sample_units))
     updateNumericInput(session, "meta_spike_qty",     value    = isolate(rv$spike_qty))
@@ -1388,6 +1497,12 @@ server <- function(input, output, session) {
       conc_method   = rv$conc_method,
       use_pres      = rv$use_pres,
       pollen_sum    = rv$pollen_sum,
+      latitude        = rv$latitude,
+      longitude       = rv$longitude,
+      elevation       = rv$elevation,
+      collection_date = rv$collection_date,
+      device          = rv$device,
+      event_label     = rv$event_label,
       next_path     = next_save_path(rv$save_path)
     )
     rv$events        <- list()
@@ -1521,7 +1636,10 @@ server <- function(input, output, session) {
         age_top=rv$age_top,       age_bottom=rv$age_bottom,
         source_file=basename(rv$save_path),
         conc_method=rv$conc_method,
-        use_pres=rv$use_pres)
+        use_pres=rv$use_pres,
+        latitude=rv$latitude, longitude=rv$longitude,
+        elevation=rv$elevation, collection_date=rv$collection_date,
+        device=rv$device, event_label=rv$event_label)
       write_pollen_count(cnt, rv$save_path)
     }, error=function(e) invisible(NULL))
   }
@@ -1766,10 +1884,6 @@ server <- function(input, output, session) {
     trav <- rv$cur_traverse
     if (is.null(trav)||(length(trav)==1L&&is.na(trav))) "current traverse: —"
     else paste0("current traverse: /", trav, "/")
-  })
-  output$save_msg <- renderText({
-    sp <- rv$save_path %||% ""
-    if (nzchar(sp)) paste0("autosaving → ", basename(sp)) else ""
   })
   output$taxon_bar <- renderUI({
     tx   <- top_taxa_rv(); show <- rv$show_pct

@@ -34,8 +34,17 @@ key produce a warning and are skipped.
 All editable columns present in the CSV are applied when non-NA:
 \code{depth_top}, \code{depth_bottom}, \code{age_top}, \code{age_bottom}, \code{sample_name},
 \code{sample_quantity}, \code{units}, \code{spike_tablets}, \code{spike_density},
-\code{spike_units}, \code{conc_method}, \code{title}. The \code{source_file} column is used
-for matching only and is never written back.
+\code{spike_units}, \code{conc_method}, \code{title}, and the per-sample
+\code{latitude}, \code{longitude}, \code{elevation}, \code{collection_date}, \code{device} and
+\code{event_label}. The \code{source_file} column is used for matching only and is
+never written back.
+
+The six provenance columns carry one value per row, because provenance is
+recorded per sample. Editing them here is the supported way to add positions
+to a site counted before they were known: for a single core, set the same
+value in every row and \code{\link[=read_site]{read_site()}} will report it on the site; for a
+transect, give each row its own, and the site reports how many distinct
+positions it holds rather than a single one.
 }
 \examples{
 \dontrun{

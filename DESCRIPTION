@@ -13,7 +13,9 @@ Description: An interactive, keystroke-driven counting application for recording
     and age. Provides report calculations (assemblage sums, tracer-spike ratios,
     concentrations, traverse statistics, preservation tabulations), a wide
     samples-by-taxa matrix for stratigraphic plotting (e.g. 'rioja'), accumulation
-    rates, and export to Tilia XML (.tlx) for Neotoma integration and upload. Also reads and
+    rates, and export to Tilia XML (.tlx) for Neotoma integration and upload or to
+    a TAB-delimited table for PANGAEA. Because the counting sequence is preserved,
+    counts remain addressable by position on the slide. Also reads and
     converts legacy MS-DOS 'PCount' .CNT files and their .DIC dictionaries.
     Chronology construction is delegated to dedicated tools (e.g. 'rbacon',
     'clam'); pcountr performs accumulation-rate arithmetic from

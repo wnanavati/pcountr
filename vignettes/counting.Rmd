@@ -414,6 +414,52 @@ menu before submitting to Neotoma.
 
 ---
 
+## Export to PANGAEA
+
+For datasets headed to PANGAEA rather than Neotoma — typically multi-proxy or
+marine, since PANGAEA's author guide asks submitters to prefer a community
+repository where one exists. `write_pangaea()` writes one TAB-delimited UTF-8
+table per call, with the event label first, depth converted to metres as the
+third geocode, and each taxon's unit in square brackets.
+
+```{r write-pangaea}
+pan_path <- tempfile(fileext = ".txt")
+write_pangaea(site, file = pan_path, quiet = TRUE)
+
+hdr <- strsplit(readLines(pan_path, n = 1), "\t")[[1]]
+cat("Columns:", length(hdr), "\n")
+cat(paste(utils::head(hdr, 9), collapse = " | "), "\n")
+```
+
+Event, position, elevation and date are written per row, taken from each
+sample, so a folder of surface samples collected at different places exports
+as one dataset with many events. Fields nothing fills are left blank and
+listed after writing: the file is a draft to finish before submission, the
+same way a `.tlx` is finished in Tilia. Depth is the exception — it is the
+third geocode, and `write_pangaea()` stops without it.
+
+---
+
+## Where on the slide was it counted?
+
+Because the counting sequence and its traverse labels are preserved,
+identifications stay addressable by position. `extract_traverses()` returns
+one row per sample and traverse:
+
+```{r traverses}
+tv <- extract_traverses(site)
+utils::head(tv[, c("sample", "traverse", "ordinal", "position",
+                   "n_ident", "n_marker", "richness")])
+```
+
+Where a traverse label begins with a number — an analyst recording stage
+coordinates in millimetres — that number becomes `position`, and `dist_start`
+measures from the sample's first traverse. Labels that are not numeric yield
+`NA` and the row is still returned. `taxa = TRUE` gives the same table per
+taxon, for asking whether composition varies across a slide.
+
+---
+
 ## Non-pollen applications
 
 The workflow above applies without modification to other stratigraphic proxies.
