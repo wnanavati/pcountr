@@ -2,6 +2,34 @@
 
 ## pcountr 0.8.0.9000 (development version)
 
+### Fixed — `extract_traverses()` merged traverses that shared a label
+
+**This changes results.** Anyone who has run `extract_traverses()` on a count
+whose traverse labels repeat will get different — correct — numbers.
+
+A traverse was identified by its label text, so every entry ever recorded
+under `"118N"` was pooled into a single row. Labels repeat more often than
+that assumption allows. A sample counted over several slides returns to the
+same stage coordinates on each one, so `"118N"` may name a different traverse
+on each piece of glass; a label can also be typed twice within one slide. In
+a four-slide count in the test record, 88 traverses collapsed to 65 and
+23 were lost. Two of the twenty bundled Fake Lake files carry the same
+collision on a smaller scale, which is why the existing tests never caught
+it: they asserted that ordinals ran in sequence and that counts summed to the
+sample total, and both stayed true while a traverse silently disappeared.
+
+A traverse is now a *run* of consecutive entries sharing a label. Each marker
+the analyst types begins a new traverse, and consecutive repeats of the same
+label stay one traverse, since that is a re-typed marker rather than a
+revisit. Totals are unaffected — every entry was always counted exactly once
+— but the counting-order structure was wrong, so anything that accumulated by
+`ordinal` was wrong with it.
+
+**`traverse` is no longer unique within a sample; `ordinal` is the key.**
+Where labels encode stage position, two traverses sharing a label sit at the
+same place on different slides, which is what makes pooling them by
+`position` meaningful even though they are separate traverses.
+
 ### Fixed — the counting screen no longer overflows a laptop window
 
 The right-hand column had grown past the fold, forcing a scroll to reach

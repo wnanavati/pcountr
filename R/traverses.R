@@ -22,6 +22,21 @@
 #' composition varies across a coverslip, and whether spreading a given
 #' counting effort over more of the slide changes the answer.
 #'
+#' @section What counts as one traverse:
+#' A traverse is a run of consecutive entries sharing a label, not every
+#' entry that ever carried that label. This matters when a sample is counted
+#' over more than one slide: the analyst returns to the same stage
+#' coordinates on each slide, so a label such as `"118N"` can name a
+#' different traverse on each piece of glass. Each marker typed begins a new
+#' traverse, and `ordinal` numbers them in counting order. Consecutive
+#' repeats of the same label remain one traverse, since that is a re-typed
+#' marker rather than a revisit.
+#'
+#' `traverse` is therefore not unique within a sample, and `ordinal` is the
+#' key. Where labels encode stage position, two traverses sharing a label
+#' sit at the same place on different slides — which is what makes pooling
+#' them by `position` meaningful even though they are separate traverses.
+#'
 #' @section Position parsing:
 #' Traverse labels are free text. Where a label begins with a number, that
 #' number is taken as `position`, and a trailing compass letter as
@@ -112,7 +127,18 @@ extract_traverses <- function(site, taxa = FALSE) {
 
   # Counting order, not alphabetical: traverses are spatial positions visited
   # in sequence, so their order is data.
-  labs <- unique(trav)
+  #
+  # A traverse is a *run* of consecutive entries sharing a label, not every
+  # entry that ever carried that label. Labels repeat: a sample counted over
+  # several slides returns to the same stage coordinates on each one, so
+  # "118N" may name four different traverses on four pieces of glass. Keying
+  # on the label text pooled them into one row and discarded the rest -- in
+  # one four-slide count, 88 traverses collapsed to 65. Each marker the
+  # analyst typed begins a new traverse, which is what run-length encoding
+  # the label sequence gives. Consecutive repeats of the same label stay one
+  # traverse, since that is a re-typed marker rather than a revisit.
+  run  <- cumsum(c(TRUE, trav[-1] != trav[-length(trav)]))
+  labs <- trav[!duplicated(run)]          # one label per run, in counting order
   pos  <- .parse_traverse_pos(labs)
 
   if (taxa) {
@@ -120,13 +146,12 @@ extract_traverses <- function(site, taxa = FALSE) {
     if (!any(g)) return(data.frame())
     agg <- stats::aggregate(
       list(n = rep(1L, sum(g)), weight = wt[g]),
-      by = list(traverse = trav[g], code = code[g]), FUN = sum)
-    idx <- match(agg$traverse, labs)
+      by = list(ordinal = run[g], code = code[g]), FUN = sum)
     return(data.frame(
       sample   = key,
-      traverse = agg$traverse,
-      ordinal  = idx,
-      position = pos$position[idx],
+      traverse = labs[agg$ordinal],
+      ordinal  = agg$ordinal,
+      position = pos$position[agg$ordinal],
       code     = agg$code,
       n        = agg$n,
       weight   = agg$weight,
@@ -135,7 +160,7 @@ extract_traverses <- function(site, taxa = FALSE) {
   }
 
   per <- lapply(seq_along(labs), function(i) {
-    sel <- trav == labs[i]
+    sel <- run == i
     cd  <- code[sel]; tp <- type[sel]; w <- wt[sel]
     is_sp  <- tp == "spike"
     is_spc <- tp == "grain" & cd %in% special

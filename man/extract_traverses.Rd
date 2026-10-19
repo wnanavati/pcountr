@@ -49,6 +49,23 @@ composition varies across a coverslip, and whether spreading a given
 counting effort over more of the slide changes the answer.
 }
 
+\section{What counts as one traverse}{
+
+A traverse is a run of consecutive entries sharing a label, not every
+entry that ever carried that label. This matters when a sample is counted
+over more than one slide: the analyst returns to the same stage
+coordinates on each slide, so a label such as \code{"118N"} can name a
+different traverse on each piece of glass. Each marker typed begins a new
+traverse, and \code{ordinal} numbers them in counting order. Consecutive
+repeats of the same label remain one traverse, since that is a re-typed
+marker rather than a revisit.
+
+\code{traverse} is therefore not unique within a sample, and \code{ordinal} is the
+key. Where labels encode stage position, two traverses sharing a label
+sit at the same place on different slides — which is what makes pooling
+them by \code{position} meaningful even though they are separate traverses.
+}
+
 \section{Position parsing}{
 
 Traverse labels are free text. Where a label begins with a number, that
