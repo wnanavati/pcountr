@@ -37,6 +37,10 @@
 #'   Recorded per sample rather than per site: a folder may hold one core at
 #'   a single position, or surface samples collected across a region.
 #'   [read_site()] summarizes them onto the site.
+#' @param created ISO timestamp of when this count was first written. Left
+#'   `NA` for a new count: [write_pollen_count()] stamps it on the first
+#'   write and preserves it on every write after, so it records when the
+#'   sample was started rather than when it was last saved.
 #' @param use_pres Logical; `TRUE` (default) means entries carry preservation
 #'   codes. `FALSE` means no preservation digit was recorded.
 #' @param site Optional [pollen_site()].
@@ -69,6 +73,7 @@ pollen_count <- function(grains,
                          collection_date = NA_character_,
                          device = NA_character_,
                          event_label = NA_character_,
+                         created = NA_character_,
                          site = NULL) {
   structure(
     list(
@@ -104,7 +109,11 @@ pollen_count <- function(grains,
         elevation = elevation,
         collection_date = collection_date,
         device = device,
-        event_label = event_label
+        event_label = event_label,
+        # When this count was first written. Carried through reads and writes
+        # unchanged, so it records when the sample was started rather than
+        # when it was last touched; `last_modified` in the YAML covers that.
+        created = created
       ),
       site = site
     ),

@@ -143,9 +143,22 @@ all other actions (traverses, remarks, undo, metadata changes) save immediately.
 Closing the browser or losing power risks losing at most a handful of the most
 recent rapid keystrokes. The *Done / Save* button is a confirmation step only.
 
+**Check the save line.** Above *Done / Save* a single line reports the last
+write: `saved 14:02:07 — 317 entries, 76 kB`, with the time advancing as you
+count. It is read from the file on disk rather than from the writing code, so
+it cannot report a save that did not happen. If a write fails — a folder that
+no longer exists, a file held open by a syncing client, a read-only drive —
+the line turns red and names the reason, a recovery copy is written to
+`tempdir()/pcountr-recovery/`, and your count stays in memory so you can
+correct the path and press *Done / Save*. A glance at that line is the fastest
+way to confirm a session is reaching disk.
+
 To resume a previous count, click **Open Existing Count** on the setup screen
-and navigate to the YAML file. Entry order, traverses, remarks, spike total, and
-all metadata are restored exactly as they were.
+and navigate to the YAML file. Entry order, traverses, remarks, spike total,
+site location and provenance, and all other metadata are restored exactly as
+they were. The file's `created` timestamp is preserved rather than reset, so
+it continues to record when the sample was started; `last_modified` moves with
+each save. Both are shown read-only on the **Sample Info** tab.
 
 After finishing a sample, **New Sample** carries over instrument metadata
 (dictionary, spike parameters, sample units) and suggests an incremented save

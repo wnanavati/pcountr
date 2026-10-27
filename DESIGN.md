@@ -307,6 +307,24 @@ The package prefers the real `yaml` package and falls back to a minimal built-in
 emitter when `yaml` is unavailable (it was unavailable in the original sandbox;
 it will be available via CRAN in Cowork — install it).
 
+**Two timestamps, not one (v0.9.0).** `created` is stamped on the first write
+and preserved on every write after; `last_modified` is replaced each time. One
+timestamp cannot carry both meanings, and the one that matters scientifically
+is the first — when the sample was counted, not when the file was last opened.
+`write_pollen_count()` owns both: the caller supplies `created` only when
+carrying a value forward, and `read_pollen_count()` reads it back so that a
+read-then-write cycle, which is what resuming a count does, does not restamp
+it. This replaced a version where the counting app set the creation time on
+every start, so reopening a count silently redated it.
+
+**The `.CNT` header cannot carry `last_modified`.** `read_cnt()` parses that
+block positionally — `header[3]` is the config line, `header[4]` the pollen
+sum, `header[5]` the title — so inserting a line shifts all three and
+misparses every `.CNT` the package writes, including its own round trip. The
+legacy format keeps its single `File created` line and the second timestamp
+lives only in the YAML. This is a general constraint on the `.CNT` writer, not
+a decision about timestamps: nothing may be added to that header.
+
 ---
 
 ## 9. Verification status

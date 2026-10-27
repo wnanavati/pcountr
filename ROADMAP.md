@@ -122,7 +122,34 @@ the `dev` branch.
   entry now withdraws the claim explicitly rather than editing it away, since
   the original was already pushed.
 
+- **The counting app could fail to save silently.** `do_autosave()` discarded
+  every error it met, and Done / Save reported success without checking, so a
+  count could run for hours and reach disk once. Errors are now reported, the
+  write is verified by reading the file size back, a recovery copy goes to
+  `tempdir()` when the chosen path fails, and a save-state line above the Done
+  button reports the last write or the reason there was none. Found after a
+  day's counting was lost.
+
+- **Resuming a count erased its site provenance.** `rv$loaded_meta` omitted the
+  six fields, so the setup panel showed blanks on resume and the next autosave
+  wrote those blanks back over the file. Also fixed `app.R`'s local `%||%`
+  letting `NA` reach text inputs as the literal string `"NA"`, which was then
+  saved as a real device or event label.
+
+- **`created` and `last_modified` in the YAML.** `created` is stamped once and
+  preserved; `last_modified` moves with each write. Previously the creation
+  time existed only in the `.CNT` header and was reset on every app start,
+  including a resume. `test-timestamps.R` pins the invariant across a
+  read/rewrite cycle. The `.CNT` header cannot take a second timestamp — see
+  DESIGN.md section 8.
+
 **Still to do**
+
+- **The counting app has no automated tests.** The save-verification path, the
+  resume handler and the Sample Info observers are all untested, which is why
+  a silent save failure survived a release. Shiny reactives need `shinytest2`;
+  until then every app change rests on counting a live sample. This is the
+  largest remaining coverage gap in the package.
 
 - **Decide whether `write_tlx()` should emit site coordinates.** Now that a
   site can carry them, the Tilia export could populate site and

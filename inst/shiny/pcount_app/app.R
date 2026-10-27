@@ -8,9 +8,38 @@ library(pcountr)
 
 # ── Helpers ------------------------------------------------------------------
 
+`%||%` <- function(a, b) if (is.null(a) || length(a) == 0L) b else a
+
 # A blank text input means "not entered", which is NA rather than "".
 .blank_na <- function(x) { x <- trimws(x %||% ""); if (nzchar(x)) x else NA_character_ }
-`%||%` <- function(a, b) if (is.null(a) || length(a) == 0L) b else a
+
+# The inverse, for putting a stored value back into a text box. Needed because
+# this file's `%||%` tests only NULL and length 0, while the package's also
+# tests NA -- so `NA_character_ %||% ""` is NA here, updateTextInput() renders
+# the literal string "NA", and the Sample Info observer then saves "NA" back
+# as a real device or event label. Blank means blank.
+.na_chr <- function(x) {
+  if (is.null(x) || length(x) == 0L) return("")
+  x <- as.character(x)[1]
+  if (is.na(x) || identical(x, "NA")) "" else x
+}
+
+# `created` arrives either as a POSIXct (a count started in this session) or
+# as the ISO string read back from a YAML (a count being resumed). These two
+# move between the forms so neither path has to care which it holds.
+.iso_or_na <- function(x) {
+  if (is.null(x) || length(x) == 0L) return(NA_character_)
+  if (inherits(x, "POSIXt")) return(format(x, "%Y-%m-%dT%H:%M:%S"))
+  x <- as.character(x)[1]
+  if (is.na(x)) NA_character_ else x
+}
+.as_time <- function(x) {
+  if (is.null(x) || length(x) == 0L) return(Sys.time())
+  if (inherits(x, "POSIXt")) return(x)
+  t <- suppressWarnings(as.POSIXct(as.character(x)[1], tz = "",
+         tryFormats = c("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d")))
+  if (length(t) != 1L || is.na(t)) Sys.time() else t
+}
 
 wrap_tokens <- function(tokens, width = 68) {
   if (!length(tokens)) return(character(0))
@@ -31,8 +60,12 @@ render_stream <- function(events, dic_name, sample_qty, spike_qty,
   # PCount's convention is 2 = ml, 1 = g (see .parse_config in read_cnt.R).
   # Default to ml, which is what pcountr's own counting workflow assumes.
   units_code <- switch(sample_units, ml = "2", g = "1", "2")
+  # Exactly five header lines. read_cnt() parses this block positionally --
+  # header[3] config, header[4] pollen sum, header[5] title -- so an extra
+  # line here would misparse every .CNT the app exports. "File last modified"
+  # therefore lives in the YAML only.
   header <- c(
-    paste("File created", format(created, "%d %b %Y  %H:%M")),
+    paste("File created", format(.as_time(created), "%d %b %Y  %H:%M")),
     sprintf("%s.DIC, %s, %s, %s, 0, %s;",
             dic_name, sample_qty, spike_qty, spike_density, units_code),
     paste("POLLEN SUM =", paste(pollen_sum, collapse = "")),
@@ -477,9 +510,9 @@ setup_panel <- function(is_resume = FALSE, meta = NULL) {
   def_lat    <- m$latitude        %||% NA
   def_lon    <- m$longitude       %||% NA
   def_elev   <- m$elevation       %||% NA
-  def_cdate  <- m$collection_date %||% ""
-  def_device <- m$device          %||% ""
-  def_evlab  <- m$event_label     %||% ""
+  def_cdate  <- .na_chr(m$collection_date)
+  def_device <- .na_chr(m$device)
+  def_evlab  <- .na_chr(m$event_label)
   def_path   <- m$save_path     %||% ""
 
   div(class = "setup-wrap",
@@ -675,7 +708,12 @@ counting_panel <- function() {
               textInput("meta_title",
                         "Sample title", value = ""),
               textInput("meta_sample_name",
-                        "Sample name", value = "")
+                        "Sample name", value = ""),
+              # Read-only. Both are recorded by the writer, not typed: the
+              # first is fixed at the first save, the second moves with every
+              # save. Showing them here is also the quickest way to confirm a
+              # save is actually happening.
+              uiOutput("meta_timestamps")
             ),
             div(class = "meta-section",
               div(class = "meta-section-title", "Depth & Age"),
@@ -838,6 +876,10 @@ counting_panel <- function() {
                                                            FALSE))) "Yes" else "No",
                            inline   = TRUE)),
           hr(),
+          # One line, always present, saying whether the last write reached
+          # disk. Costs a single row and is the difference between noticing a
+          # failed save immediately and noticing it after a day of counting.
+          uiOutput("save_state"),
           actionButton("done_btn",   "✓  Done / Save",
                        class = "btn-success btn-full"),
           tags$button("⊕  New Sample",
@@ -882,6 +924,21 @@ server <- function(input, output, session) {
     age_bottom    = NA_real_,
     save_path     = "",
     created       = NULL,
+    # Save state, so the interface can show whether the last write reached
+    # disk rather than leaving the analyst to assume it did.
+    save_err      = NULL,
+    save_time     = NULL,
+    save_size     = NULL,
+    save_n        = NULL,
+    # Site provenance. Initialised here so rv$latitude is NA rather than NULL
+    # before the setup form is read; as.numeric(NULL) is numeric(0), which
+    # propagates differently and is harder to reason about.
+    latitude        = NA_real_,
+    longitude       = NA_real_,
+    elevation       = NA_real_,
+    collection_date = NA_character_,
+    device          = NA_character_,
+    event_label     = NA_character_,
     # Counting
     events        = list(),
     slide_n       = 0L,
@@ -1007,6 +1064,17 @@ server <- function(input, output, session) {
       depth_bottom  = suppressWarnings(as.numeric(m$depth_bottom %||% NA)),
       age_top       = suppressWarnings(as.numeric(m$age_top      %||% NA)),
       age_bottom    = suppressWarnings(as.numeric(m$age_bottom   %||% NA)),
+      # Provenance has to be carried here too. setup_panel() reads def_lat and
+      # the rest off this list, so omitting them meant a resumed count always
+      # showed an empty Site location panel even when the YAML held one -- and
+      # then wrote those blanks back on the next autosave.
+      latitude        = suppressWarnings(as.numeric(m$latitude  %||% NA)),
+      longitude       = suppressWarnings(as.numeric(m$longitude %||% NA)),
+      elevation       = suppressWarnings(as.numeric(m$elevation %||% NA)),
+      collection_date = .na_chr(m$collection_date),
+      device          = .na_chr(m$device),
+      event_label     = .na_chr(m$event_label),
+      created         = m$created,
       save_path     = path
     )
 
@@ -1115,12 +1183,12 @@ server <- function(input, output, session) {
     updateNumericInput(session,  "site_lat",    value = ps$latitude)
     updateNumericInput(session,  "site_lon",    value = ps$longitude)
     updateNumericInput(session,  "site_elev",   value = ps$elevation)
-    updateTextInput(session,     "site_cdate",  value = ps$collection_date %||% "")
-    updateTextInput(session,     "site_device", value = ps$device %||% "")
-    updateTextInput(session,     "site_evlab",  value = ps$event_label %||% "")
+    updateTextInput(session,     "site_cdate",  value = .na_chr(ps$collection_date))
+    updateTextInput(session,     "site_device", value = .na_chr(ps$device))
+    updateTextInput(session,     "site_evlab",  value = .na_chr(ps$event_label))
     # Open the panel when values carried over, so an analyst moving to a new
     # location sees what was inherited rather than silently keeping it.
-    if (!is.na(ps$latitude %||% NA) || nzchar(ps$device %||% ""))
+    if (isTRUE(!is.na(ps$latitude %||% NA)) || nzchar(.na_chr(ps$device)))
       updateCheckboxInput(session, "show_site_loc", value = TRUE)
     updateTextInput(session,     "save_path",     value    = ps$next_path)
     rv$prefill <- FALSE
@@ -1158,7 +1226,11 @@ server <- function(input, output, session) {
     rv$device          <- .blank_na(input$site_device)
     rv$event_label     <- .blank_na(input$site_evlab)
     rv$save_path     <- sp
-    rv$created       <- Sys.time()
+    # Keep the original creation time when resuming. This used to restamp on
+    # every start, so reopening a count silently redated it to the day it was
+    # reopened and the first date was gone.
+    rv$created <- if (isTRUE(rv$is_resume) && !is.null(rv$loaded_meta$created))
+      rv$loaded_meta$created else Sys.time()
 
     if (isTRUE(rv$is_resume) && !is.null(rv$loaded_cnt)) {
       if (length(rv$loaded_cnt$events) > 0) {
@@ -1284,9 +1356,9 @@ server <- function(input, output, session) {
     updateNumericInput(session, "meta_lat",           value    = isolate(rv$latitude))
     updateNumericInput(session, "meta_lon",           value    = isolate(rv$longitude))
     updateNumericInput(session, "meta_elev",          value    = isolate(rv$elevation))
-    updateTextInput(session,    "meta_cdate",         value    = isolate(rv$collection_date) %||% "")
-    updateTextInput(session,    "meta_device",        value    = isolate(rv$device) %||% "")
-    updateTextInput(session,    "meta_evlab",         value    = isolate(rv$event_label) %||% "")
+    updateTextInput(session,    "meta_cdate",         value    = .na_chr(isolate(rv$collection_date)))
+    updateTextInput(session,    "meta_device",        value    = .na_chr(isolate(rv$device)))
+    updateTextInput(session,    "meta_evlab",         value    = .na_chr(isolate(rv$event_label)))
     updateNumericInput(session, "meta_sample_qty",    value    = isolate(rv$sample_qty))
     updateRadioButtons(session, "meta_sample_units",  selected = isolate(rv$sample_units))
     updateNumericInput(session, "meta_spike_qty",     value    = isolate(rv$spike_qty))
@@ -1481,8 +1553,11 @@ server <- function(input, output, session) {
 
   # ── Done / Save -----------------------------------------------------------
   observeEvent(input$done_btn, {
-    do_autosave()
-    showNotification(paste("Saved to:", rv$save_path), type="message", duration=8)
+    # do_autosave() reports its own failure; claiming "Saved to:" regardless of
+    # the outcome is how a failed save looked like a successful one.
+    if (isTRUE(do_autosave(verbose = TRUE)))
+      showNotification(paste("Saved to:", rv$save_path),
+                       type = "message", duration = 8)
   })
 
   # ── New Sample ------------------------------------------------------------
@@ -1612,16 +1687,25 @@ server <- function(input, output, session) {
   })
 
   # ── Autosave -------------------------------------------------------------
-  do_autosave <- function() {
-    if (!rv$setup_done || !nzchar(rv$save_path)) return()
+  # Autosave must never fail quietly. An earlier version swallowed every error
+  # with `error = function(e) invisible(NULL)`, so a count could run for hours
+  # writing nothing while the interface looked normal. Anything that stops a
+  # write now says so, on screen and in the console, and the write is verified
+  # by reading the file size back rather than trusting that write_pollen_count()
+  # returned.
+  do_autosave <- function(verbose = FALSE) {
+    if (!rv$setup_done || !nzchar(rv$save_path %||% "")) return(invisible(FALSE))
     g     <- grains_rv()
     travs <- vapply(Filter(function(e) e$type=="traverse", rv$events),
                     function(e) e$label, "")
     rems  <- lapply(Filter(function(e) e$type=="remark", rv$events),
                     function(e) list(text=e$text, position=e$position,
                                      traverse=e$traverse %||% NA_character_))
+    # Built outside the write, so the recovery path below still has the count
+    # to fall back on when it is the *write* that failed.
+    cnt <- NULL
     tryCatch({
-      cnt <- pollen_count(
+      args <- list(
         grains=g,
         spike_n=rv$base_spike_n +
                 sum(vapply(rv$events, function(e) e$type=="spike", FALSE)),
@@ -1640,8 +1724,79 @@ server <- function(input, output, session) {
         latitude=rv$latitude, longitude=rv$longitude,
         elevation=rv$elevation, collection_date=rv$collection_date,
         device=rv$device, event_label=rv$event_label)
+
+      # Only pass fields the loaded pcountr actually accepts. This file ships
+      # inside the package, but during development it is routinely newer than
+      # the namespace attached in the session -- and an unknown argument would
+      # otherwise abort the whole write. A missing timestamp is a far smaller
+      # loss than a missing count.
+      known <- names(formals(pollen_count))
+      if ("created" %in% known) args$created <- .iso_or_na(rv$created)
+      dropped <- setdiff(names(args), known)
+      if (length(dropped)) {
+        args[dropped] <- NULL
+        warning("pcountr: the loaded package is older than this app and does ",
+                "not accept: ", paste(dropped, collapse = ", "),
+                ". Those fields will not be saved. Reinstall pcountr.",
+                call. = FALSE)
+      }
+      cnt <- do.call(pollen_count, args)
+
+      dir <- dirname(rv$save_path)
+      if (!dir.exists(dir))
+        stop("the folder does not exist: ", dir, call. = FALSE)
+
       write_pollen_count(cnt, rv$save_path)
-    }, error=function(e) invisible(NULL))
+
+      # Trust the disk, not the return value. A write can "succeed" and leave
+      # nothing when the folder is read-only, the file is locked by a syncing
+      # client, or the path is on a disconnected drive.
+      sz <- suppressWarnings(file.info(rv$save_path)$size)
+      if (is.na(sz) || sz <= 0)
+        stop("the file was not written: ", rv$save_path, call. = FALSE)
+
+      removeNotification("pcountr_save_err")   # clear a previous failure
+      rv$save_err  <- NULL
+      rv$save_time <- Sys.time()
+      rv$save_size <- sz
+      rv$save_n    <- nrow(g)
+      if (verbose)
+        showNotification(sprintf("Saved %d entries to %s", nrow(g),
+                                 basename(rv$save_path)),
+                         type = "message", duration = 6)
+      invisible(TRUE)
+    }, error = function(e) {
+      rv$save_err <- conditionMessage(e)
+      message("pcountr autosave FAILED: ", conditionMessage(e))
+
+      # Last resort. If the chosen path cannot be written -- wrong folder,
+      # read-only drive, file locked by a syncing client -- put the count
+      # somewhere that almost certainly can be, so hours of counting are not
+      # riding on one path being correct. Silent on its own failure, because
+      # by then there is nothing further to try.
+      fb <- if (is.null(cnt)) NULL else tryCatch({
+        d <- file.path(tempdir(), "pcountr-recovery")
+        dir.create(d, showWarnings = FALSE, recursive = TRUE)
+        p <- file.path(d, paste0(
+          tools::file_path_sans_ext(basename(rv$save_path %||% "count")),
+          "-", format(Sys.time(), "%Y%m%d-%H%M%S"), ".yaml"))
+        write_pollen_count(cnt, p); p
+      }, error = function(e2) NULL)
+
+      msg <- paste0("NOT SAVED — ", conditionMessage(e))
+      if (!is.null(fb))
+        msg <- paste0(msg, "\n\nA recovery copy was written to:\n", fb)
+      msg <- paste0(msg, "\n\nYour count is still in memory. Fix the path, ",
+                    "then press Done / Save.")
+      rv$save_fallback <- fb
+      # A fixed id, so a failure that repeats on every keystroke replaces its
+      # own banner instead of stacking a new one each time. Autosave runs
+      # after every entry; without this, one broken save path buries the
+      # counting screen within seconds.
+      showNotification(msg, type = "error", duration = NULL,
+                       id = "pcountr_save_err")
+      invisible(FALSE)
+    })
   }
 
   # ── Grain table editing --------------------------------------------------
@@ -1885,6 +2040,31 @@ server <- function(input, output, session) {
     if (is.null(trav)||(length(trav)==1L&&is.na(trav))) "current traverse: —"
     else paste0("current traverse: /", trav, "/")
   })
+  output$meta_timestamps <- renderUI({
+    req(rv$setup_done)
+    lab <- "color:#a0a0a0;font-size:11px;margin:0;"
+    val <- function(x) if (is.null(x)) "—"
+                       else format(.as_time(x), "%d %b %Y  %H:%M:%S")
+    tagList(
+      p(style = lab, strong("File created: "), val(rv$created)),
+      p(style = lab, strong("File last modified: "),
+        if (is.null(rv$save_time)) "not saved yet" else val(rv$save_time))
+    )
+  })
+
+  output$save_state <- renderUI({
+    if (!is.null(rv$save_err))
+      return(div(style = "color:#f28b82;font-size:11px;margin-bottom:4px;",
+                 strong("NOT SAVED — "), rv$save_err))
+    if (is.null(rv$save_time))
+      return(div(style = "color:#a0a0a0;font-size:11px;margin-bottom:4px;",
+                 "not saved yet"))
+    div(style = "color:#9ec37d;font-size:11px;margin-bottom:4px;",
+        sprintf("saved %s — %d entries, %.0f kB",
+                format(rv$save_time, "%H:%M:%S"), rv$save_n %||% 0L,
+                (rv$save_size %||% 0) / 1024))
+  })
+
   output$taxon_bar <- renderUI({
     tx   <- top_taxa_rv(); show <- rv$show_pct
     tog  <- actionButton("toggle_btn", if(show) "Show #" else "Show %",

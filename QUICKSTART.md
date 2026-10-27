@@ -304,6 +304,20 @@ the app is still live.
 or the token is malformed. Either retype it, or click **Edit Dictionary** to add
 the taxon.
 
+**A red "NOT SAVED" banner** — the count is fine; the file is not. The message
+names the cause, usually a folder that no longer exists or a file held open by
+another program (OneDrive, Dropbox and antivirus scanners all do this). Your
+count stays in memory, and a recovery copy is written to a temporary folder
+whose path the message gives you. Correct the **Save to** path on the Sample
+Info tab, press **Done / Save**, and check that the line above the button
+turns green. Do not close the window until it does.
+
+**Counting, but is it saving?** The line above **Done / Save** shows the last
+write — `saved 14:02:07 — 317 entries, 76 kB` — and the time advances as you
+count. It reads the file on disk, not the program's intention, so if it is
+moving your work is safe. The same two timestamps appear on the **Sample
+Info** tab.
+
 **Everything else** — open an issue at
 <https://github.com/wnanavati/pcountr/issues> and say what you typed and what
 happened.

@@ -1,9 +1,22 @@
 #' Write a pollen_count to the native YAML format
 #'
 #' Serialises a sample to a single self-contained YAML file: scalar metadata
-#' (site, depths, ages, sample quantity and unit, spike) plus the full per-entry
-#' sequence in counting order, with traverse labels and remarks interleaved by
-#' position. This is the modern replacement for the legacy `.CNT` format.
+#' (site, depths, ages, sample quantity and unit, spike, georeferencing) plus
+#' the full per-entry sequence in counting order, with traverse labels and
+#' remarks interleaved by position. This is the modern replacement for the
+#' legacy `.CNT` format.
+#'
+#' @section Timestamps:
+#' Two fields are managed here rather than supplied by the caller.
+#' `created` is written once: an existing value passes through untouched, and
+#' only a count that has never been saved receives a new stamp, so it records
+#' when the sample was started. `last_modified` is replaced on every write.
+#' Both are ISO 8601 to the second.
+#'
+#' [read_pollen_count()] carries `created` back into the count's metadata, so
+#' a read-then-write cycle — what resuming a count does — preserves it. Files
+#' written before these fields existed have neither and receive a `created`
+#' on their next save, stamped at that moment.
 #'
 #' @param x A `pollen_count`.
 #' @param path Output path (`.yaml`/`.yml`).
@@ -52,9 +65,21 @@ write_pollen_count <- function(x, path) {
     )
   })
 
+  # `created` is written once and never rewritten: an existing value passes
+  # through untouched, and only a count that has never been saved gets a new
+  # stamp. `last_modified` is the opposite -- replaced on every write. Between
+  # them the file records when the sample was started and when it was last
+  # touched, which one timestamp cannot do.
+  now     <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S")
+  created <- x$meta$created
+  if (is.null(created) || length(created) == 0L ||
+      (length(created) == 1L && is.na(created))) created <- now
+
   doc <- list(
     format            = "pcountr/pollen_count",
     format_version    = 2L,
+    created           = created,
+    last_modified     = now,
     site              = if (!is.null(x$site)) x$site$name else NULL,
     title             = .na_null(x$meta$title),
     source_file       = .na_null(x$meta$source_file),
@@ -240,6 +265,10 @@ read_pollen_count <- function(path, site = NULL) {
     collection_date   = doc$collection_date   %||% NA_character_,
     device            = doc$device            %||% NA_character_,
     event_label       = doc$event_label       %||% NA_character_,
+    # Read back so the next write preserves it rather than restamping. Files
+    # written before this field existed have none; they get one on next save,
+    # which is the best that can be reconstructed.
+    created           = doc$created           %||% NA_character_,
     use_pres          = if (isFALSE(doc$use_pres)) FALSE else TRUE,
     site              = site
   )

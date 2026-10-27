@@ -38,3 +38,16 @@ Use the \strong{New Slide} button to record a slide transition; you will be
 prompted for the slide ID.
 }
 
+\section{Saving}{
+
+The YAML file is written continuously: entries within about 300 ms, every
+other action immediately. \strong{Done / Save} is a confirmation step, not the
+moment the file is written.
+
+A line above that button reports the last write — \verb{saved 14:02:07 — 317 entries, 76 kB} — with the time advancing as you count. It is read from the
+file on disk rather than from the writing code, so it cannot report a save
+that did not happen. If a write fails, the line turns red and names the
+reason, a recovery copy is written to \verb{tempdir()/pcountr-recovery/}, and the
+count stays in memory so the path can be corrected and the save retried.
+}
+

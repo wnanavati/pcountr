@@ -2,6 +2,75 @@
 
 ## pcountr 0.8.0.9000 (development version)
 
+### Fixed — the counting app could fail to save without saying so
+
+**This one lost work.** `do_autosave()` ended with
+`error = function(e) invisible(NULL)`, discarding every error it met. A wrong
+path, a read-only folder, a file held open by a syncing client, an argument
+the loaded package did not recognise — all of them produced the same thing:
+nothing written, nothing reported, an interface that looked entirely normal.
+The **Done / Save** button then printed `Saved to: …` whether or not anything
+had been saved, because it never checked. A count could run for hours and
+reach disk once, at the start.
+
+Four changes, because one was not enough:
+
+- Errors are reported, on screen and to the console. The notification carries
+  a fixed id, so a failure repeating on every entry replaces its own banner
+  rather than stacking one per keystroke, and a later success clears it.
+- The write is **verified** by reading the file size back. `write_pollen_count()`
+  returning is not evidence that anything reached disk.
+- **Done / Save** claims success only when the write succeeded.
+- A **recovery copy** goes to `tempdir()/pcountr-recovery/` when the chosen
+  path fails, named after the sample and timestamped. Hours of counting
+  should not depend on one path being right.
+
+A save-state line above the Done button now reads `saved HH:MM:SS — N
+entries, X kB`, or the reason it did not. The previous indicator was removed
+in the vertical-space change of this cycle and nothing replaced it, which is
+part of why a silent failure stayed silent.
+
+The app also no longer aborts a save over an argument the loaded `pcountr`
+does not accept. It checks `formals(pollen_count)` and drops the unknown
+fields with a warning naming them. Running an `app.R` newer than the attached
+namespace is routine during development, and it should cost a field, not the
+count.
+
+### Fixed — resuming a count erased its site provenance
+
+The Open-YAML handler built `rv$loaded_meta` without `latitude`, `longitude`,
+`elevation`, `collection_date`, `device` or `event_label`, so `setup_panel()`
+always showed an empty **Site location & provenance** panel on resume — and
+the next autosave wrote those blanks back over whatever the file held.
+Reopening a georeferenced count and continuing it therefore destroyed the
+georeferencing. All six now load.
+
+Related: `app.R` defines its own `%||%` testing only `NULL` and length zero,
+while the package's also tests `NA`. So `NA_character_ %||% ""` was `NA`,
+`updateTextInput()` rendered the literal string `"NA"`, and the Sample Info
+observer saved `"NA"` back as a real device or event label. A new `.na_chr()`
+handles the ten affected call sites.
+
+### New — `created` and `last_modified` in the YAML
+
+**A format addition: two new keys.** `created` is stamped on the first write
+and preserved on every write after; `last_modified` is replaced each time.
+Between them a file records when the sample was started and when it was last
+touched, which one timestamp cannot do. Both are ISO 8601 to the second.
+
+`created` previously existed only in the `.CNT` export header, fed by a value
+the app reset on every start — including a resume, so reopening a count
+silently redated it. It is now read back from the YAML and carried through.
+
+The `.CNT` header keeps its single `File created` line and gains nothing:
+`read_cnt()` parses that block positionally (`header[3]` config, `header[4]`
+pollen sum, `header[5]` title), so an extra line would misparse every `.CNT`
+the app exports, including its own. `last_modified` lives in the YAML only,
+and both are shown read-only on the **Sample Info** tab.
+
+Files written before this release have neither field and gain a `created` on
+their next save, stamped at that moment — the best that can be reconstructed.
+
 ### Fixed — `extract_traverses()` merged traverses that shared a label
 
 **This changes results.** Anyone who has run `extract_traverses()` on a count

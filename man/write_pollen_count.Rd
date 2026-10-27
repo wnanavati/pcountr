@@ -16,7 +16,22 @@ write_pollen_count(x, path)
 }
 \description{
 Serialises a sample to a single self-contained YAML file: scalar metadata
-(site, depths, ages, sample quantity and unit, spike) plus the full per-entry
-sequence in counting order, with traverse labels and remarks interleaved by
-position. This is the modern replacement for the legacy \code{.CNT} format.
+(site, depths, ages, sample quantity and unit, spike, georeferencing) plus
+the full per-entry sequence in counting order, with traverse labels and
+remarks interleaved by position. This is the modern replacement for the
+legacy \code{.CNT} format.
 }
+\section{Timestamps}{
+
+Two fields are managed here rather than supplied by the caller.
+\code{created} is written once: an existing value passes through untouched, and
+only a count that has never been saved receives a new stamp, so it records
+when the sample was started. \code{last_modified} is replaced on every write.
+Both are ISO 8601 to the second.
+
+\code{\link[=read_pollen_count]{read_pollen_count()}} carries \code{created} back into the count's metadata, so
+a read-then-write cycle — what resuming a count does — preserves it. Files
+written before these fields existed have neither and receive a \code{created}
+on their next save, stamped at that moment.
+}
+

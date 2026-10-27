@@ -33,6 +33,7 @@ pollen_count(
   collection_date = NA_character_,
   device = NA_character_,
   event_label = NA_character_,
+  created = NA_character_,
   site = NULL
 )
 }
@@ -83,6 +84,11 @@ codes. \code{FALSE} means no preservation digit was recorded.}
 Recorded per sample rather than per site: a folder may hold one core at
 a single position, or surface samples collected across a region.
 \code{\link[=read_site]{read_site()}} summarizes them onto the site.}
+
+\item{created}{ISO timestamp of when this count was first written. Left
+\code{NA} for a new count: \code{\link[=write_pollen_count]{write_pollen_count()}} stamps it on the first
+write and preserves it on every write after, so it records when the
+sample was started rather than when it was last saved.}
 
 \item{site}{Optional \code{\link[=pollen_site]{pollen_site()}}.}
 }
